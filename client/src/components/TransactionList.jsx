@@ -15,14 +15,35 @@ const TransactionList = ({ transactions, onTransactionUpdated }) => {
   // --- LÓGICA DE ACCIONES (Pagar y Borrar) ---
   
   // 1. Marcar como PAGADO
+  // Función para marcar como pagado (Con confirmación de monto)
   const handleMarkAsPaid = async (t) => {
+    // 1. Calculamos el valor actual en decimales para mostrárselo al usuario
+    const currentAmount = (t.amount / 100).toFixed(2);
+    
+    // 2. Pedimos confirmación del monto real
+    const realAmountStr = window.prompt(
+      `Confirmar pago de: ${t.description}\n\n¿Cuál es el monto final?`, 
+      currentAmount
+    );
+
+    // Si el usuario cancela, no hacemos nada
+    if (realAmountStr === null) return;
+
+    // 3. Validamos que sea un número
+    const realAmount = parseFloat(realAmountStr);
+    if (isNaN(realAmount) || realAmount <= 0) {
+      alert("Por favor ingresa un monto válido");
+      return;
+    }
+
     try {
+      // 4. Actualizamos: Estado COMPLETED y el Monto Final (en centavos)
       await axios.put(`http://127.0.0.1:3000/api/transactions/${t._id}`, {
         ...t, 
+        amount: realAmount * 100, // Guardamos el nuevo monto confirmado
         status: 'COMPLETED' 
       });
-      // Avisamos al padre (App) que recargue
-      if (onTransactionUpdated) onTransactionUpdated(); 
+      if (onTransactionUpdated) onTransactionUpdated();
     } catch (error) {
       console.error("Error actualizando:", error);
     }

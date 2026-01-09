@@ -39,4 +39,5 @@ const TransactionSchema = new mongoose.Schema({
     timestamps: true // Esto crea automáticamente createdAt y updatedAt
 });
 
-module.exports = mongoose.model('Transaction', TransactionSchema);
+// Si mongoose.models.Transaction ya existe, úsalo. Si no, crea uno nuevo.
+module.exports = mongoose.models.Transaction || mongoose.model('Transaction', TransactionSchema);

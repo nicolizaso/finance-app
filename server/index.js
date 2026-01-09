@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const connectDB = require('./config/db');
 const transactionsRoutes = require('./routes/transaction');
+const fixedExpensesRoutes = require('./routes/fixedExpenses');
 
 // 1. Configuración de entorno
 dotenv.config();
@@ -27,8 +28,10 @@ app.use(morgan('dev')); // Logger para ver peticiones en consola
 // 5. Rutas (Endpoints de prueba)
 // Rutas
 app.use('/api/transactions', transactionsRoutes);
+app.use('/api/fixed-expenses', fixedExpensesRoutes);
 
 // 6. Arrancar Servidor
 app.listen(PORT, () => {
     console.log(`Server corriendo en http://localhost:${PORT}`);
 });
+
