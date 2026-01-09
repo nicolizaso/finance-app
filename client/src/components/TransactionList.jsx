@@ -3,16 +3,21 @@ import api from '../api/axios';
 
 const TransactionList = ({ transactions, onTransactionUpdated }) => {
 
-  const formatMoney = (amount) => (amount / 100).toFixed(2);
+  // NUEVO FORMATO: Redondeado y con puntos de mil
+  const formatMoney = (amount) => Math.round(amount / 100).toLocaleString('es-AR');
+  
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
   };
 
   const handleMarkAsPaid = async (t) => {
+    // Al pagar, mostramos el valor exacto actual para que el usuario sepa
     const currentAmount = (t.amount / 100).toFixed(2);
     const realAmountStr = window.prompt(`Confirmar pago de: ${t.description}\n\nMonto final:`, currentAmount);
+    
     if (realAmountStr === null) return;
+    
     const realAmount = parseFloat(realAmountStr);
     if (isNaN(realAmount) || realAmount <= 0) { alert("Monto inválido"); return; }
 
@@ -43,7 +48,6 @@ const TransactionList = ({ transactions, onTransactionUpdated }) => {
               key={t._id} 
               className="group bg-surfaceHighlight/30 hover:bg-surfaceHighlight border border-transparent hover:border-border p-4 rounded-2xl flex justify-between items-center transition-all duration-200 animate-fade-in"
             >
-              {/* IZQUIERDA */}
               <div className="flex items-center gap-4">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
                     t.type === 'INCOME' 
@@ -69,7 +73,6 @@ const TransactionList = ({ transactions, onTransactionUpdated }) => {
                 </div>
               </div>
 
-              {/* DERECHA */}
               <div className="text-right flex flex-col items-end">
                 <span className={`font-mono font-bold text-sm md:text-base ${
                     t.type === 'INCOME' ? 'text-emerald-400' : 'text-textMain'
@@ -77,7 +80,6 @@ const TransactionList = ({ transactions, onTransactionUpdated }) => {
                   {t.type === 'INCOME' ? '+' : '-'}${formatMoney(t.amount)}
                 </span>
 
-                {/* Acciones flotantes (visible en hover o siempre en móvil si quieres) */}
                 <div className="flex gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   {t.status === 'PENDING' && (
                     <button onClick={() => handleMarkAsPaid(t)} className="p-1.5 bg-primary/20 text-primary rounded hover:bg-primary hover:text-white transition-colors" title="Pagar">

@@ -9,16 +9,18 @@ const BalanceCard = ({ transactions }) => {
     const expense = amounts.filter(i => i.type === 'EXPENSE').reduce((acc, i) => acc + i.amount, 0);
     const total = income - expense;
 
+    // Función auxiliar para formatear: de centavos a entero con puntos
+    const format = (val) => Math.round(val / 100).toLocaleString('es-AR');
+
     return {
-      income: (income / 100).toFixed(2),
-      expense: (expense / 100).toFixed(2),
-      total: (total / 100).toFixed(2)
+      income: format(income),
+      expense: format(expense),
+      total: format(total)
     };
   }, [transactions]);
 
   return (
     <div className="bento-card h-full flex flex-col justify-between group">
-      {/* Fondo con degradado sutil interactivo */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-500"></div>
       
       <div className="relative z-10">
