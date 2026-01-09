@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 
 const CATEGORIES = ["Comida", "Casa", "Transporte", "Ocio", "Salud", "Suscripciones", "Ahorro", "Varios"];
 
@@ -15,13 +15,13 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
     e.preventDefault();
     try {
       // Guardamos la regla (centavos)
-      await axios.post('http://127.0.0.1:3000/api/fixed-expenses', {
+      await api.post('/fixed-expenses', {
         ...formData,
         amount: parseFloat(formData.amount) * 100
       });
       
       // Forzamos la generación inmediata de la transacción de este mes
-      await axios.post('http://127.0.0.1:3000/api/fixed-expenses/generate');
+      await api.post('fixed-expenses/generate');
       
       onSaved(); // Avisar al padre para recargar
       onClose(); // Cerrar formulario

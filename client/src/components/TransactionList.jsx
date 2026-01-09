@@ -1,5 +1,5 @@
 import { Trash2 } from 'lucide-react';
-import api from './api/axios';
+import api from '../api/axios';
 
 // Recibimos 'transactions' (datos) y 'onTransactionUpdated' (función para recargar)
 const TransactionList = ({ transactions, onTransactionUpdated }) => {
