@@ -10,33 +10,24 @@ import TransactionList from './components/TransactionList';
 import FixedExpenseForm from './components/FixedExpenseForm';
 
 function App() {
-  const [isLocked, setIsLocked] = useState(true); // Estado de seguridad
+  const [isLocked, setIsLocked] = useState(true);
   const [transactions, setTransactions] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [showFixedForm, setShowFixedForm] = useState(false);
 
-  // Carga inicial de datos
   const fetchTransactions = async () => {
     try {
       const res = await api.get('/transactions');
       setTransactions(res.data.data);
-    } catch (error) {
-      console.error("Error datos:", error);
-    }
+    } catch (error) { console.error(error); }
   };
 
-  useEffect(() => {
-    if (!isLocked) fetchTransactions();
-  }, [refreshKey, isLocked]);
+  useEffect(() => { if (!isLocked) fetchTransactions(); }, [refreshKey, isLocked]);
 
-  // Generador automático de gastos fijos
   useEffect(() => {
     if (!isLocked) {
       const checkRecurring = async () => {
-        try {
-          await api.post('/fixed-expenses/generate');
-          handleRefresh();
-        } catch (error) { console.error(error); }
+        try { await api.post('/fixed-expenses/generate'); handleRefresh(); } catch (e) {}
       };
       checkRecurring();
     }
@@ -44,99 +35,84 @@ function App() {
 
   const handleRefresh = () => setRefreshKey(prev => prev + 1);
 
-  // Si está bloqueado, mostrar pantalla de PIN
-  if (isLocked) {
-    return <PinScreen onUnlock={() => setIsLocked(false)} />;
-  }
+  if (isLocked) return <PinScreen onUnlock={() => setIsLocked(false)} />;
 
   return (
-    <div className="min-h-screen bg-void p-4 md:p-6 pb-20">
-      <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
+    <div className="min-h-screen bg-void p-4 md:p-6 lg:p-8 font-sans pb-24 md:pb-8">
+      <div className="max-w-7xl mx-auto space-y-6 animate-slide-up">
         
-        {/* --- HEADER --- */}
-        <header className="flex justify-between items-center py-2">
+        {/* HEADER */}
+        <header className="flex justify-between items-center px-2">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight font-heading">
-              Finanz<span className="text-primary">Apps</span>
+            <h1 className="text-3xl font-extrabold text-white tracking-tighter">
+              Finanz<span className="text-primary drop-shadow-[0_0_10px_rgba(124,58,237,0.5)]">Apps</span>
             </h1>
-            <p className="text-gray-500 text-sm">Tu universo financiero</p>
+            <p className="text-textMuted text-xs font-medium tracking-wide mt-0.5">DASHBOARD</p>
           </div>
-          <div 
+          <button 
             onClick={() => setIsLocked(true)}
-            className="w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center text-lg cursor-pointer hover:border-primary transition-colors"
+            className="w-11 h-11 rounded-full bg-surface border border-border flex items-center justify-center text-textMuted hover:text-white hover:border-primary hover:shadow-glow transition-all active:scale-95"
           >
             🔒
-          </div>
+          </button>
         </header>
 
-        {/* --- BENTO GRID --- */}
-        {/* Layout Master: 12 columnas en escritorio, 1 en móvil */}
+        {/* BENTO GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-          {/* === BLOQUE PRINCIPAL (Izquierda - 8/12) === */}
+          {/* LEFT COL (Main Content) */}
           <div className="lg:col-span-8 flex flex-col gap-6">
             
-            {/* Fila 1: Balance + Acceso Rápido */}
+            {/* TOP ROW: Balance + Quick Action */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Balance (Ocupa 2 espacios) */}
-              <div className="md:col-span-2 bg-surface border border-border rounded-3xl p-1 overflow-hidden shadow-2xl shadow-black/50">
+              <div className="md:col-span-2 min-h-[220px]">
                 <BalanceCard transactions={transactions} />
               </div>
-
-              {/* Botón Gastos Fijos (Ocupa 1 espacio) */}
+              
               <button 
                 onClick={() => setShowFixedForm(!showFixedForm)}
-                className="bg-surface border border-border rounded-3xl p-6 flex flex-col items-center justify-center gap-3 hover:bg-surfaceHighlight hover:border-primary/50 transition-all group active:scale-95"
+                className="bento-card flex flex-col items-center justify-center gap-3 group active:scale-95 hover:bg-surfaceHighlight"
               >
-                <div className="w-14 h-14 bg-void rounded-full flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner shadow-primary/20">
+                <div className="w-16 h-16 rounded-full bg-void border border-border flex items-center justify-center text-2xl group-hover:scale-110 group-hover:border-primary transition-all shadow-inner">
                   ⚙️
                 </div>
                 <div className="text-center">
-                  <span className="block font-bold text-neon">Fijos</span>
-                  <span className="text-xs text-gray-500">Configurar</span>
+                  <span className="block font-bold text-white group-hover:text-primary transition-colors">Gastos Fijos</span>
+                  <span className="text-xs text-textMuted">Configurar reglas</span>
                 </div>
               </button>
             </div>
 
-            {/* Formulario Desplegable */}
-            {showFixedForm && (
-              <div className="animate-fade-in bg-surface border border-border rounded-3xl p-6 relative">
-                <button 
-                  onClick={() => setShowFixedForm(false)}
-                  className="absolute top-4 right-4 text-gray-500 hover:text-white"
-                >✕</button>
-                <FixedExpenseForm onClose={() => setShowFixedForm(false)} onSaved={handleRefresh} />
-              </div>
-            )}
-
-            {/* Fila 2: Gráfico + Carga (Mitad y Mitad) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-              {/* Gráfico */}
-              <div className="bg-surface border border-border rounded-3xl p-6 flex flex-col min-h-[320px]">
-                <ExpenseChart transactions={transactions} />
-              </div>
-
-              {/* Formulario de Carga */}
-              <div className="bg-surface border border-border rounded-3xl p-1 h-full">
-                <TransactionForm onTransactionAdded={handleRefresh} />
+            {/* EXPANDABLE FORM */}
+            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showFixedForm ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+              <div className="bento-card border-primary/30 relative">
+                  <button onClick={() => setShowFixedForm(false)} className="absolute top-4 right-4 text-textMuted hover:text-white">✕</button>
+                  <FixedExpenseForm onClose={() => setShowFixedForm(false)} onSaved={handleRefresh} />
               </div>
             </div>
 
+            {/* MIDDLE ROW: Chart + Transaction Input */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+              <div className="bento-card min-h-[350px] flex flex-col">
+                <ExpenseChart transactions={transactions} />
+              </div>
+              <div className="h-full">
+                 <TransactionForm onTransactionAdded={handleRefresh} />
+              </div>
+            </div>
           </div>
 
-          {/* === BLOQUE LATERAL (Derecha - 4/12) === */}
+          {/* RIGHT COL (History - Sticky) */}
           <div className="lg:col-span-4">
-            <div className="bg-surface border border-border rounded-3xl p-6 h-[calc(100vh-140px)] lg:sticky lg:top-6 flex flex-col shadow-2xl">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                <h3 className="font-heading text-xl font-bold text-white">Historial</h3>
+            <div className="bento-card h-[600px] lg:h-[calc(100vh-140px)] lg:sticky lg:top-6 flex flex-col p-0 border-primary/10">
+              <div className="p-6 border-b border-border bg-surfaceHighlight/20 backdrop-blur-md sticky top-0 z-10">
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-neon shadow-[0_0_10px_#d8b4fe]"></span>
+                  Historial Reciente
+                </h3>
               </div>
-              
-              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                <TransactionList 
-                  transactions={transactions} 
-                  onTransactionUpdated={handleRefresh} 
-                />
+              <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                <TransactionList transactions={transactions} onTransactionUpdated={handleRefresh} />
               </div>
             </div>
           </div>
@@ -144,7 +120,7 @@ function App() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default App;

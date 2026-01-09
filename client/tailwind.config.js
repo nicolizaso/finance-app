@@ -7,35 +7,48 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Paleta Monocromática Violeta Oscuro
-        void: '#05040A',       // Fondo Absoluto
-        surface: '#110E1B',    // Tarjetas Bento
-        surfaceHighlight: '#1A1626', // Hover
-        border: '#2E2442',     // Bordes sutiles
-        primary: '#7C3AED',    // Violeta Vibrante (Botones)
-        primaryDark: '#5B21B6',
-        neon: '#D8B4FE',       // Textos destacados/Glow
-        textMain: '#E9D5FF',   // Texto principal
-        textMuted: '#9CA3AF',  // Texto secundario
+        // FONDO: Un violeta tan oscuro que parece negro, para contraste infinito.
+        void: '#06030c',
+        
+        // TARJETAS: Violeta profundo, ligeramente desaturado para no cansar la vista.
+        surface: '#110a1f',
+        
+        // INTERACCIÓN: Un tono más claro para inputs y hovers.
+        surfaceHighlight: '#1d1233',
+        
+        // BORDES: Sutiles, para separar sin líneas duras.
+        border: '#2e1a4f',
+        
+        // ACCIÓN: El color principal vibrante.
+        primary: '#7c3aed', // Violet-600
+        primaryHover: '#6d28d9', // Violet-700
+        
+        // TEXTOS & BRILLOS
+        neon: '#d8b4fe', // Violet-300
+        textMain: '#f3e8ff', // Violet-100
+        textMuted: '#a78bfa', // Violet-400
       },
       fontFamily: {
         heading: ['Outfit', 'sans-serif'],
         body: ['Inter', 'sans-serif'],
       },
+      boxShadow: {
+        'glow': '0 0 20px -5px rgba(124, 58, 237, 0.3)',
+        'card': '0 8px 30px rgba(0, 0, 0, 0.5)',
+      },
       animation: {
-        'fade-in': 'fadeIn 0.5s ease-out',
-        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+        'fade-in': 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+        'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
         fadeIn: {
-          '0%': { opacity: '0', transform: 'translateY(10px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
         },
-        shake: {
-          '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
-          '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
-          '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
-          '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         }
       }
     },

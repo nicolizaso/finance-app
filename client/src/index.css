@@ -4,25 +4,42 @@
 
 @layer base {
   body {
-    @apply font-body bg-void text-textMain selection:bg-primary selection:text-white;
+    @apply font-body bg-void text-textMain selection:bg-primary selection:text-white antialiased overflow-x-hidden;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading;
+    @apply font-heading tracking-tight;
   }
 }
 
-/* Scrollbar Personalizado Violeta */
+@layer components {
+  /* Clase maestra para todos los contenedores */
+  .bento-card {
+    @apply bg-surface border border-border rounded-3xl p-6 shadow-card transition-all duration-300 hover:border-primary/30 relative overflow-hidden;
+  }
+
+  /* Inputs profesionales */
+  .input-pro {
+    @apply w-full bg-surfaceHighlight border border-border text-white p-3.5 rounded-xl outline-none transition-all duration-200 focus:border-primary focus:ring-1 focus:ring-primary/50 placeholder-textMuted/50;
+  }
+
+  /* Botones vibrantes */
+  .btn-primary {
+    @apply w-full bg-gradient-to-r from-primary to-primaryHover text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:scale-[1.02] active:scale-95 transition-all duration-200 flex justify-center items-center gap-2;
+  }
+}
+
+/* Scrollbar invisible pero funcional o estilizado */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #05040A; 
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2E2442; 
-  border-radius: 99px;
+  background: #2e1a4f;
+  border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #7C3AED; 
+  background: #7c3aed;
 }

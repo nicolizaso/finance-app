@@ -1,15 +1,16 @@
 import { useMemo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
+// Colores vibrantes para el gráfico que contrastan bien con el fondo violeta
 const COLORS = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#6366F1'];
 
 const ExpenseChart = ({ transactions }) => {
 
   const data = useMemo(() => {
-    // 1. Filtramos solo GASTOS (ignoramos ingresos)
+    // 1. Filtramos solo GASTOS
     const expenses = transactions.filter(t => t.type === 'EXPENSE');
 
-    // 2. Agrupamos por categoría y sumamos montos
+    // 2. Agrupamos por categoría
     const grouped = expenses.reduce((acc, curr) => {
       if (!acc[curr.category]) {
         acc[curr.category] = 0;
@@ -18,41 +19,66 @@ const ExpenseChart = ({ transactions }) => {
       return acc;
     }, {});
 
-    // 3. Convertimos a formato para el gráfico
+    // 3. Formateamos para Recharts
     return Object.keys(grouped).map(key => ({
       name: key,
-      value: grouped[key] / 100 // Convertimos centavos a reales
-    })).filter(item => item.value > 0); // Ocultamos categorías vacías
+      value: grouped[key] / 100 
+    })).filter(item => item.value > 0);
 
   }, [transactions]);
 
-  if (data.length === 0) return null; // No mostrar nada si no hay gastos
+  if (data.length === 0) {
+    return (
+      <div className="bg-surface border border-border rounded-3xl p-6 h-full flex flex-col items-center justify-center text-center opacity-50">
+        <div className="text-4xl mb-2">📊</div>
+        <p className="text-sm text-textMuted">Sin datos de gastos</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700 mb-8 flex flex-col items-center">
-      <h3 className="text-gray-300 font-bold mb-4 self-start">Distribución de Gastos</h3>
+    // CAMBIO DE ESTILO AQUÍ: Usamos las clases del tema violeta
+    <div className="bg-surface border border-border rounded-3xl p-6 shadow-card flex flex-col items-center h-full w-full relative overflow-hidden">
       
-      <div className="h-64 w-full">
+      <h3 className="text-white font-bold mb-2 self-start font-heading">Distribución</h3>
+      
+      <div className="h-64 w-full flex-1 min-h-[250px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={60} // Esto lo hace una "Dona"
+              innerRadius={60}
               outerRadius={80}
               paddingAngle={5}
               dataKey="value"
+              stroke="none" // Quitamos el borde blanco por defecto de las secciones
             >
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
+            
+            {/* Tooltip personalizado al tema oscuro */}
             <Tooltip 
               formatter={(value) => `$${value.toFixed(2)}`}
-              contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#fff' }}
+              contentStyle={{ 
+                backgroundColor: '#1A1626', // surfaceHighlight
+                border: '1px solid #2E2442', // border color
+                borderRadius: '12px', 
+                color: '#fff',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
+              }}
+              itemStyle={{ color: '#E9D5FF' }} // textMain
             />
-            <Legend iconType="circle" />
+            <Legend 
+              iconType="circle" 
+              layout="horizontal" 
+              verticalAlign="bottom" 
+              align="center"
+              wrapperStyle={{ paddingTop: '20px', fontSize: '12px', opacity: 0.8 }}
+            />
           </PieChart>
         </ResponsiveContainer>
       </div>
