@@ -8,6 +8,7 @@ import ExpenseChart from './components/ExpenseChart';
 import TransactionForm from './components/TransactionForm';
 import TransactionList from './components/TransactionList';
 import FixedExpenseForm from './components/FixedExpenseForm';
+import FixedExpensesCard from './components/FixedExpensesCard'; // <--- IMPORTANTE
 
 function App() {
   const [isLocked, setIsLocked] = useState(true);
@@ -57,58 +58,56 @@ function App() {
           </button>
         </header>
 
+        {/* MODAL/DROPDOWN DE CONFIGURACIÓN (Ahora flota sobre el contenido si está activo) */}
+        {showFixedForm && (
+            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+                <div className="w-full max-w-md bg-surface border border-primary/50 rounded-3xl p-6 relative shadow-glow">
+                    <button 
+                        onClick={() => setShowFixedForm(false)} 
+                        className="absolute top-4 right-4 text-textMuted hover:text-white"
+                    >✕</button>
+                    <FixedExpenseForm onClose={() => setShowFixedForm(false)} onSaved={handleRefresh} />
+                </div>
+            </div>
+        )}
+
         {/* BENTO GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-          {/* LEFT COL (Main Content) */}
+          {/* === COLUMNA IZQUIERDA (Principal) === */}
           <div className="lg:col-span-8 flex flex-col gap-6">
             
-            {/* TOP ROW: Balance + Quick Action */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-2 min-h-[220px]">
+            {/* FILA 1: Balance (Arriba de todo) */}
+            <div className="h-[200px]">
                 <BalanceCard transactions={transactions} />
-              </div>
-              
-              <button 
-                onClick={() => setShowFixedForm(!showFixedForm)}
-                className="bento-card flex flex-col items-center justify-center gap-3 group active:scale-95 hover:bg-surfaceHighlight"
-              >
-                <div className="w-16 h-16 rounded-full bg-void border border-border flex items-center justify-center text-2xl group-hover:scale-110 group-hover:border-primary transition-all shadow-inner">
-                  ⚙️
-                </div>
-                <div className="text-center">
-                  <span className="block font-bold text-white group-hover:text-primary transition-colors">Gastos Fijos</span>
-                  <span className="text-xs text-textMuted">Configurar reglas</span>
-                </div>
-              </button>
             </div>
 
-            {/* EXPANDABLE FORM */}
-            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showFixedForm ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
-              <div className="bento-card border-primary/30 relative">
-                  <button onClick={() => setShowFixedForm(false)} className="absolute top-4 right-4 text-textMuted hover:text-white">✕</button>
-                  <FixedExpenseForm onClose={() => setShowFixedForm(false)} onSaved={handleRefresh} />
-              </div>
+            {/* FILA 2: Gastos Fijos (Lista Activa) + Formulario de Carga */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[400px]">
+                {/* Nueva Tarjeta de Gastos Fijos Pendientes */}
+                <FixedExpensesCard 
+                    transactions={transactions} 
+                    onRefresh={handleRefresh}
+                    onOpenConfig={() => setShowFixedForm(true)}
+                />
+
+                {/* Formulario para gastos manuales */}
+                <TransactionForm onTransactionAdded={handleRefresh} />
             </div>
 
-            {/* MIDDLE ROW: Chart + Transaction Input */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-              <div className="bento-card min-h-[350px] flex flex-col">
+            {/* FILA 3: Gráfico (Ancho completo para cerrar) */}
+            <div className="h-[300px]">
                 <ExpenseChart transactions={transactions} />
-              </div>
-              <div className="h-full">
-                 <TransactionForm onTransactionAdded={handleRefresh} />
-              </div>
             </div>
           </div>
 
-          {/* RIGHT COL (History - Sticky) */}
+          {/* === COLUMNA DERECHA (Historial) === */}
           <div className="lg:col-span-4">
             <div className="bento-card h-[600px] lg:h-[calc(100vh-140px)] lg:sticky lg:top-6 flex flex-col p-0 border-primary/10">
               <div className="p-6 border-b border-border bg-surfaceHighlight/20 backdrop-blur-md sticky top-0 z-10">
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-neon shadow-[0_0_10px_#d8b4fe]"></span>
-                  Historial Reciente
+                  Historial (Pagados)
                 </h3>
               </div>
               <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
