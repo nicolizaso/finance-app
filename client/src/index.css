@@ -1,1 +1,28 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-body bg-void text-textMain selection:bg-primary selection:text-white;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+/* Scrollbar Personalizado Violeta */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #05040A; 
+}
+::-webkit-scrollbar-thumb {
+  background: #2E2442; 
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #7C3AED; 
+}

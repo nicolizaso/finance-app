@@ -1,115 +1,147 @@
 import { useState, useEffect } from 'react';
 import api from './api/axios';
 
-// Importación de Componentes
+// Componentes
+import PinScreen from './components/PinScreen';
 import BalanceCard from './components/BalanceCard';
 import ExpenseChart from './components/ExpenseChart';
 import TransactionForm from './components/TransactionForm';
 import TransactionList from './components/TransactionList';
-import FixedExpenseForm from './components/FixedExpenseForm'; // <--- Importado
+import FixedExpenseForm from './components/FixedExpenseForm';
 
 function App() {
+  const [isLocked, setIsLocked] = useState(true); // Estado de seguridad
   const [transactions, setTransactions] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [showFixedForm, setShowFixedForm] = useState(false); // <--- Estado para mostrar/ocultar
+  const [showFixedForm, setShowFixedForm] = useState(false);
 
-  // 1. Lógica de carga de datos (El Cerebro)
+  // Carga inicial de datos
   const fetchTransactions = async () => {
     try {
-      const res = await api.get('/transactions'); 
-    setTransactions(res.data.data);
+      const res = await api.get('/transactions');
+      setTransactions(res.data.data);
     } catch (error) {
-      console.error("Error cargando datos:", error);
+      console.error("Error datos:", error);
     }
   };
 
-  // 2. Efecto: Recargar cuando cambie refreshKey
   useEffect(() => {
-    fetchTransactions();
-  }, [refreshKey]);
+    if (!isLocked) fetchTransactions();
+  }, [refreshKey, isLocked]);
 
-  // 3. NUEVO EFECTO: Generar gastos recurrentes automáticos al iniciar
+  // Generador automático de gastos fijos
   useEffect(() => {
-    const checkRecurring = async () => {
-      try {
-        // Pedimos al backend que verifique si hay que crear gastos de este mes
-        await api.post('/fixed-expenses/generate');
-        // Si generó algo nuevo, recargamos la lista
-        handleTransactionAdded(); 
-      } catch (error) {
-        console.error("Error generando fijos:", error);
-      }
-    };
-    checkRecurring();
-  }, []); // Array vacío = Se ejecuta solo una vez al abrir la app
+    if (!isLocked) {
+      const checkRecurring = async () => {
+        try {
+          await api.post('/fixed-expenses/generate');
+          handleRefresh();
+        } catch (error) { console.error(error); }
+      };
+      checkRecurring();
+    }
+  }, [isLocked]);
 
-  // 4. Función interruptor para recargar datos desde los hijos
-  const handleTransactionAdded = () => {
-    setRefreshKey(prev => prev + 1);
-  };
+  const handleRefresh = () => setRefreshKey(prev => prev + 1);
+
+  // Si está bloqueado, mostrar pantalla de PIN
+  if (isLocked) {
+    return <PinScreen onUnlock={() => setIsLocked(false)} />;
+  }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white py-8 px-4 font-sans">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-void p-4 md:p-6 pb-20">
+      <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
         
         {/* --- HEADER --- */}
-        <header className="mb-4 flex justify-between items-center border-b border-gray-800 pb-4">
+        <header className="flex justify-between items-center py-2">
           <div>
-            <h1 className="text-3xl font-bold text-blue-500 tracking-tight">
-              Finanzas Vector
+            <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight font-heading">
+              Finanz<span className="text-primary">Apps</span>
             </h1>
-            <p className="text-gray-400 text-sm mt-1">Panel de Control Inteligente</p>
+            <p className="text-gray-500 text-sm">Tu universo financiero</p>
           </div>
-          <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center text-xl cursor-default" title="Usuario">
-            👤
+          <div 
+            onClick={() => setIsLocked(true)}
+            className="w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center text-lg cursor-pointer hover:border-primary transition-colors"
+          >
+            🔒
           </div>
         </header>
 
-        {/* --- NUEVO: BARRA DE HERRAMIENTAS --- */}
-        <div className="flex justify-end mb-6">
-          <button 
-            onClick={() => setShowFixedForm(!showFixedForm)}
-            className="text-sm font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-2 transition-colors"
-          >
-            {showFixedForm ? 'Cancelar Configuración' : '⚙️ Configurar Gastos Fijos'}
-          </button>
-        </div>
+        {/* --- BENTO GRID --- */}
+        {/* Layout Master: 12 columnas en escritorio, 1 en móvil */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        {/* --- NUEVO: FORMULARIO DESPLEGABLE --- */}
-        {showFixedForm && (
-            <FixedExpenseForm 
-                onClose={() => setShowFixedForm(false)} 
-                onSaved={handleTransactionAdded} 
-            />
-        )}
+          {/* === BLOQUE PRINCIPAL (Izquierda - 8/12) === */}
+          <div className="lg:col-span-8 flex flex-col gap-6">
+            
+            {/* Fila 1: Balance + Acceso Rápido */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Balance (Ocupa 2 espacios) */}
+              <div className="md:col-span-2 bg-surface border border-border rounded-3xl p-1 overflow-hidden shadow-2xl shadow-black/50">
+                <BalanceCard transactions={transactions} />
+              </div>
 
-        {/* --- SECCIÓN 1: BALANCE GLOBAL --- */}
-        <BalanceCard transactions={transactions} />
+              {/* Botón Gastos Fijos (Ocupa 1 espacio) */}
+              <button 
+                onClick={() => setShowFixedForm(!showFixedForm)}
+                className="bg-surface border border-border rounded-3xl p-6 flex flex-col items-center justify-center gap-3 hover:bg-surfaceHighlight hover:border-primary/50 transition-all group active:scale-95"
+              >
+                <div className="w-14 h-14 bg-void rounded-full flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner shadow-primary/20">
+                  ⚙️
+                </div>
+                <div className="text-center">
+                  <span className="block font-bold text-neon">Fijos</span>
+                  <span className="text-xs text-gray-500">Configurar</span>
+                </div>
+              </button>
+            </div>
 
-        {/* --- SECCIÓN 2: GRID PRINCIPAL --- */}
-        <div className="grid lg:grid-cols-2 gap-8 items-start">
-          
-          {/* COLUMNA IZQUIERDA: Visualización e Ingreso */}
-          <div className="space-y-6">
-            
-            {/* A. Gráfico de Gastos */}
-            <ExpenseChart transactions={transactions} />
-            
-            {/* B. Formulario de Carga */}
-            <TransactionForm onTransactionAdded={handleTransactionAdded} />
-            
+            {/* Formulario Desplegable */}
+            {showFixedForm && (
+              <div className="animate-fade-in bg-surface border border-border rounded-3xl p-6 relative">
+                <button 
+                  onClick={() => setShowFixedForm(false)}
+                  className="absolute top-4 right-4 text-gray-500 hover:text-white"
+                >✕</button>
+                <FixedExpenseForm onClose={() => setShowFixedForm(false)} onSaved={handleRefresh} />
+              </div>
+            )}
+
+            {/* Fila 2: Gráfico + Carga (Mitad y Mitad) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+              {/* Gráfico */}
+              <div className="bg-surface border border-border rounded-3xl p-6 flex flex-col min-h-[320px]">
+                <ExpenseChart transactions={transactions} />
+              </div>
+
+              {/* Formulario de Carga */}
+              <div className="bg-surface border border-border rounded-3xl p-1 h-full">
+                <TransactionForm onTransactionAdded={handleRefresh} />
+              </div>
+            </div>
+
           </div>
 
-          {/* COLUMNA DERECHA: Historial */}
-          <div className="lg:sticky lg:top-8">
-            <TransactionList 
-              transactions={transactions} 
-              onTransactionUpdated={handleTransactionAdded} 
-            />
+          {/* === BLOQUE LATERAL (Derecha - 4/12) === */}
+          <div className="lg:col-span-4">
+            <div className="bg-surface border border-border rounded-3xl p-6 h-[calc(100vh-140px)] lg:sticky lg:top-6 flex flex-col shadow-2xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                <h3 className="font-heading text-xl font-bold text-white">Historial</h3>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                <TransactionList 
+                  transactions={transactions} 
+                  onTransactionUpdated={handleRefresh} 
+                />
+              </div>
+            </div>
           </div>
 
         </div>
-
       </div>
     </div>
   )
