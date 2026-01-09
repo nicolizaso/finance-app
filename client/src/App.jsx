@@ -43,13 +43,27 @@ function App() {
       <div className="max-w-7xl mx-auto space-y-6 animate-slide-up">
         
         {/* HEADER */}
+        {/* HEADER */}
         <header className="flex justify-between items-center px-2">
-          <div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tighter">
-              Finanz<span className="text-primary drop-shadow-[0_0_10px_rgba(124,58,237,0.5)]">Apps</span>
-            </h1>
-            <p className="text-textMuted text-xs font-medium tracking-wide mt-0.5">DASHBOARD</p>
+          <div className="flex items-center gap-3"> {/* Agregamos flex y gap para alinear logo y texto */}
+            
+            {/* LOGO PEQUEÑO */}
+            <img 
+              src="/logo.png" 
+              alt="Logo" 
+              // Agregamos: rounded-full y un borde fino
+              className="w-11 h-11 rounded-full border-2 border-primary/30 object-contain shadow-glow bg-surface" 
+            />
+
+            <div>
+              {/* TÍTULO SIN 'S' */}
+              <h1 className="text-3xl font-extrabold text-white tracking-tighter">
+                Finanz<span className="text-primary drop-shadow-[0_0_10px_rgba(124,58,237,0.5)]">App</span>
+              </h1>
+              <p className="text-textMuted text-xs font-medium tracking-wide mt-0.5">DASHBOARD</p>
+            </div>
           </div>
+
           <button 
             onClick={() => setIsLocked(true)}
             className="w-11 h-11 rounded-full bg-surface border border-border flex items-center justify-center text-textMuted hover:text-white hover:border-primary hover:shadow-glow transition-all active:scale-95"

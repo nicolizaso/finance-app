@@ -58,8 +58,13 @@ const PinScreen = ({ onUnlock }) => {
   return (
     <div className="fixed inset-0 bg-void z-50 flex flex-col items-center justify-center p-4">
       <div className="mb-10 text-center">
+      <img 
+          src="/logo.png" 
+          alt="Logo FinanzApp" 
+          className="w-24 h-24 mx-auto mb-6 rounded-full border-4 border-primary/20 object-contain drop-shadow-[0_0_20px_rgba(124,58,237,0.6)] animate-pulse-slow bg-void"
+        />
         <h1 className="text-4xl font-bold text-white tracking-tight mb-2 font-heading">
-          Finanz<span className="text-primary">Apps</span>
+          Finanz<span className="text-primary">App</span>
         </h1>
         <p className="text-neon text-sm uppercase tracking-widest">
           {isSettingUp ? 'Crea tu PIN de acceso' : 'Ingresa tu PIN'}

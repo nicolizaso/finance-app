@@ -7,23 +7,24 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      // Agregamos logo.png a los assets importantes
+      includeAssets: ['logo.png'], 
       manifest: {
-        name: 'FinanzApps',
-        short_name: 'FinanzApps',
+        name: 'FinanzApp',      // <--- Sin S
+        short_name: 'FinanzApp', // <--- Sin S
         description: 'Control financiero personal',
         theme_color: '#05040A',
         background_color: '#05040A',
-        display: 'standalone', // Esto oculta la barra de URL del navegador
+        display: 'standalone',
         orientation: 'portrait',
         icons: [
           {
-            src: 'pwa-192x192.png', // Vite generará esto si tienes el logo en public, o usa el default
+            src: 'logo.png', // Usamos tu logo para todos los tamaños por ahora
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'logo.png', // Lo ideal a futuro es tener versiones resizeadas, pero esto funciona
             sizes: '512x512',
             type: 'image/png'
           }
