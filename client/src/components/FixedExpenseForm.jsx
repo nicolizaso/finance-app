@@ -1,86 +1,215 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../api/axios';
+import { Repeat, Link as LinkIcon, Save, Trash2, Edit2, Plus, ArrowLeft } from 'lucide-react';
 
 const CATEGORIES = ["Comida", "Casa", "Transporte", "Ocio", "Salud", "Suscripciones", "Ahorro", "Varios"];
 
 const FixedExpenseForm = ({ onClose, onSaved }) => {
+  const [view, setView] = useState('list'); 
+  const [loading, setLoading] = useState(false);
+  const [fixedList, setFixedList] = useState([]);
+  
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     amount: '',
-    dayOfMonth: 1, // Día 1 por defecto
-    category: 'Casa'
+    dayOfMonth: 1,
+    category: 'Casa',
+    paymentLink: ''
   });
+
+  const fetchFixedExpenses = async () => {
+    try {
+      const res = await api.get('/fixed-expenses');
+      setFixedList(res.data.data);
+    } catch (error) { console.error(error); }
+  };
+
+  useEffect(() => { fetchFixedExpenses(); }, []);
+
+  const handleEdit = (item) => {
+    setEditingId(item._id);
+    setFormData({
+      title: item.title,
+      amount: (item.amount / 100).toString(),
+      dayOfMonth: item.dayOfMonth,
+      category: item.category,
+      paymentLink: item.paymentLink || ''
+    });
+    setView('form');
+  };
+
+  const handleCreateNew = () => {
+    setEditingId(null);
+    setFormData({ title: '', amount: '', dayOfMonth: 1, category: 'Casa', paymentLink: '' });
+    setView('form');
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("¿Eliminar esta regla? También se borrará el gasto pendiente de este mes.")) return;
+    try {
+      await api.delete(`/fixed-expenses/${id}`);
+      fetchFixedExpenses(); 
+      if (onSaved) onSaved(); 
+    } catch (error) { console.error(error); }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    const payload = { ...formData, amount: parseFloat(formData.amount) * 100 };
+
     try {
-      // Guardamos la regla (centavos)
-      await api.post('/fixed-expenses', {
-        ...formData,
-        amount: parseFloat(formData.amount) * 100
-      });
+      if (editingId) {
+        await api.put(`/fixed-expenses/${editingId}`, payload);
+      } else {
+        await api.post('/fixed-expenses', payload);
+      }
       
-      // Forzamos la generación inmediata de la transacción de este mes
-      await api.post('fixed-expenses/generate');
+      await api.post('/fixed-expenses/generate');
       
-      onSaved(); // Avisar al padre para recargar
-      onClose(); // Cerrar formulario
+      if (onSaved) onSaved();
+      
+      fetchFixedExpenses();
+      setView('list');
+
     } catch (error) {
       console.error(error);
-      alert('Error guardando gasto fijo');
+      alert('Error guardando');
+    } finally {
+      setLoading(false);
     }
   };
 
-  return (
-    <div className="bg-gray-800 p-4 rounded-xl border border-blue-900 mb-6 animate-fade-in">
-      <h3 className="text-blue-400 font-bold mb-3">Nuevo Gasto Fijo Mensual</h3>
-      <form onSubmit={handleSubmit} className="space-y-3">
-        
-        <input 
-          type="text" 
-          placeholder="Nombre (ej. Alquiler)" 
-          className="w-full bg-gray-700 p-2 rounded text-white"
-          value={formData.title}
-          onChange={e => setFormData({...formData, title: e.target.value})}
-          required
-        />
+  if (view === 'list') {
+    return (
+      <div className="animate-fade-in h-[450px] flex flex-col">
+        <div className="flex justify-between items-center mb-6 shrink-0">
+          <h3 className="text-xl font-bold text-white font-heading flex items-center gap-2">
+            <Repeat className="text-primary" size={24} /> Reglas Mensuales
+          </h3>
+          <button 
+            onClick={handleCreateNew}
+            className="bg-primary hover:bg-primaryHover text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
+          >
+            <Plus size={14} /> Nueva
+          </button>
+        </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs text-gray-400">Monto Aprox.</label>
+        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3">
+          {fixedList.length === 0 ? (
+            <div className="text-center text-textMuted py-10 opacity-60">
+              <p>No tienes gastos fijos configurados.</p>
+            </div>
+          ) : (
+            fixedList.map(item => (
+              <div key={item._id} className="bg-surfaceHighlight/30 border border-border p-3 rounded-xl flex justify-between items-center group hover:border-primary/30 transition-colors">
+                <div className="min-w-0 flex-1 pr-2">
+                  <p className="text-white font-bold text-sm truncate" title={item.title}>{item.title}</p>
+                  <p className="text-textMuted text-[10px]">
+                    Día {item.dayOfMonth} • ${Math.round(item.amount / 100).toLocaleString('es-AR')}
+                  </p>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <button onClick={() => handleEdit(item)} className="p-1.5 rounded-lg bg-surface hover:text-primary transition-colors text-textMuted">
+                    <Edit2 size={16} />
+                  </button>
+                  <button onClick={() => handleDelete(item._id)} className="p-1.5 rounded-lg bg-surface hover:text-rose-500 transition-colors text-textMuted">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="animate-fade-in h-auto">
+      <div className="flex items-center gap-2 mb-6">
+        <button onClick={() => setView('list')} className="text-textMuted hover:text-white transition-colors">
+          <ArrowLeft size={24} />
+        </button>
+        <h3 className="text-xl font-bold text-white font-heading">
+          {editingId ? 'Editar Regla' : 'Nuevo Gasto Fijo'}
+        </h3>
+      </div>
+      
+      <form onSubmit={handleSubmit} className="space-y-4">
+        
+        <div className="relative group">
+          <input 
+            type="text" 
+            placeholder=" " 
+            className="input-pro peer pt-6 pb-2"
+            value={formData.title}
+            onChange={e => setFormData({...formData, title: e.target.value})}
+            required
+            autoFocus
+          />
+          <label className="absolute left-4 top-4 text-textMuted/60 text-xs transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-placeholder-shown:text-textMuted/40 peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-primary pointer-events-none">
+            Nombre (ej. Internet)
+          </label>
+        </div>
+
+        {/* CAMBIO AQUÍ: type="text" para que acepte cualquier formato */}
+        <div className="relative group">
+            <LinkIcon className="absolute left-4 top-4 text-textMuted/50" size={16} />
+            <input 
+              type="text" 
+              placeholder="Link de pago (ej. google.com)" 
+              className="input-pro pl-10 text-sm"
+              value={formData.paymentLink}
+              onChange={e => setFormData({...formData, paymentLink: e.target.value})}
+            />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="relative">
+            <span className="absolute left-4 top-3.5 text-textMuted">$</span>
             <input 
               type="number" 
-              className="w-full bg-gray-700 p-2 rounded text-white"
+              className="input-pro pl-8 font-mono text-lg"
+              placeholder="0.00"
               value={formData.amount}
               onChange={e => setFormData({...formData, amount: e.target.value})}
               required
             />
           </div>
-          <div>
-            <label className="text-xs text-gray-400">Día de Vto.</label>
+
+          <div className="relative group">
             <input 
               type="number" 
               min="1" max="31"
-              className="w-full bg-gray-700 p-2 rounded text-white"
+              className="input-pro text-center"
               value={formData.dayOfMonth}
               onChange={e => setFormData({...formData, dayOfMonth: e.target.value})}
               required
             />
+             <label className="absolute left-0 right-0 top-1.5 text-center text-[10px] text-textMuted pointer-events-none uppercase tracking-wider font-bold">
+              Día del mes
+            </label>
           </div>
         </div>
 
         <select 
-          className="w-full bg-gray-700 p-2 rounded text-white"
+          className="input-pro appearance-none cursor-pointer"
           value={formData.category}
           onChange={e => setFormData({...formData, category: e.target.value})}
         >
-           {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+           {CATEGORIES.map(c => <option key={c} value={c} className="bg-surface">{c}</option>)}
         </select>
 
-        <div className="flex gap-2">
-          <button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-bold">Guardar Regla</button>
-          <button type="button" onClick={onClose} className="px-4 py-2 text-gray-400 hover:text-white">Cancelar</button>
-        </div>
+        <button 
+          type="submit" 
+          disabled={loading}
+          className="btn-primary w-full flex items-center justify-center gap-2"
+        >
+          <Save size={18} />
+          {loading ? 'Guardando...' : (editingId ? 'Actualizar Regla' : 'Crear Regla')}
+        </button>
       </form>
     </div>
   );

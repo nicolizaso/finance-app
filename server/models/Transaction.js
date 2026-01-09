@@ -1,43 +1,14 @@
 const mongoose = require('mongoose');
 
 const TransactionSchema = new mongoose.Schema({
-    userId: {
-        type: String,
-        required: true,
-        default: 'user_default_123' // MVP: Hardcodeado por ahora hasta tener Login
-    },
-    description: {
-        type: String,
-        required: [true, 'Por favor agrega una descripción'],
-        trim: true
-    },
-    amount: {
-        type: Number,
-        required: [true, 'Por favor agrega un monto'],
-        // REGLA DE VECTOR: Siempre guardamos centavos (Integers)
-        // Ejemplo: $10.50 se guarda como 1050
-    },
-    type: {
-        type: String,
-        enum: ['EXPENSE', 'INCOME'], // Solo permitimos estos dos valores
-        required: true
-    },
-    category: {
-        type: String, // MVP: Usaremos texto simple por ahora ("Comida", "Casa")
-        required: true
-    },
-    date: {
-        type: Date,
-        default: Date.now
-    },
-    status: {
-        type: String,
-        enum: ['COMPLETED', 'PENDING'],
-        default: 'COMPLETED'
-    }
-}, {
-    timestamps: true // Esto crea automáticamente createdAt y updatedAt
+    userId: { type: String, default: 'user_default_123' },
+    description: { type: String, required: true },
+    amount: { type: Number, required: true },
+    type: { type: String, required: true, enum: ['INCOME', 'EXPENSE'] },
+    category: { type: String, required: true },
+    date: { type: Date, default: Date.now },
+    status: { type: String, default: 'COMPLETED', enum: ['PENDING', 'COMPLETED'] },
+    paymentLink: { type: String, default: '' } // <--- NUEVO CAMPO
 });
 
-// Si mongoose.models.Transaction ya existe, úsalo. Si no, crea uno nuevo.
 module.exports = mongoose.models.Transaction || mongoose.model('Transaction', TransactionSchema);

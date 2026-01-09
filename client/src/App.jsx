@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from './api/axios';
+import { User, Lock, History } from 'lucide-react'; // Eliminado 'Settings'
 
 // Componentes
 import PinScreen from './components/PinScreen';
@@ -8,7 +9,7 @@ import ExpenseChart from './components/ExpenseChart';
 import TransactionForm from './components/TransactionForm';
 import TransactionList from './components/TransactionList';
 import FixedExpenseForm from './components/FixedExpenseForm';
-import FixedExpensesCard from './components/FixedExpensesCard'; // <--- IMPORTANTE
+import FixedExpensesCard from './components/FixedExpensesCard';
 
 function App() {
   const [isLocked, setIsLocked] = useState(true);
@@ -43,36 +44,31 @@ function App() {
       <div className="max-w-7xl mx-auto space-y-6 animate-slide-up">
         
         {/* HEADER */}
-        {/* HEADER */}
         <header className="flex justify-between items-center px-2">
-          <div className="flex items-center gap-3"> {/* Agregamos flex y gap para alinear logo y texto */}
-            
-            {/* LOGO PEQUEÑO */}
-            <img 
-              src="/logo.png" 
-              alt="Logo" 
-              // Agregamos: rounded-full y un borde fino
-              className="w-11 h-11 rounded-full border-2 border-primary/30 object-contain shadow-glow bg-surface" 
-            />
-
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="Logo" className="w-11 h-11 rounded-full border-2 border-primary/30 object-contain shadow-glow bg-surface" />
             <div>
-              {/* TÍTULO SIN 'S' */}
               <h1 className="text-3xl font-extrabold text-white tracking-tighter">
                 Finanz<span className="text-primary drop-shadow-[0_0_10px_rgba(124,58,237,0.5)]">App</span>
               </h1>
               <p className="text-textMuted text-xs font-medium tracking-wide mt-0.5">DASHBOARD</p>
             </div>
           </div>
-
-          <button 
-            onClick={() => setIsLocked(true)}
-            className="w-11 h-11 rounded-full bg-surface border border-border flex items-center justify-center text-textMuted hover:text-white hover:border-primary hover:shadow-glow transition-all active:scale-95"
-          >
-            🔒
-          </button>
+          
+          <div className="flex gap-3">
+            <button className="w-11 h-11 rounded-full bg-surface border border-border flex items-center justify-center text-textMuted hover:text-white hover:border-primary transition-all active:scale-95">
+               <User size={20} />
+            </button>
+            <button 
+              onClick={() => setIsLocked(true)}
+              className="w-11 h-11 rounded-full bg-surface border border-border flex items-center justify-center text-textMuted hover:text-white hover:border-primary hover:shadow-glow transition-all active:scale-95"
+            >
+              <Lock size={20} />
+            </button>
+          </div>
         </header>
 
-        {/* MODAL/DROPDOWN DE CONFIGURACIÓN (Ahora flota sobre el contenido si está activo) */}
+        {/* MODAL CONFIG */}
         {showFixedForm && (
             <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
                 <div className="w-full max-w-md bg-surface border border-primary/50 rounded-3xl p-6 relative shadow-glow">
@@ -88,39 +84,38 @@ function App() {
         {/* BENTO GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-          {/* === COLUMNA IZQUIERDA (Principal) === */}
+          {/* LEFT COL */}
           <div className="lg:col-span-8 flex flex-col gap-6">
             
-            {/* FILA 1: Balance (Arriba de todo) */}
-            <div className="h-[200px]">
-                <BalanceCard transactions={transactions} />
+            {/* ROW 1: BALANCE (Ahora ocupa todo el ancho de la columna) */}
+            <div className="min-h-[220px]">
+              <BalanceCard transactions={transactions} />
             </div>
 
-            {/* FILA 2: Gastos Fijos (Lista Activa) + Formulario de Carga */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[400px]">
-                {/* Nueva Tarjeta de Gastos Fijos Pendientes */}
+            {/* ROW 2: GASTOS FIJOS Y CARGA */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
                 <FixedExpensesCard 
                     transactions={transactions} 
                     onRefresh={handleRefresh}
                     onOpenConfig={() => setShowFixedForm(true)}
                 />
-
-                {/* Formulario para gastos manuales */}
-                <TransactionForm onTransactionAdded={handleRefresh} />
+                <div className="h-full">
+                  <TransactionForm onTransactionAdded={handleRefresh} />
+                </div>
             </div>
 
-            {/* FILA 3: Gráfico (Ancho completo para cerrar) */}
+            {/* ROW 3: GRÁFICO */}
             <div className="h-[300px]">
                 <ExpenseChart transactions={transactions} />
             </div>
           </div>
 
-          {/* === COLUMNA DERECHA (Historial) === */}
+          {/* RIGHT COL: HISTORIAL */}
           <div className="lg:col-span-4">
             <div className="bento-card h-[600px] lg:h-[calc(100vh-140px)] lg:sticky lg:top-6 flex flex-col p-0 border-primary/10">
               <div className="p-6 border-b border-border bg-surfaceHighlight/20 backdrop-blur-md sticky top-0 z-10">
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-neon shadow-[0_0_10px_#d8b4fe]"></span>
+                  <History className="text-neon" size={20} />
                   Historial (Pagados)
                 </h3>
               </div>
