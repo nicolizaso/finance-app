@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import api from './api/axios';
 
 const CATEGORIES = ["Comida", "Casa", "Transporte", "Ocio", "Salud", "Suscripciones", "Ahorro", "Varios"];
 
@@ -34,7 +34,7 @@ const TransactionForm = ({ onTransactionAdded }) => {
     };
 
     try {
-      await axios.post('http://127.0.0.1:3000/api/transactions', payload);
+      await api.post('/transactions', payload);
       setMessage('✅ Movimiento guardado');
       if (onTransactionAdded) onTransactionAdded();
       

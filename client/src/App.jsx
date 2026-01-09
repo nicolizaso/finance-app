@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from './api/axios';
 
 // Importación de Componentes
 import BalanceCard from './components/BalanceCard';
@@ -16,8 +16,8 @@ function App() {
   // 1. Lógica de carga de datos (El Cerebro)
   const fetchTransactions = async () => {
     try {
-      const res = await axios.get('http://127.0.0.1:3000/api/transactions');
-      setTransactions(res.data.data);
+      const res = await api.get('/transactions'); 
+    setTransactions(res.data.data);
     } catch (error) {
       console.error("Error cargando datos:", error);
     }
@@ -33,7 +33,7 @@ function App() {
     const checkRecurring = async () => {
       try {
         // Pedimos al backend que verifique si hay que crear gastos de este mes
-        await axios.post('http://127.0.0.1:3000/api/fixed-expenses/generate');
+        await api.post('/fixed-expenses/generate');
         // Si generó algo nuevo, recargamos la lista
         handleTransactionAdded(); 
       } catch (error) {

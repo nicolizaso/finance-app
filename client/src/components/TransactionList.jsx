@@ -1,5 +1,5 @@
 import { Trash2 } from 'lucide-react';
-import axios from 'axios';
+import api from './api/axios';
 
 // Recibimos 'transactions' (datos) y 'onTransactionUpdated' (función para recargar)
 const TransactionList = ({ transactions, onTransactionUpdated }) => {
@@ -38,7 +38,7 @@ const TransactionList = ({ transactions, onTransactionUpdated }) => {
 
     try {
       // 4. Actualizamos: Estado COMPLETED y el Monto Final (en centavos)
-      await axios.put(`http://127.0.0.1:3000/api/transactions/${t._id}`, {
+      await api.put(`/transactions/${t._id}`, {
         ...t, 
         amount: realAmount * 100, // Guardamos el nuevo monto confirmado
         status: 'COMPLETED' 
@@ -54,7 +54,7 @@ const TransactionList = ({ transactions, onTransactionUpdated }) => {
     if(!window.confirm('¿Seguro que quieres borrar esto?')) return;
     
     try {
-      await axios.delete(`http://127.0.0.1:3000/api/transactions/${id}`);
+      await api.delete(`transactions/${id}`);
       // Avisamos al padre (App) que recargue
       if (onTransactionUpdated) onTransactionUpdated(); 
     } catch (error) {
