@@ -1,21 +1,15 @@
 import { useState, useEffect } from 'react';
+import api from '../api/axios'; // Importamos la api
 
-const PinScreen = ({ onUnlock }) => {
+const PinScreen = ({ username, onLoginSuccess, onBack }) => { // <--- Nuevas props
   const [pin, setPin] = useState(['', '', '', '']);
-  const [storedPin, setStoredPin] = useState(null);
-  const [isSettingUp, setIsSettingUp] = useState(false);
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const saved = localStorage.getItem('finanzapps_pin');
-    if (saved) {
-      setStoredPin(saved);
-    } else {
-      setIsSettingUp(true); // Primera vez: Configurar PIN
-    }
-  }, []);
+  // ... (useEffects viejos borrados, ya no usamos localStorage para validar PIN localmente)
 
-  const handlePress = (num) => {
+  const handlePress = async (num) => {
+    if (loading) return;
     const nextIndex = pin.findIndex(p => p === '');
     if (nextIndex === -1) return;
 
@@ -24,29 +18,35 @@ const PinScreen = ({ onUnlock }) => {
     setPin(newPin);
     setError(false);
 
-    // Si completó los 4 números
+    // Si completó el PIN
     if (nextIndex === 3) {
       const enteredPin = newPin.join('');
+      setLoading(true);
       
-      if (isSettingUp) {
-        localStorage.setItem('finanzapps_pin', enteredPin);
-        setStoredPin(enteredPin);
-        setIsSettingUp(false);
-        setPin(['', '', '', '']);
-        alert("¡PIN Configurado!");
-        onUnlock(); // Entrar directo
-      } else {
-        if (enteredPin === storedPin) {
-          onUnlock();
-        } else {
-          setError(true);
-          setTimeout(() => setPin(['', '', '', '']), 500);
+      try {
+        // VALIDAR CON BACKEND
+        const res = await api.post('/users/login', { username, pin: enteredPin });
+        
+        if (res.data.success) {
+            // Guardamos usuario completo en localStorage
+            localStorage.setItem('finanzapp_user', JSON.stringify(res.data.user));
+            onLoginSuccess(res.data.user);
         }
+      } catch (err) {
+        console.error(err);
+        setError(true);
+        // Vibrar si es móvil
+        if (navigator.vibrate) navigator.vibrate(200);
+        setTimeout(() => {
+            setPin(['', '', '', '']);
+            setLoading(false);
+        }, 500);
       }
     }
   };
 
   const handleDelete = () => {
+    if(loading) return;
     const lastIndex = [...pin].reverse().findIndex(p => p !== '');
     if (lastIndex === -1) return;
     const realIndex = 3 - lastIndex;
@@ -56,18 +56,21 @@ const PinScreen = ({ onUnlock }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-void z-50 flex flex-col items-center justify-center p-4">
+    <div className="fixed inset-0 bg-void z-50 flex flex-col items-center justify-center p-4 animate-fade-in">
+      {/* Botón Volver */}
+      <button onClick={onBack} className="absolute top-6 left-6 text-textMuted hover:text-white">
+        ← Cambiar usuario
+      </button>
+
       <div className="mb-10 text-center">
-      <img 
+        <img 
           src="/logo.png" 
-          alt="Logo FinanzApp" 
-          className="w-24 h-24 mx-auto mb-6 rounded-full border-4 border-primary/20 object-contain drop-shadow-[0_0_20px_rgba(124,58,237,0.6)] animate-pulse-slow bg-void"
+          alt="Logo" 
+          className="w-20 h-20 mx-auto mb-6 rounded-full border-2 border-primary/20 object-contain shadow-glow bg-void" 
         />
-        <h1 className="text-4xl font-bold text-white tracking-tight mb-2 font-heading">
-          Finanz<span className="text-primary">App</span>
-        </h1>
-        <p className="text-neon text-sm uppercase tracking-widest">
-          {isSettingUp ? 'Crea tu PIN de acceso' : 'Ingresa tu PIN'}
+        <h2 className="text-2xl font-bold text-white mb-1 capitalize">Hola, {username}</h2>
+        <p className="text-textMuted text-xs uppercase tracking-widest">
+           {loading ? 'Verificando...' : 'Ingresa tu PIN'}
         </p>
       </div>
 
@@ -75,12 +78,12 @@ const PinScreen = ({ onUnlock }) => {
       <div className={`flex gap-4 mb-12 ${error ? 'animate-shake' : ''}`}>
         {pin.map((p, i) => (
           <div key={i} className={`w-4 h-4 rounded-full border-2 transition-all duration-300 ${
-            p !== '' ? 'bg-primary border-primary shadow-[0_0_15px_rgba(124,58,237,0.5)]' : 'border-border bg-transparent'
+            p !== '' ? 'bg-primary border-primary shadow-glow' : 'border-border bg-transparent'
           }`} />
         ))}
       </div>
 
-      {/* Teclado Numérico */}
+      {/* Teclado */}
       <div className="grid grid-cols-3 gap-6 w-full max-w-[280px]">
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
           <button
@@ -91,19 +94,9 @@ const PinScreen = ({ onUnlock }) => {
             {num}
           </button>
         ))}
-        <div className="w-20 h-20"></div> {/* Espacio vacío */}
-        <button
-          onClick={() => handlePress(0)}
-          className="w-20 h-20 rounded-full bg-surface border border-border text-2xl font-bold text-white hover:bg-surfaceHighlight transition-all active:scale-95"
-        >
-          0
-        </button>
-        <button
-          onClick={handleDelete}
-          className="w-20 h-20 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-        >
-          ⌫
-        </button>
+        <div className="w-20 h-20"></div>
+        <button onClick={() => handlePress(0)} className="w-20 h-20 rounded-full bg-surface border border-border text-2xl font-bold text-white hover:bg-surfaceHighlight transition-all active:scale-95">0</button>
+        <button onClick={handleDelete} className="w-20 h-20 rounded-full flex items-center justify-center text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors">⌫</button>
       </div>
     </div>
   );

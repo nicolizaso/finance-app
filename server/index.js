@@ -1,37 +1,46 @@
+require('dotenv').config();
 const express = require('express');
-const dotenv = require('dotenv');
 const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
 const connectDB = require('./config/db');
-const transactionsRoutes = require('./routes/transaction');
-const fixedExpensesRoutes = require('./routes/fixedExpenses');
 
-// 1. Configuración de entorno
-dotenv.config();
+const app = express();
 
-// 2. Conectar a Base de Datos
+// Conectar a Base de Datos
 connectDB();
 
-// 3. Inicializar App
-const app = express();
+// --- CONFIGURACIÓN DE CORS SEGURA ---
+// Define aquí las URLs permitidas (Local y Producción)
+const allowedOrigins = [
+  'http://localhost:5173',      // Vite Local
+  'http://127.0.0.1:5173',      // Vite Local (IP)
+  'https://finance-app-liart-three.vercel.app/' // <--- DESCOMENTAR Y AGREGAR TU URL DE VERCEL AQUÍ CUANDO SUBAS
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Permitir peticiones sin origen (como Postman o Mobile Apps)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log("Bloqueado por CORS:", origin); // Log para debug
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true // <--- Esto permite que funcione withCredentials: true del cliente
+}));
+// -----------------------------------
+
+app.use(express.json());
+
+// --- RUTAS ---
+app.use('/api/transactions', require('./routes/transaction'));
+app.use('/api/fixed-expenses', require('./routes/fixedExpenses'));
+app.use('/api/users', require('./routes/users'));
+
 const PORT = process.env.PORT || 3000;
 
-// 4. Middlewares (Capas de seguridad y utilidad)
-app.use(helmet({
-    contentSecurityPolicy: false
-  })); // Protege headers HTTP
-app.use(cors()); // Permite peticiones desde el Frontend
-app.use(express.json()); // Permite leer JSON en los requests (body parser)
-app.use(morgan('dev')); // Logger para ver peticiones en consola
-
-// 5. Rutas (Endpoints de prueba)
-// Rutas
-app.use('/api/transactions', transactionsRoutes);
-app.use('/api/fixed-expenses', fixedExpensesRoutes);
-
-// 6. Arrancar Servidor
 app.listen(PORT, () => {
-    console.log(`Server corriendo en http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
-

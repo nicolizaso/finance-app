@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'; // <--- ESTA ES LA LÍNEA QUE FALTABA
 import api from './api/axios';
-import { User, Lock, History } from 'lucide-react'; // Eliminado 'Settings'
+import { User, Lock, History, LogOut } from 'lucide-react';
 
 // Componentes
+import UserScreen from './components/UserScreen';
 import PinScreen from './components/PinScreen';
 import BalanceCard from './components/BalanceCard';
 import ExpenseChart from './components/ExpenseChart';
@@ -12,11 +13,42 @@ import FixedExpenseForm from './components/FixedExpenseForm';
 import FixedExpensesCard from './components/FixedExpensesCard';
 
 function App() {
+  const [currentUser, setCurrentUser] = useState(null);
   const [isLocked, setIsLocked] = useState(true);
+  
+  // Datos
   const [transactions, setTransactions] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [showFixedForm, setShowFixedForm] = useState(false);
 
+  // 1. Al iniciar, chequeamos si hay usuario guardado en localStorage
+  useEffect(() => {
+    const savedUser = localStorage.getItem('finanzapp_user');
+    if (savedUser) {
+        setCurrentUser(JSON.parse(savedUser));
+        setIsLocked(true); // Si recarga, pedimos PIN de nuevo por seguridad
+    } else {
+        setCurrentUser(null);
+        setIsLocked(true);
+    }
+  }, []);
+
+  // 2. Función Login exitoso
+  const handleLoginSuccess = (user) => {
+      setCurrentUser(user);
+      setIsLocked(false);
+      setRefreshKey(prev => prev + 1); // Forzar carga de datos
+  };
+
+  // 3. Función Logout (Cambiar usuario)
+  const handleLogout = () => {
+      localStorage.removeItem('finanzapp_user');
+      setCurrentUser(null);
+      setIsLocked(true);
+      setTransactions([]); // Limpiar datos en memoria
+  };
+
+  // Carga de datos (Solo si está desbloqueado)
   const fetchTransactions = async () => {
     try {
       const res = await api.get('/transactions');
@@ -24,21 +56,41 @@ function App() {
     } catch (error) { console.error(error); }
   };
 
-  useEffect(() => { if (!isLocked) fetchTransactions(); }, [refreshKey, isLocked]);
+  useEffect(() => { 
+      if (!isLocked && currentUser) fetchTransactions(); 
+  }, [refreshKey, isLocked, currentUser]);
 
+  // Generador recurrente
   useEffect(() => {
-    if (!isLocked) {
+    if (!isLocked && currentUser) {
       const checkRecurring = async () => {
         try { await api.post('/fixed-expenses/generate'); handleRefresh(); } catch (e) {}
       };
       checkRecurring();
     }
-  }, [isLocked]);
+  }, [isLocked, currentUser]);
 
   const handleRefresh = () => setRefreshKey(prev => prev + 1);
 
-  if (isLocked) return <PinScreen onUnlock={() => setIsLocked(false)} />;
+  // --- RENDERIZADO CONDICIONAL DE PANTALLAS ---
 
+  // A. Si no hay usuario seleccionado -> USER SCREEN
+  if (!currentUser) {
+      return <UserScreen onUserSubmit={(name) => setCurrentUser({ username: name })} />;
+  }
+
+  // B. Si hay usuario pero está bloqueado -> PIN SCREEN
+  if (isLocked) {
+      return (
+        <PinScreen 
+            username={currentUser.username} 
+            onLoginSuccess={handleLoginSuccess}
+            onBack={handleLogout}
+        />
+      );
+  }
+
+  // C. Si está todo OK -> DASHBOARD
   return (
     <div className="min-h-screen bg-void p-4 md:p-6 lg:p-8 font-sans pb-24 md:pb-8">
       <div className="max-w-7xl mx-auto space-y-6 animate-slide-up">
@@ -51,17 +103,24 @@ function App() {
               <h1 className="text-3xl font-extrabold text-white tracking-tighter">
                 Finanz<span className="text-primary drop-shadow-[0_0_10px_rgba(124,58,237,0.5)]">App</span>
               </h1>
-              <p className="text-textMuted text-xs font-medium tracking-wide mt-0.5">DASHBOARD</p>
+              <p className="text-textMuted text-xs font-medium tracking-wide mt-0.5 uppercase">
+                Hola, {currentUser.name}
+              </p>
             </div>
           </div>
           
           <div className="flex gap-3">
-            <button className="w-11 h-11 rounded-full bg-surface border border-border flex items-center justify-center text-textMuted hover:text-white hover:border-primary transition-all active:scale-95">
-               <User size={20} />
+            <button 
+                onClick={handleLogout}
+                className="w-11 h-11 rounded-full bg-surface border border-border flex items-center justify-center text-textMuted hover:text-rose-400 hover:border-rose-500 transition-all active:scale-95"
+                title="Cerrar Sesión"
+            >
+               <LogOut size={20} />
             </button>
             <button 
               onClick={() => setIsLocked(true)}
               className="w-11 h-11 rounded-full bg-surface border border-border flex items-center justify-center text-textMuted hover:text-white hover:border-primary hover:shadow-glow transition-all active:scale-95"
+              title="Bloquear"
             >
               <Lock size={20} />
             </button>
@@ -72,10 +131,7 @@ function App() {
         {showFixedForm && (
             <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
                 <div className="w-full max-w-md bg-surface border border-primary/50 rounded-3xl p-6 relative shadow-glow">
-                    <button 
-                        onClick={() => setShowFixedForm(false)} 
-                        className="absolute top-4 right-4 text-textMuted hover:text-white"
-                    >✕</button>
+                    <button onClick={() => setShowFixedForm(false)} className="absolute top-4 right-4 text-textMuted hover:text-white">✕</button>
                     <FixedExpenseForm onClose={() => setShowFixedForm(false)} onSaved={handleRefresh} />
                 </div>
             </div>
@@ -87,7 +143,7 @@ function App() {
           {/* LEFT COL */}
           <div className="lg:col-span-8 flex flex-col gap-6">
             
-            {/* ROW 1: BALANCE (Ahora ocupa todo el ancho de la columna) */}
+            {/* ROW 1: BALANCE */}
             <div className="min-h-[220px]">
               <BalanceCard transactions={transactions} />
             </div>

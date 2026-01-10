@@ -2,38 +2,30 @@ const express = require('express');
 const router = express.Router();
 const Transaction = require('../models/Transaction');
 
-// @desc    Obtener todas las transacciones
-// @route   GET /api/transactions
 router.get('/', async (req, res) => {
     try {
-        const transactions = await Transaction.find().sort({ date: -1 }); // Las más nuevas primero
-        res.status(200).json({ success: true, count: transactions.length, data: transactions });
+        const userId = req.headers['x-user-id']; // <--- LEEMOS EL HEADER
+        if (!userId) return res.json({ success: true, data: [] });
+
+        const transactions = await Transaction.find({ userId }).sort({ date: -1 });
+        res.json({ success: true, data: transactions });
     } catch (error) {
-        res.status(500).json({ success: false, error: 'Error de Servidor' });
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// @desc    Agregar una transacción
-// @route   POST /api/transactions
+// CREAR (Asociado al usuario)
 router.post('/', async (req, res) => {
     try {
-        // Aquí ocurre la magia de guardar en Mongo
-        const transaction = await Transaction.create(req.body);
-        
-        res.status(201).json({
-            success: true,
-            data: transaction
-        });
+        const userId = req.headers['x-user-id']; // <--- LEEMOS EL HEADER
+        if (!userId) return res.status(400).json({ success: false, error: 'Usuario no identificado' });
+
+        const transaction = await Transaction.create({ ...req.body, userId });
+        res.status(201).json({ success: true, data: transaction });
     } catch (error) {
-        if(error.name === 'ValidationError') {
-            const messages = Object.values(error.errors).map(val => val.message);
-            return res.status(400).json({ success: false, error: messages });
-        } else {
-            return res.status(500).json({ success: false, error: 'Error de Servidor' });
-        }
+        res.status(400).json({ success: false, error: error.message });
     }
 });
-
 // @desc    Actualizar una transacción (Para marcar como pagado o editar)
 // @route   PUT /api/transactions/:id
 router.put('/:id', async (req, res) => {
