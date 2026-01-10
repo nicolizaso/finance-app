@@ -3,7 +3,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recha
 
 const COLORS = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#6366F1'];
 
-const ExpenseChart = ({ transactions }) => {
+const ExpenseChart = ({ transactions, isPrivacyMode }) => {
 
   const data = useMemo(() => {
     const expenses = transactions.filter(t => t.type === 'EXPENSE');
@@ -33,7 +33,7 @@ const ExpenseChart = ({ transactions }) => {
     <div className="bg-surface border border-border rounded-3xl p-6 shadow-card flex flex-col items-center h-full w-full relative overflow-hidden">
       <h3 className="text-white font-bold mb-2 self-start font-heading">Distribución</h3>
       
-      <div className="h-64 w-full flex-1 min-h-[250px]">
+      <div className={`h-64 w-full flex-1 min-h-[250px] ${isPrivacyMode ? 'blur-sm' : ''}`}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -52,17 +52,19 @@ const ExpenseChart = ({ transactions }) => {
             </Pie>
             
             {/* Tooltip actualizado con formato ES-AR sin decimales */}
-            <Tooltip 
-              formatter={(value) => `$${Math.round(value).toLocaleString('es-AR')}`}
-              contentStyle={{ 
-                backgroundColor: '#1A1626', 
-                border: '1px solid #2E2442', 
-                borderRadius: '12px', 
-                color: '#fff',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
-              }}
-              itemStyle={{ color: '#E9D5FF' }} 
-            />
+            {!isPrivacyMode && (
+              <Tooltip
+                formatter={(value) => `$${Math.round(value).toLocaleString('es-AR')}`}
+                contentStyle={{
+                  backgroundColor: '#1A1626',
+                  border: '1px solid #2E2442',
+                  borderRadius: '12px',
+                  color: '#fff',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
+                }}
+                itemStyle={{ color: '#E9D5FF' }}
+              />
+            )}
             <Legend 
               iconType="circle" 
               layout="horizontal" 

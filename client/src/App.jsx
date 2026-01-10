@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'; // <--- ESTA ES LA LÍNEA QUE FALTABA
 import api from './api/axios';
-import { User, Lock, History, LogOut } from 'lucide-react';
+import { User, Lock, History, LogOut, Eye, EyeOff } from 'lucide-react';
 
 // Componentes
 import UserScreen from './components/UserScreen';
@@ -15,6 +15,7 @@ import FixedExpensesCard from './components/FixedExpensesCard';
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isLocked, setIsLocked] = useState(true);
+  const [isPrivacyMode, setIsPrivacyMode] = useState(false);
   
   // Datos
   const [transactions, setTransactions] = useState([]);
@@ -110,6 +111,13 @@ function App() {
           </div>
           
           <div className="flex gap-3">
+            <button
+              onClick={() => setIsPrivacyMode(!isPrivacyMode)}
+              className={`w-11 h-11 rounded-full bg-surface border border-border flex items-center justify-center transition-all active:scale-95 ${isPrivacyMode ? 'text-primary border-primary shadow-glow' : 'text-textMuted hover:text-white hover:border-primary'}`}
+              title="Modo Privacidad"
+            >
+              {isPrivacyMode ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
             <button 
                 onClick={handleLogout}
                 className="w-11 h-11 rounded-full bg-surface border border-border flex items-center justify-center text-textMuted hover:text-rose-400 hover:border-rose-500 transition-all active:scale-95"
@@ -145,7 +153,7 @@ function App() {
             
             {/* ROW 1: BALANCE */}
             <div className="min-h-[220px]">
-              <BalanceCard transactions={transactions} />
+              <BalanceCard transactions={transactions} isPrivacyMode={isPrivacyMode} />
             </div>
 
             {/* ROW 2: GASTOS FIJOS Y CARGA */}
@@ -154,6 +162,7 @@ function App() {
                     transactions={transactions} 
                     onRefresh={handleRefresh}
                     onOpenConfig={() => setShowFixedForm(true)}
+                    isPrivacyMode={isPrivacyMode}
                 />
                 <div className="h-full">
                   <TransactionForm onTransactionAdded={handleRefresh} />
@@ -162,7 +171,7 @@ function App() {
 
             {/* ROW 3: GRÁFICO */}
             <div className="h-[300px]">
-                <ExpenseChart transactions={transactions} />
+                <ExpenseChart transactions={transactions} isPrivacyMode={isPrivacyMode} />
             </div>
           </div>
 
@@ -176,7 +185,7 @@ function App() {
                 </h3>
               </div>
               <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                <TransactionList transactions={transactions} onTransactionUpdated={handleRefresh} />
+                <TransactionList transactions={transactions} onTransactionUpdated={handleRefresh} isPrivacyMode={isPrivacyMode} />
               </div>
             </div>
           </div>
