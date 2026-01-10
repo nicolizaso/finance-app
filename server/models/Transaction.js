@@ -8,7 +8,14 @@ const TransactionSchema = new mongoose.Schema({
     category: { type: String, required: true },
     date: { type: Date, default: Date.now },
     status: { type: String, default: 'COMPLETED', enum: ['PENDING', 'COMPLETED'] },
-    paymentLink: { type: String, default: '' } // <--- NUEVO CAMPO
+    isFixed: { type: Boolean, default: false },
+    
+    // --- DATOS HEREDADOS DEL GASTO FIJO ---
+    paymentMethod: { type: String, default: 'ONLINE' },
+    paymentLink: { type: String, default: '' },
+    cbuAlias: { type: String, default: '' },
+    currency: { type: String, default: 'ARS' },
+    autoDebitCard: { type: String, default: '' }
 });
 
 module.exports = mongoose.models.Transaction || mongoose.model('Transaction', TransactionSchema);
