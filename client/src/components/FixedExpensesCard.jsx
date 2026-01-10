@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import api from '../api/axios';
 import { Calendar, Plus, PartyPopper, Check, X, Wallet, AlertCircle, ExternalLink, CheckCircle2, Copy, CreditCard, Banknote } from 'lucide-react';
 
-const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig }) => {
+const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMode }) => {
   const [payingTransaction, setPayingTransaction] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState('');
 
@@ -140,11 +140,11 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig }) => {
             </h3>
             <div className="flex gap-4 mt-1">
                 <p className="text-textMuted text-xs">
-                  Por pagar: <span className="text-rose-400 font-mono font-bold">${formatMoney(totalDebt)}</span>
+                  Por pagar: <span className={`text-rose-400 font-mono font-bold ${isPrivacyMode ? 'blur-sm' : ''}`}>${isPrivacyMode ? '***' : formatMoney(totalDebt)}</span>
                 </p>
                 {totalPaid > 0 && (
                     <p className="text-textMuted text-xs pl-4 border-l border-border">
-                    Ya pagado: <span className="text-emerald-400 font-mono font-bold">${formatMoney(totalPaid)}</span>
+                    Ya pagado: <span className={`text-emerald-400 font-mono font-bold ${isPrivacyMode ? 'blur-sm' : ''}`}>${isPrivacyMode ? '***' : formatMoney(totalPaid)}</span>
                     </p>
                 )}
             </div>
@@ -190,8 +190,8 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig }) => {
                   </div>
                 </div>
               </div>
-              <span className="font-mono text-white font-bold text-sm whitespace-nowrap ml-3 bg-surface/50 px-2 py-1 rounded-lg border border-white/5">
-                ${formatMoney(t.amount)}
+              <span className={`font-mono text-white font-bold text-sm whitespace-nowrap ml-3 bg-surface/50 px-2 py-1 rounded-lg border border-white/5 ${isPrivacyMode ? 'blur-sm' : ''}`}>
+                ${isPrivacyMode ? '***' : formatMoney(t.amount)}
               </span>
             </div>
           ))}
@@ -218,8 +218,8 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig }) => {
                   <p className="text-emerald-500/80 text-[10px] font-bold tracking-wide">PAGADO</p>
                 </div>
               </div>
-              <span className="font-mono text-emerald-500 font-bold text-sm whitespace-nowrap ml-3">
-                ${formatMoney(t.amount)}
+              <span className={`font-mono text-emerald-500 font-bold text-sm whitespace-nowrap ml-3 ${isPrivacyMode ? 'blur-sm' : ''}`}>
+                ${isPrivacyMode ? '***' : formatMoney(t.amount)}
               </span>
             </div>
           ))}

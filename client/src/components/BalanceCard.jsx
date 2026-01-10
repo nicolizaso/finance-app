@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-const BalanceCard = ({ transactions }) => {
+const BalanceCard = ({ transactions, isPrivacyMode }) => {
   const stats = useMemo(() => {
     const completedTransactions = transactions.filter(t => t.status === 'COMPLETED');
     const amounts = completedTransactions.map(t => ({ amount: t.amount, type: t.type }));
@@ -27,7 +27,9 @@ const BalanceCard = ({ transactions }) => {
         <h2 className="text-textMuted text-sm font-medium uppercase tracking-wider mb-1">Saldo Total</h2>
         <div className="flex items-baseline gap-1">
           <span className="text-3xl sm:text-5xl font-bold text-white tracking-tight">$</span>
-          <span className="text-4xl sm:text-6xl font-bold text-white tracking-tight">{stats.total}</span>
+          <span className={`text-4xl sm:text-6xl font-bold text-white tracking-tight ${isPrivacyMode ? 'blur-sm' : ''}`}>
+             {isPrivacyMode ? '*****' : stats.total}
+          </span>
         </div>
       </div>
 
@@ -37,8 +39,8 @@ const BalanceCard = ({ transactions }) => {
             <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]"></div>
             <span className="text-xs text-textMuted font-bold">Ingresos</span>
           </div>
-          <p className="text-lg font-bold text-emerald-400">
-            +${stats.income}
+          <p className={`text-lg font-bold text-emerald-400 ${isPrivacyMode ? 'blur-sm' : ''}`}>
+            +${isPrivacyMode ? '***' : stats.income}
           </p>
         </div>
 
@@ -47,8 +49,8 @@ const BalanceCard = ({ transactions }) => {
             <div className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]"></div>
             <span className="text-xs text-textMuted font-bold">Gastos</span>
           </div>
-          <p className="text-lg font-bold text-rose-500">
-            -${stats.expense}
+          <p className={`text-lg font-bold text-rose-500 ${isPrivacyMode ? 'blur-sm' : ''}`}>
+            -${isPrivacyMode ? '***' : stats.expense}
           </p>
         </div>
       </div>
