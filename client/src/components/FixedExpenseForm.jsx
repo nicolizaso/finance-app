@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
-import { Repeat, Link as LinkIcon, Save, Trash2, Edit2, Plus, ArrowLeft } from 'lucide-react';
+import { Repeat, Link as LinkIcon, Save, Trash2, Edit2, Plus, ArrowLeft, CreditCard, Banknote, ArrowRightLeft, Globe } from 'lucide-react';
 
 const CATEGORIES = ["Comida", "Casa", "Transporte", "Ocio", "Salud", "Suscripciones", "Ahorro", "Varios"];
 
@@ -15,7 +15,11 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
     amount: '',
     dayOfMonth: 1,
     category: 'Casa',
-    paymentLink: ''
+    paymentMethod: 'ONLINE', // Default
+    paymentLink: '',
+    cbuAlias: '',
+    currency: 'ARS',
+    autoDebitCard: ''
   });
 
   const fetchFixedExpenses = async () => {
@@ -34,14 +38,21 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
       amount: (item.amount / 100).toString(),
       dayOfMonth: item.dayOfMonth,
       category: item.category,
-      paymentLink: item.paymentLink || ''
+      paymentMethod: item.paymentMethod || 'ONLINE',
+      paymentLink: item.paymentLink || '',
+      cbuAlias: item.cbuAlias || '',
+      currency: item.currency || 'ARS',
+      autoDebitCard: item.autoDebitCard || ''
     });
     setView('form');
   };
 
   const handleCreateNew = () => {
     setEditingId(null);
-    setFormData({ title: '', amount: '', dayOfMonth: 1, category: 'Casa', paymentLink: '' });
+    setFormData({ 
+        title: '', amount: '', dayOfMonth: 1, category: 'Casa', 
+        paymentMethod: 'ONLINE', paymentLink: '', cbuAlias: '', currency: 'ARS', autoDebitCard: '' 
+    });
     setView('form');
   };
 
@@ -65,14 +76,11 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
       } else {
         await api.post('/fixed-expenses', payload);
       }
-      
       await api.post('/fixed-expenses/generate');
       
       if (onSaved) onSaved();
-      
       fetchFixedExpenses();
       setView('list');
-
     } catch (error) {
       console.error(error);
       alert('Error guardando');
@@ -107,7 +115,7 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
                 <div className="min-w-0 flex-1 pr-2">
                   <p className="text-white font-bold text-sm truncate" title={item.title}>{item.title}</p>
                   <p className="text-textMuted text-[10px]">
-                    Día {item.dayOfMonth} • ${Math.round(item.amount / 100).toLocaleString('es-AR')}
+                    Día {item.dayOfMonth} • {item.paymentMethod}
                   </p>
                 </div>
                 <div className="flex gap-2 shrink-0">
@@ -154,16 +162,99 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
           </label>
         </div>
 
-        {/* CAMBIO AQUÍ: type="text" para que acepte cualquier formato */}
-        <div className="relative group">
-            <LinkIcon className="absolute left-4 top-4 text-textMuted/50" size={16} />
-            <input 
-              type="text" 
-              placeholder="Link de pago (ej. google.com)" 
-              className="input-pro pl-10 text-sm"
-              value={formData.paymentLink}
-              onChange={e => setFormData({...formData, paymentLink: e.target.value})}
-            />
+        {/* --- SELECTOR DE MEDIO DE PAGO --- */}
+        <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+                <label className="text-xs text-textMuted font-bold uppercase tracking-wider mb-1 block">Medio de Pago</label>
+                <div className="grid grid-cols-4 gap-2">
+                    {[
+                        { id: 'ONLINE', icon: Globe, label: 'Online' },
+                        { id: 'TRANSFER', icon: ArrowRightLeft, label: 'Transf.' },
+                        { id: 'CASH', icon: Banknote, label: 'Efvo.' },
+                        { id: 'DEBIT', icon: CreditCard, label: 'Débito' },
+                    ].map((opt) => (
+                        <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => setFormData({...formData, paymentMethod: opt.id})}
+                            className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all ${
+                                formData.paymentMethod === opt.id 
+                                ? 'bg-primary/20 border-primary text-white' 
+                                : 'bg-surfaceHighlight border-transparent text-textMuted hover:text-white'
+                            }`}
+                        >
+                            <opt.icon size={18} className="mb-1" />
+                            <span className="text-[9px] font-bold">{opt.label}</span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </div>
+
+        {/* --- CAMPO CONDICIONAL SEGÚN PAGO --- */}
+        <div className="bg-surfaceHighlight/30 p-3 rounded-xl border border-border">
+            
+            {/* 1. ONLINE: Pide Link */}
+            {formData.paymentMethod === 'ONLINE' && (
+                <div className="relative">
+                    <LinkIcon className="absolute left-3 top-3 text-textMuted/50" size={16} />
+                    <input 
+                    type="text" 
+                    placeholder="Link de pago (ej. mercadopago.com)" 
+                    className="input-pro pl-10 text-sm bg-surface"
+                    value={formData.paymentLink}
+                    onChange={e => setFormData({...formData, paymentLink: e.target.value})}
+                    />
+                </div>
+            )}
+
+            {/* 2. TRANSFERENCIA: Pide Alias/CBU */}
+            {formData.paymentMethod === 'TRANSFER' && (
+                <div className="relative">
+                    <ArrowRightLeft className="absolute left-3 top-3 text-textMuted/50" size={16} />
+                    <input 
+                    type="text" 
+                    placeholder="Alias o CBU (ej. juan.perez.mp)" 
+                    className="input-pro pl-10 text-sm bg-surface"
+                    value={formData.cbuAlias}
+                    onChange={e => setFormData({...formData, cbuAlias: e.target.value})}
+                    />
+                </div>
+            )}
+
+            {/* 3. EFECTIVO: Pide Moneda */}
+            {formData.paymentMethod === 'CASH' && (
+                <div className="flex gap-2">
+                    {['ARS', 'USD'].map(cur => (
+                        <button
+                            key={cur}
+                            type="button"
+                            onClick={() => setFormData({...formData, currency: cur})}
+                            className={`flex-1 py-2 rounded-lg font-bold text-sm border transition-all ${
+                                formData.currency === cur 
+                                ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' 
+                                : 'bg-surface border-border text-textMuted'
+                            }`}
+                        >
+                            {cur === 'ARS' ? '$ Pesos' : 'USD Dólares'}
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {/* 4. DÉBITO: Pide Nombre Tarjeta */}
+            {formData.paymentMethod === 'DEBIT' && (
+                <div className="relative">
+                    <CreditCard className="absolute left-3 top-3 text-textMuted/50" size={16} />
+                    <input 
+                    type="text" 
+                    placeholder="Tarjeta adherida (ej. Visa Galicia)" 
+                    className="input-pro pl-10 text-sm bg-surface"
+                    value={formData.autoDebitCard}
+                    onChange={e => setFormData({...formData, autoDebitCard: e.target.value})}
+                    />
+                </div>
+            )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
