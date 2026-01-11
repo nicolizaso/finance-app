@@ -1,9 +1,10 @@
 import axios from 'axios';
 
 // 1. Detectar si estamos en Prod (Vercel) o Dev (Local)
+// Usamos '/api' relativo para desarrollo local (gracias al proxy de Vite)
 const baseURL = import.meta.env.VITE_API_URL 
-  ? `${import.meta.env.VITE_API_URL}/api` // Si hay variable de entorno, le pegamos /api
-  : 'http://localhost:3000/api';          // Si no, usamos localhost/api por defecto
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : '/api';
 
 const api = axios.create({
   baseURL: baseURL,
