@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Transaction = require('../models/Transaction');
+const { calculateCreditProjection } = require('../utils/creditProjection');
 
 router.get('/', async (req, res) => {
     try {
@@ -11,6 +12,29 @@ router.get('/', async (req, res) => {
         res.json({ success: true, data: transactions });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// @desc    Obtener proyección de tarjeta de crédito
+// @route   GET /api/transactions/projection
+router.get('/projection', async (req, res) => {
+    try {
+        const userId = req.headers['x-user-id'];
+        if (!userId) return res.status(400).json({ success: false, error: 'Usuario no identificado' });
+
+        // Buscar solo gastos con tarjeta de crédito
+        const credits = await Transaction.find({
+            userId,
+            paymentMethod: 'CREDIT',
+            type: 'EXPENSE'
+        });
+
+        const { totalDebt, nextMonthBill } = calculateCreditProjection(credits);
+        res.json({ success: true, data: { totalDebt, nextMonthBill } });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, error: 'Error al calcular proyección' });
     }
 });
 

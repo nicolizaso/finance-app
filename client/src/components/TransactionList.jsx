@@ -1,4 +1,4 @@
-import { Trash2, TrendingUp, TrendingDown, Clock, Check, FileText } from 'lucide-react'; // <--- Iconos
+import { Trash2, TrendingUp, TrendingDown, Clock, Check, FileText, CreditCard } from 'lucide-react'; // <--- Iconos
 import api from '../api/axios';
 
 const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode }) => {
@@ -36,10 +36,15 @@ const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode }) 
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                     t.type === 'INCOME' 
                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                    : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                    : t.paymentMethod === 'CREDIT'
+                        ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' // Color distinto para tarjeta
+                        : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                 }`}>
                   {/* Iconos de Tendencia en lugar de flechas de texto */}
-                  {t.type === 'INCOME' ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
+                  {t.type === 'INCOME' ? <TrendingUp size={18} />
+                    : t.paymentMethod === 'CREDIT' ? <CreditCard size={18} />
+                    : <TrendingDown size={18} />
+                  }
                 </div>
                 
                 <div>
