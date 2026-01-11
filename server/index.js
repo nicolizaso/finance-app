@@ -1,3 +1,13 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+require('dotenv').config();
+
+const app = express();
+
+// Middleware para procesar JSON
+app.use(express.json());
+
 // --- CONFIGURACIÓN DE CORS DINÁMICA ---
 const allowedOrigins = [
   'http://localhost:5173',
@@ -26,3 +36,17 @@ app.use(cors({
   },
   credentials: true
 }));
+
+// Conexión a MongoDB
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB Conectado'))
+  .catch(err => console.error('Error de conexión a MongoDB:', err));
+
+// Rutas
+app.use('/api/transactions', require('./routes/transaction'));
+app.use('/api/fixed-expenses', require('./routes/fixedExpenses'));
+app.use('/api/users', require('./routes/users'));
+app.use('/api/wealth', require('./routes/wealth'));
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Servidor corriendo en el puerto ${PORT}`));
