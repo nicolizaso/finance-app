@@ -157,9 +157,9 @@ const TransactionForm = ({ onTransactionAdded }) => {
 
         {/* COMPONENTE DE GASTOS COMPARTIDOS */}
         {formData.type === 'EXPENSE' && (
-            <SharedExpenseSelector
-                totalAmount={formData.amount}
-                onChange={setSharedData}
+            <SharedExpenseSelector 
+                totalAmount={formData.amount} 
+                onChange={setSharedData} 
             />
         )}
 

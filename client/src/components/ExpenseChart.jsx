@@ -53,16 +53,16 @@ const ExpenseChart = ({ transactions, isPrivacyMode }) => {
             
             {/* Tooltip actualizado con formato ES-AR sin decimales */}
             {!isPrivacyMode && (
-              <Tooltip
+              <Tooltip 
                 formatter={(value) => `$${Math.round(value).toLocaleString('es-AR')}`}
-                contentStyle={{
-                  backgroundColor: '#1A1626',
-                  border: '1px solid #2E2442',
-                  borderRadius: '12px',
+                contentStyle={{ 
+                  backgroundColor: '#1A1626', 
+                  border: '1px solid #2E2442', 
+                  borderRadius: '12px', 
                   color: '#fff',
                   boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
                 }}
-                itemStyle={{ color: '#E9D5FF' }}
+                itemStyle={{ color: '#E9D5FF' }} 
               />
             )}
             <Legend 

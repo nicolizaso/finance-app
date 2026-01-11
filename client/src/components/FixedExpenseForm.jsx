@@ -23,6 +23,7 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
     autoDebitCard: ''
   });
   const [sharedData, setSharedData] = useState(null);
+  const [initialSharedData, setInitialSharedData] = useState(null); // Snapshot para editar
 
   const fetchFixedExpenses = async () => {
     try {
@@ -36,13 +37,13 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
   const handleEdit = (item) => {
     setEditingId(item._id);
     // Si es compartido, reconstruimos el Total (Mi Parte + Su Parte) para mostrar en el input
-    const totalAmount = item.isShared
-        ? ((item.amount + (item.otherShare || 0)) / 100)
+    const totalAmount = item.isShared 
+        ? ((item.amount + (item.otherShare || 0)) / 100) 
         : (item.amount / 100);
 
     setFormData({
       title: item.title,
-      amount: (item.amount / 100).toString(), // Muestra MI parte. Si es compartido, SharedSelector recalculará el total.
+      amount: totalAmount.toString(),
       dayOfMonth: item.dayOfMonth,
       category: item.category,
       paymentMethod: item.paymentMethod || 'ONLINE',
@@ -52,7 +53,8 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
       autoDebitCard: item.autoDebitCard || ''
     });
     // Pasamos los datos crudos para que el selector se inicialice
-    setSharedData(item);
+    setInitialSharedData(item);
+    setSharedData(item); // Inicializamos el estado actual también
     setView('form');
   };
 
@@ -63,6 +65,7 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
         paymentMethod: 'ONLINE', paymentLink: '', cbuAlias: '', currency: 'ARS', autoDebitCard: '' 
     });
     setSharedData(null);
+    setInitialSharedData(null);
     setView('form');
   };
 
@@ -308,10 +311,10 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
         </select>
 
         {/* SELECTOR DE COMPARTIDO */}
-        <SharedExpenseSelector
-            totalAmount={formData.amount}
+        <SharedExpenseSelector 
+            totalAmount={formData.amount} 
             onChange={setSharedData}
-            initialData={editingId ? sharedData : null} // Pasar datos si estamos editando
+            initialData={initialSharedData} // Usamos el snapshot estable
         />
 
         <button 

@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
 // CREAR (Asociado al usuario)
 router.post('/', async (req, res) => {
     try {
-        const userId = req.headers['x-user-id'];
+        const userId = req.headers['x-user-id']; 
         if (!userId) return res.status(400).json({ success: false, error: 'Usuario no identificado' });
 
         // Extraer campos especiales de compartido

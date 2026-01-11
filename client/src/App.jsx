@@ -111,7 +111,7 @@ function App() {
           </div>
           
           <div className="flex gap-3">
-            <button
+            <button 
               onClick={() => setIsPrivacyMode(!isPrivacyMode)}
               className={`w-11 h-11 rounded-full bg-surface border border-border flex items-center justify-center transition-all active:scale-95 ${isPrivacyMode ? 'text-primary border-primary shadow-glow' : 'text-textMuted hover:text-white hover:border-primary'}`}
               title="Modo Privacidad"

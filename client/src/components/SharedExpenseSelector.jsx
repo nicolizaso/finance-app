@@ -4,7 +4,7 @@ import { Users, User, Percent, Search, ArrowRightLeft } from 'lucide-react';
 
 const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
   const [enabled, setEnabled] = useState(false);
-
+  
   // Estados para búsqueda de usuario
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -43,7 +43,7 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
         }
     }
   }, [initialData]);
-
+  
   // Efecto para debounce de búsqueda
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
@@ -123,18 +123,18 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
       {/* 2. Panel Desplegable */}
       {enabled && (
         <div className="mt-4 space-y-4 animate-fade-in">
-
+            
             {/* A. Selector de Usuario */}
             <div className="relative z-20">
                 <label className="text-[10px] uppercase text-textMuted font-bold mb-1 block">Compartir con:</label>
-
+                
                 {!selectedUser ? (
                     <>
                         <div className="relative">
                             <Search className="absolute left-3 top-3 text-textMuted" size={16} />
-                            <input
-                                type="text"
-                                placeholder="Buscar usuario o escribir 'Otro'"
+                            <input 
+                                type="text" 
+                                placeholder="Buscar usuario o escribir 'Otro'" 
                                 className="input-pro pl-10 text-sm"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -146,15 +146,17 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
                         {(searchResults.length > 0 || searchTerm.length > 1) && (
                             <div className="absolute w-full bg-surface border border-border rounded-xl mt-1 max-h-40 overflow-y-auto shadow-glow z-30">
                                 {searchResults.map(u => (
-                                    <button
-                                        key={u._id}
+                                    <button 
+                                        type="button"
+                                        key={u._id} 
                                         onClick={() => handleSelectUser(u)}
                                         className="w-full text-left p-3 hover:bg-primary/20 hover:text-white text-textMuted text-sm border-b border-border/50 last:border-0 transition-colors"
                                     >
                                         <span className="font-bold">{u.username}</span> <span className="text-xs opacity-70">({u.name})</span>
                                     </button>
                                 ))}
-                                <button
+                                <button 
+                                    type="button"
                                     onClick={() => handleSelectUser({ _id: null, username: 'Otro' })}
                                     className="w-full text-left p-3 hover:bg-primary/20 hover:text-white text-primary font-bold text-sm transition-colors"
                                 >
@@ -171,14 +173,14 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
                                 <User size={16} />
                                 <span className="text-sm font-bold">{selectedUser.username}</span>
                             </div>
-                            <button onClick={clearSelection} className="text-white/50 hover:text-white">✕</button>
+                            <button type="button" onClick={clearSelection} className="text-white/50 hover:text-white">✕</button>
                         </div>
-
+                        
                         {/* Campo para nombre si es Otro */}
                         {!selectedUser._id && (
-                            <input
-                                type="text"
-                                placeholder="Nombre..."
+                            <input 
+                                type="text" 
+                                placeholder="Nombre..." 
                                 className="input-pro text-sm flex-1"
                                 value={customName}
                                 onChange={(e) => setCustomName(e.target.value)}
@@ -195,9 +197,9 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
                     <span>Yo pago ({myPercentage}%)</span>
                     <span>Ellos pagan ({100 - myPercentage}%)</span>
                 </div>
-
-                <input
-                    type="range"
+                
+                <input 
+                    type="range" 
                     min="0" max="100" step="5"
                     value={myPercentage}
                     onChange={(e) => setMyPercentage(parseInt(e.target.value))}
