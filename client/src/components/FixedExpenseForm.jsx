@@ -35,6 +35,11 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
 
   const handleEdit = (item) => {
     setEditingId(item._id);
+    // Si es compartido, reconstruimos el Total (Mi Parte + Su Parte) para mostrar en el input
+    const totalAmount = item.isShared
+        ? ((item.amount + (item.otherShare || 0)) / 100)
+        : (item.amount / 100);
+
     setFormData({
       title: item.title,
       amount: (item.amount / 100).toString(), // Muestra MI parte. Si es compartido, SharedSelector recalculará el total.
