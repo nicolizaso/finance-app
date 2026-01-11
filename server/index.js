@@ -1,47 +1,28 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const connectDB = require('./config/db');
-
-const app = express();
-
-// Conectar a Base de Datos
-connectDB();
-
-// --- CONFIGURACIÓN DE CORS SEGURA ---
-// Define aquí las URLs permitidas (Local y Producción)
+// --- CONFIGURACIÓN DE CORS DINÁMICA ---
 const allowedOrigins = [
-  'http://localhost:5173',      // Vite Local
-  'http://127.0.0.1:5173',      // Vite Local (IP)
-  'https://finance-app-liart-three.vercel.app',
-  'https://finance-app-git-dev-nicos-projects-dab771cf.vercel.app/'// <--- DESCOMENTAR Y AGREGAR TU URL DE VERCEL AQUÍ CUANDO SUBAS
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'https://finance-app-liart-three.vercel.app' // Tu dominio principal
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Permitir peticiones sin origen (como Postman o Mobile Apps)
+    // Permitir si no hay origen (Postman)
     if (!origin) return callback(null, true);
+
+    // 1. Verificar si está en la lista fija
+    const isAllowed = allowedOrigins.indexOf(origin) !== -1;
     
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    // 2. Verificar si es una URL de previsualización de Vercel (Regex)
+    // Esto acepta cualquier URL que contenga "finance-app" y termine en ".vercel.app"
+    const isVercelPreview = origin.includes('finance-app') && origin.endsWith('.vercel.app');
+
+    if (isAllowed || isVercelPreview) {
       callback(null, true);
     } else {
-      console.log("Bloqueado por CORS:", origin); // Log para debug
+      console.log("🚫 Bloqueado por CORS:", origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true // <--- Esto permite que funcione withCredentials: true del cliente
+  credentials: true
 }));
-// -----------------------------------
-
-app.use(express.json());
-
-// --- RUTAS ---
-app.use('/api/transactions', require('./routes/transaction'));
-app.use('/api/fixed-expenses', require('./routes/fixedExpenses'));
-app.use('/api/users', require('./routes/users'));
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});

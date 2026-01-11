@@ -7,7 +7,7 @@ const baseURL = import.meta.env.VITE_API_URL
 
 const api = axios.create({
   baseURL: baseURL,
-  withCredentials: true 
+  //withCredentials: true 
 });
 
 // 2. Interceptor para inyectar el usuario automáticamente
