@@ -15,7 +15,13 @@ const TransactionSchema = new mongoose.Schema({
     paymentLink: { type: String, default: '' },
     cbuAlias: { type: String, default: '' },
     currency: { type: String, default: 'ARS' },
-    autoDebitCard: { type: String, default: '' }
+    autoDebitCard: { type: String, default: '' },
+
+    // --- GASTOS COMPARTIDOS ---
+    isShared: { type: Boolean, default: false },
+    sharedWith: { type: String, default: '' }, // ID de usuario o Nombre "Otro"
+    sharedStatus: { type: String, default: 'NONE' }, // OWNER (yo pagué/creé), PARTER (soy el invitado)
+    otherShare: { type: Number, default: 0 } // La parte del otro (para poder reconstruir el total al editar)
 });
 
 module.exports = mongoose.models.Transaction || mongoose.model('Transaction', TransactionSchema);

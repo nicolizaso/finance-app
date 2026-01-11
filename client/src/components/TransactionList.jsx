@@ -1,7 +1,7 @@
 import { Trash2, TrendingUp, TrendingDown, Clock, Check, FileText } from 'lucide-react'; // <--- Iconos
 import api from '../api/axios';
 
-const TransactionList = ({ transactions, onTransactionUpdated }) => {
+const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode }) => {
 
   const historyData = transactions.filter(t => t.status === 'COMPLETED');
   const formatMoney = (amount) => Math.round(amount / 100).toLocaleString('es-AR');
@@ -56,8 +56,8 @@ const TransactionList = ({ transactions, onTransactionUpdated }) => {
               <div className="text-right flex flex-col items-end">
                 <span className={`font-mono font-bold text-sm md:text-base ${
                     t.type === 'INCOME' ? 'text-emerald-400' : 'text-textMain'
-                }`}>
-                  {t.type === 'INCOME' ? '+' : '-'}${formatMoney(t.amount)}
+                } ${isPrivacyMode ? 'blur-sm' : ''}`}>
+                  {t.type === 'INCOME' ? '+' : '-'}${isPrivacyMode ? '***' : formatMoney(t.amount)}
                 </span>
                 
                 <button 

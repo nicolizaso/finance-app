@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { Repeat, Link as LinkIcon, Save, Trash2, Edit2, Plus, ArrowLeft, CreditCard, Banknote, ArrowRightLeft, Globe } from 'lucide-react';
+import SharedExpenseSelector from './SharedExpenseSelector';
 
 const CATEGORIES = ["Comida", "Casa", "Transporte", "Ocio", "Salud", "Suscripciones", "Ahorro", "Varios"];
 
@@ -21,6 +22,8 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
     currency: 'ARS',
     autoDebitCard: ''
   });
+  const [sharedData, setSharedData] = useState(null);
+  const [initialSharedData, setInitialSharedData] = useState(null); // Snapshot para editar
 
   const fetchFixedExpenses = async () => {
     try {
@@ -33,9 +36,14 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
 
   const handleEdit = (item) => {
     setEditingId(item._id);
+    // Si es compartido, reconstruimos el Total (Mi Parte + Su Parte) para mostrar en el input
+    const totalAmount = item.isShared
+        ? ((item.amount + (item.otherShare || 0)) / 100)
+        : (item.amount / 100);
+
     setFormData({
       title: item.title,
-      amount: (item.amount / 100).toString(),
+      amount: totalAmount.toString(),
       dayOfMonth: item.dayOfMonth,
       category: item.category,
       paymentMethod: item.paymentMethod || 'ONLINE',
@@ -44,6 +52,9 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
       currency: item.currency || 'ARS',
       autoDebitCard: item.autoDebitCard || ''
     });
+    // Pasamos los datos crudos para que el selector se inicialice
+    setInitialSharedData(item);
+    setSharedData(item); // Inicializamos el estado actual también
     setView('form');
   };
 
@@ -53,6 +64,8 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
         title: '', amount: '', dayOfMonth: 1, category: 'Casa', 
         paymentMethod: 'ONLINE', paymentLink: '', cbuAlias: '', currency: 'ARS', autoDebitCard: '' 
     });
+    setSharedData(null);
+    setInitialSharedData(null);
     setView('form');
   };
 
@@ -68,7 +81,11 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const payload = { ...formData, amount: parseFloat(formData.amount) * 100 };
+    let payload = { ...formData, amount: parseFloat(formData.amount) * 100 };
+
+    if (sharedData && sharedData.isShared) {
+        payload = { ...payload, ...sharedData };
+    }
 
     try {
       if (editingId) {
@@ -292,6 +309,13 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
         >
            {CATEGORIES.map(c => <option key={c} value={c} className="bg-surface">{c}</option>)}
         </select>
+
+        {/* SELECTOR DE COMPARTIDO */}
+        <SharedExpenseSelector
+            totalAmount={formData.amount}
+            onChange={setSharedData}
+            initialData={initialSharedData} // Usamos el snapshot estable
+        />
 
         <button 
           type="submit" 
