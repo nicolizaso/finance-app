@@ -11,7 +11,13 @@ const TransactionSchema = new mongoose.Schema({
     isFixed: { type: Boolean, default: false },
     
     // --- DATOS HEREDADOS DEL GASTO FIJO ---
-    paymentMethod: { type: String, default: 'ONLINE' },
+    paymentMethod: {
+        type: String,
+        enum: ['ONLINE', 'TRANSFER', 'CASH', 'DEBIT', 'CREDIT'],
+        default: 'ONLINE'
+    },
+    installments: { type: Number, default: 1 },
+    installmentId: { type: String, default: '' },
     paymentLink: { type: String, default: '' },
     cbuAlias: { type: String, default: '' },
     currency: { type: String, default: 'ARS' },
