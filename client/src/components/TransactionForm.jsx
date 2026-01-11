@@ -13,7 +13,9 @@ const TransactionForm = ({ onTransactionAdded }) => {
     type: 'EXPENSE',
     category: 'Comida',
     date: new Date().toISOString().split('T')[0],
-    status: 'COMPLETED'
+    status: 'COMPLETED',
+    paymentMethod: 'DEBIT',
+    installments: 1
   });
   const [sharedData, setSharedData] = useState(null); // <--- Estado para datos compartidos
   const [loading, setLoading] = useState(false);
@@ -126,11 +128,11 @@ const TransactionForm = ({ onTransactionAdded }) => {
             />
           </div>
         </div>
-        
-        {/* Fila: Categoría y Estado */}
-        <div className="flex gap-4 items-center">
-            {/* Selector de Categoría */}
-            <div className="w-1/2">
+
+        {/* Fila: Categoría y Método de Pago */}
+        <div className="flex gap-4">
+             {/* Selector de Categoría */}
+             <div className="w-1/2">
                 <select
                     name="category"
                     value={formData.category}
@@ -142,6 +144,46 @@ const TransactionForm = ({ onTransactionAdded }) => {
                     ))}
                 </select>
             </div>
+
+            {/* Método de Pago (Solo para Gastos) */}
+            <div className="w-1/2">
+              {formData.type === 'EXPENSE' ? (
+                <select
+                  name="paymentMethod"
+                  value={formData.paymentMethod}
+                  onChange={handleChange}
+                  className="input-pro appearance-none cursor-pointer"
+                >
+                  <option value="DEBIT" className="bg-surface">Débito</option>
+                  <option value="CREDIT" className="bg-surface">Crédito</option>
+                  <option value="CASH" className="bg-surface">Efectivo</option>
+                </select>
+              ) : (
+                 <div className="h-full flex items-center px-4 text-textMuted text-sm border border-border rounded-2xl bg-surfaceHighlight/10">
+                   Ingreso
+                 </div>
+              )}
+            </div>
+        </div>
+
+        {/* Fila: Cuotas (Si es Crédito) y Estado */}
+        <div className="flex gap-4 items-center">
+            {formData.paymentMethod === 'CREDIT' && formData.type === 'EXPENSE' ? (
+                 <div className="w-1/2">
+                    <select
+                        name="installments"
+                        value={formData.installments}
+                        onChange={handleChange}
+                        className="input-pro appearance-none cursor-pointer"
+                    >
+                        {[1, 3, 6, 9, 12].map(num => (
+                            <option key={num} value={num} className="bg-surface">{num} cuotas</option>
+                        ))}
+                    </select>
+                 </div>
+            ) : (
+                <div className="w-1/2"></div> // Espaciador
+            )}
 
             {/* Switch Pendiente/Pagado */}
             <label className="w-1/2 flex items-center justify-between cursor-pointer bg-surfaceHighlight border border-border p-3 rounded-xl hover:border-primary/50 transition-colors">
