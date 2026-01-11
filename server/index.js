@@ -13,7 +13,8 @@ connectDB();
 const allowedOrigins = [
   'http://localhost:5173',      // Vite Local
   'http://127.0.0.1:5173',      // Vite Local (IP)
-  'https://finance-app-liart-three.vercel.app' // <--- DESCOMENTAR Y AGREGAR TU URL DE VERCEL AQUÍ CUANDO SUBAS
+  'https://finance-app-liart-three.vercel.app',
+  'https://finance-app-git-dev-nicos-projects-dab771cf.vercel.app/'// <--- DESCOMENTAR Y AGREGAR TU URL DE VERCEL AQUÍ CUANDO SUBAS
 ];
 
 app.use(cors({
