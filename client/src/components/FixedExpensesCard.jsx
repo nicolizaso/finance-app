@@ -182,7 +182,7 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
                 
                 <div className="min-w-0">
                   <p className="text-white font-medium text-sm truncate" title={t.description}>
-                     {t.description.length > 20 ? t.description.slice(0, 20) + '...' : t.description}
+                     {t.description}
                   </p>
                   <div className="flex items-center gap-1 text-textMuted text-[10px]">
                      <AlertCircle size={10} />
@@ -213,7 +213,7 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
                 
                 <div className="min-w-0">
                   <p className="text-textMuted font-medium text-sm truncate line-through decoration-emerald-500/50 decoration-2">
-                     {t.description.length > 20 ? t.description.slice(0, 20) + '...' : t.description}
+                     {t.description}
                   </p>
                   <p className="text-emerald-500/80 text-[10px] font-bold tracking-wide">PAGADO</p>
                 </div>
