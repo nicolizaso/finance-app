@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../api/axios';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Edit2, X } from 'lucide-react';
 import SharedExpenseSelector from './SharedExpenseSelector'; // <--- Importar
 
 // --- ESTA ES LA LÍNEA QUE FALTABA ---
 const CATEGORIES = ["Comida", "Casa", "Transporte", "Ocio", "Salud", "Suscripciones", "Ahorro", "Varios"];
 
-const TransactionForm = ({ onTransactionAdded }) => {
+const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit }) => {
   const [formData, setFormData] = useState({
     description: '',
     amount: '',
@@ -19,6 +19,21 @@ const TransactionForm = ({ onTransactionAdded }) => {
   });
   const [sharedData, setSharedData] = useState(null); // <--- Estado para datos compartidos
   const [loading, setLoading] = useState(false);
+
+  // Cargar datos iniciales si es edición
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        ...initialData,
+        amount: initialData.amount / 100, // Convertir de centavos a unidades
+        date: new Date(initialData.date).toISOString().split('T')[0],
+        paymentMethod: initialData.paymentMethod || 'DEBIT',
+        installments: initialData.installments || 1,
+        // Si venía con needsReview, al editarlo lo quitaremos (lógica en submit)
+      });
+      // TODO: Handle sharedData reconstruction if needed
+    }
+  }, [initialData]);
 
   const handleChange = (e) => {
     const value = e.target.type === 'checkbox' ? (e.target.checked ? 'COMPLETED' : 'PENDING') : e.target.value;
@@ -35,17 +50,29 @@ const TransactionForm = ({ onTransactionAdded }) => {
     // Convertimos a centavos
     let payload = { ...formData, amount: parseFloat(formData.amount) * 100 };
 
+    // Si estamos editando, aseguramos que needsReview sea false
+    if (initialData) {
+        payload.needsReview = false;
+    }
+
     // Inyectar datos compartidos si existen
     if (sharedData && sharedData.isShared) {
         payload = { ...payload, ...sharedData };
     }
 
     try {
-      await api.post('/transactions', payload);
-      if (onTransactionAdded) onTransactionAdded();
+      if (initialData) {
+        // Modo Edición
+        await api.put(`/transactions/${initialData._id}`, payload);
+        if (onCancelEdit) onCancelEdit(); // Salir del modo edición
+      } else {
+        // Modo Creación
+        await api.post('/transactions', payload);
+        // Reset del formulario (mantenemos fecha y tipo para agilizar carga masiva)
+        setFormData(prev => ({ ...prev, description: '', amount: '' }));
+      }
       
-      // Reset del formulario (mantenemos fecha y tipo para agilizar carga masiva)
-      setFormData(prev => ({ ...prev, description: '', amount: '' }));
+      if (onTransactionAdded) onTransactionAdded();
       
     } catch (error) {
       console.error(error);
@@ -56,14 +83,21 @@ const TransactionForm = ({ onTransactionAdded }) => {
   };
 
   return (
-    <div className="bg-surface border border-border rounded-3xl p-6 h-full shadow-card relative overflow-hidden">
+    <div className={`bg-surface border ${initialData ? 'border-orange-500/50 shadow-glow' : 'border-border'} rounded-3xl p-6 h-full shadow-card relative overflow-hidden transition-all duration-300`}>
       
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl font-bold text-white flex items-center gap-2 font-heading">
-          <PlusCircle className="text-primary" size={24} /> Agregar
+          {initialData ? <Edit2 className="text-orange-500" size={24} /> : <PlusCircle className="text-primary" size={24} />}
+          {initialData ? 'Editar / Revisar' : 'Agregar'}
         </h3>
         
+        {initialData && (
+            <button onClick={onCancelEdit} className="text-textMuted hover:text-white p-1">
+                <X size={20} />
+            </button>
+        )}
+
         {/* Toggle Gasto/Ingreso */}
         <div className="bg-surfaceHighlight p-1 rounded-xl flex">
             <button

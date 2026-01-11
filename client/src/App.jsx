@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import UserScreen from './components/UserScreen';
 import PinScreen from './components/PinScreen';
 import Layout from './components/Layout';
+import QuickAddButton from './components/QuickAddButton'; // <--- Importar
+import QuickAddModal from './components/QuickAddModal';   // <--- Importar
 
 // Páginas
 import Home from './pages/Home';
@@ -18,6 +20,7 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isLocked, setIsLocked] = useState(true);
   const [isPrivacyMode, setIsPrivacyMode] = useState(false);
+  const [showQuickAdd, setShowQuickAdd] = useState(false); // <--- Estado para Quick Add
   
   // Datos
   const [transactions, setTransactions] = useState([]);
@@ -116,6 +119,23 @@ function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+
+      {/* FAB & Modal */}
+      {!isLocked && (
+          <>
+            <QuickAddButton onClick={() => setShowQuickAdd(true)} />
+            {showQuickAdd && (
+                <QuickAddModal
+                    onClose={() => setShowQuickAdd(false)}
+                    onSuccess={() => {
+                        handleRefresh(); // Recargar datos
+                        setShowQuickAdd(false);
+                    }}
+                />
+            )}
+          </>
+      )}
+
     </BrowserRouter>
   );
 }
