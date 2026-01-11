@@ -3,23 +3,23 @@ import TransactionForm from '../components/TransactionForm';
 import TransactionList from '../components/TransactionList';
 import CreditCardWidget from '../components/CreditCardWidget'; // <--- Importar
 import { useOutletContext } from 'react-router-dom';
+import { useState } from 'react';
 
 const Home = () => {
-    // We expect these to be passed via outlet context or similar,
-    // BUT since we are extracting from App.jsx where they were local state,
-    // we should look at how we pass data.
-    // In React Router v6+, we can use useOutletContext().
     const {
         transactions,
         onRefresh,
         isPrivacyMode
     } = useOutletContext();
 
-    // Filter recent transactions (e.g., last 5)
-    // Note: TransactionList already handles list rendering.
-    // Maybe we want a "Compact" version or just show the component.
-    // For now I'll use the TransactionList but maybe limit it if possible,
-    // or just show it as is. The original layout had it on the side.
+    const [editingTransaction, setEditingTransaction] = useState(null);
+
+    const handleTransactionClick = (transaction) => {
+        // Al hacer clic, llevamos los datos al formulario
+        setEditingTransaction(transaction);
+        // Scroll suave hacia arriba en móvil para ver el formulario
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -32,7 +32,14 @@ const Home = () => {
 
                  {/* Transaction Form */}
                 <div>
-                   <TransactionForm onTransactionAdded={onRefresh} />
+                   <TransactionForm
+                        onTransactionAdded={() => {
+                            onRefresh();
+                            setEditingTransaction(null);
+                        }}
+                        initialData={editingTransaction}
+                        onCancelEdit={() => setEditingTransaction(null)}
+                   />
                 </div>
             </div>
 
@@ -47,6 +54,7 @@ const Home = () => {
                         transactions={transactions}
                         onTransactionUpdated={onRefresh}
                         isPrivacyMode={isPrivacyMode}
+                        onTransactionClick={handleTransactionClick}
                     />
                   </div>
                </div>

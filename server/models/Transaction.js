@@ -27,7 +27,10 @@ const TransactionSchema = new mongoose.Schema({
     isShared: { type: Boolean, default: false },
     sharedWith: { type: String, default: '' }, // ID de usuario o Nombre "Otro"
     sharedStatus: { type: String, default: 'NONE' }, // OWNER (yo pagué/creé), PARTER (soy el invitado)
-    otherShare: { type: Number, default: 0 } // La parte del otro (para poder reconstruir el total al editar)
+    otherShare: { type: Number, default: 0 }, // La parte del otro (para poder reconstruir el total al editar)
+
+    // --- CARGA RÁPIDA ---
+    needsReview: { type: Boolean, default: false }
 });
 
 module.exports = mongoose.models.Transaction || mongoose.model('Transaction', TransactionSchema);
