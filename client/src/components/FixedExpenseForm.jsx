@@ -23,7 +23,6 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
     autoDebitCard: ''
   });
   const [sharedData, setSharedData] = useState(null);
-  const [initialSharedData, setInitialSharedData] = useState(null); // Snapshot para editar
 
   const fetchFixedExpenses = async () => {
     try {
@@ -43,7 +42,7 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
 
     setFormData({
       title: item.title,
-      amount: totalAmount.toString(),
+      amount: (item.amount / 100).toString(), // Muestra MI parte. Si es compartido, SharedSelector recalculará el total.
       dayOfMonth: item.dayOfMonth,
       category: item.category,
       paymentMethod: item.paymentMethod || 'ONLINE',
@@ -53,8 +52,7 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
       autoDebitCard: item.autoDebitCard || ''
     });
     // Pasamos los datos crudos para que el selector se inicialice
-    setInitialSharedData(item);
-    setSharedData(item); // Inicializamos el estado actual también
+    setSharedData(item);
     setView('form');
   };
 
@@ -65,7 +63,6 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
         paymentMethod: 'ONLINE', paymentLink: '', cbuAlias: '', currency: 'ARS', autoDebitCard: '' 
     });
     setSharedData(null);
-    setInitialSharedData(null);
     setView('form');
   };
 
@@ -314,7 +311,7 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
         <SharedExpenseSelector
             totalAmount={formData.amount}
             onChange={setSharedData}
-            initialData={initialSharedData} // Usamos el snapshot estable
+            initialData={editingId ? sharedData : null} // Pasar datos si estamos editando
         />
 
         <button 

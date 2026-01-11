@@ -147,7 +147,6 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
                             <div className="absolute w-full bg-surface border border-border rounded-xl mt-1 max-h-40 overflow-y-auto shadow-glow z-30">
                                 {searchResults.map(u => (
                                     <button
-                                        type="button"
                                         key={u._id}
                                         onClick={() => handleSelectUser(u)}
                                         className="w-full text-left p-3 hover:bg-primary/20 hover:text-white text-textMuted text-sm border-b border-border/50 last:border-0 transition-colors"
@@ -156,7 +155,6 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
                                     </button>
                                 ))}
                                 <button
-                                    type="button"
                                     onClick={() => handleSelectUser({ _id: null, username: 'Otro' })}
                                     className="w-full text-left p-3 hover:bg-primary/20 hover:text-white text-primary font-bold text-sm transition-colors"
                                 >
@@ -173,7 +171,7 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
                                 <User size={16} />
                                 <span className="text-sm font-bold">{selectedUser.username}</span>
                             </div>
-                            <button type="button" onClick={clearSelection} className="text-white/50 hover:text-white">✕</button>
+                            <button onClick={clearSelection} className="text-white/50 hover:text-white">✕</button>
                         </div>
 
                         {/* Campo para nombre si es Otro */}
