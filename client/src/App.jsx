@@ -11,6 +11,7 @@ import TransactionForm from './components/TransactionForm';
 import TransactionList from './components/TransactionList';
 import FixedExpenseForm from './components/FixedExpenseForm';
 import FixedExpensesCard from './components/FixedExpensesCard';
+import WealthCard from './components/WealthCard';
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -169,7 +170,12 @@ function App() {
                 </div>
             </div>
 
-            {/* ROW 3: GRÁFICO */}
+            {/* ROW 3: PATRIMONIO (Nuevo) */}
+            <div className="h-[350px]">
+                <WealthCard isPrivacyMode={isPrivacyMode} />
+            </div>
+
+            {/* ROW 4: GRÁFICO */}
             <div className="h-[300px]">
                 <ExpenseChart transactions={transactions} isPrivacyMode={isPrivacyMode} />
             </div>
