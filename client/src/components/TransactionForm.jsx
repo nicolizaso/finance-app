@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import api from '../api/axios';
 import { PlusCircle } from 'lucide-react';
+import SharedExpenseSelector from './SharedExpenseSelector'; // <--- Importar
 
 // --- ESTA ES LA LÍNEA QUE FALTABA ---
 const CATEGORIES = ["Comida", "Casa", "Transporte", "Ocio", "Salud", "Suscripciones", "Ahorro", "Varios"];
@@ -14,6 +15,7 @@ const TransactionForm = ({ onTransactionAdded }) => {
     date: new Date().toISOString().split('T')[0],
     status: 'COMPLETED'
   });
+  const [sharedData, setSharedData] = useState(null); // <--- Estado para datos compartidos
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -29,7 +31,12 @@ const TransactionForm = ({ onTransactionAdded }) => {
     e.preventDefault();
     setLoading(true);
     // Convertimos a centavos
-    const payload = { ...formData, amount: parseFloat(formData.amount) * 100 };
+    let payload = { ...formData, amount: parseFloat(formData.amount) * 100 };
+
+    // Inyectar datos compartidos si existen
+    if (sharedData && sharedData.isShared) {
+        payload = { ...payload, ...sharedData };
+    }
 
     try {
       await api.post('/transactions', payload);
@@ -147,6 +154,14 @@ const TransactionForm = ({ onTransactionAdded }) => {
                 </div>
             </label>
         </div>
+
+        {/* COMPONENTE DE GASTOS COMPARTIDOS */}
+        {formData.type === 'EXPENSE' && (
+            <SharedExpenseSelector
+                totalAmount={formData.amount}
+                onChange={setSharedData}
+            />
+        )}
 
         <button type="submit" disabled={loading} className="btn-primary mt-2">
           {loading ? 'Guardando...' : 'Guardar Transacción'}

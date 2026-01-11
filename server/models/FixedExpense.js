@@ -16,7 +16,13 @@ const FixedExpenseSchema = new mongoose.Schema({
     paymentLink: { type: String, default: '' },       // Para ONLINE
     cbuAlias: { type: String, default: '' },          // Para TRANSFER
     currency: { type: String, default: 'ARS' },       // Para CASH ($ o USD)
-    autoDebitCard: { type: String, default: '' }      // Para DEBIT
+    autoDebitCard: { type: String, default: '' },     // Para DEBIT
+
+    // --- GASTOS COMPARTIDOS ---
+    isShared: { type: Boolean, default: false },
+    sharedWith: { type: String, default: '' },
+    sharedStatus: { type: String, default: 'NONE' },
+    otherShare: { type: Number, default: 0 }
 });
 
 module.exports = mongoose.models.FixedExpense || mongoose.model('FixedExpense', FixedExpenseSchema);

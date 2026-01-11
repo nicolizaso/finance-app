@@ -25,4 +25,23 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// Buscar usuarios (autocompletado)
+router.get('/search', async (req, res) => {
+    try {
+        const query = req.query.q;
+        if (!query || query.length < 2) return res.json({ success: true, data: [] });
+
+        const users = await User.find({
+            $or: [
+                { username: { $regex: query, $options: 'i' } },
+                { name: { $regex: query, $options: 'i' } }
+            ]
+        }).select('username name _id').limit(5);
+
+        res.json({ success: true, data: users });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 module.exports = router;
