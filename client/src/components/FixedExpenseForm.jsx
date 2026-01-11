@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { Repeat, Link as LinkIcon, Save, Trash2, Edit2, Plus, ArrowLeft, CreditCard, Banknote, ArrowRightLeft, Globe } from 'lucide-react';
+import SharedExpenseSelector from './SharedExpenseSelector';
 
 const CATEGORIES = ["Comida", "Casa", "Transporte", "Ocio", "Salud", "Suscripciones", "Ahorro", "Varios"];
 
@@ -21,6 +22,7 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
     currency: 'ARS',
     autoDebitCard: ''
   });
+  const [sharedData, setSharedData] = useState(null);
 
   const fetchFixedExpenses = async () => {
     try {
@@ -35,7 +37,7 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
     setEditingId(item._id);
     setFormData({
       title: item.title,
-      amount: (item.amount / 100).toString(),
+      amount: (item.amount / 100).toString(), // Muestra MI parte. Si es compartido, SharedSelector recalculará el total.
       dayOfMonth: item.dayOfMonth,
       category: item.category,
       paymentMethod: item.paymentMethod || 'ONLINE',
@@ -44,6 +46,8 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
       currency: item.currency || 'ARS',
       autoDebitCard: item.autoDebitCard || ''
     });
+    // Pasamos los datos crudos para que el selector se inicialice
+    setSharedData(item);
     setView('form');
   };
 
@@ -53,6 +57,7 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
         title: '', amount: '', dayOfMonth: 1, category: 'Casa', 
         paymentMethod: 'ONLINE', paymentLink: '', cbuAlias: '', currency: 'ARS', autoDebitCard: '' 
     });
+    setSharedData(null);
     setView('form');
   };
 
@@ -68,7 +73,11 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const payload = { ...formData, amount: parseFloat(formData.amount) * 100 };
+    let payload = { ...formData, amount: parseFloat(formData.amount) * 100 };
+
+    if (sharedData && sharedData.isShared) {
+        payload = { ...payload, ...sharedData };
+    }
 
     try {
       if (editingId) {
@@ -292,6 +301,13 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
         >
            {CATEGORIES.map(c => <option key={c} value={c} className="bg-surface">{c}</option>)}
         </select>
+
+        {/* SELECTOR DE COMPARTIDO */}
+        <SharedExpenseSelector
+            totalAmount={formData.amount}
+            onChange={setSharedData}
+            initialData={editingId ? sharedData : null} // Pasar datos si estamos editando
+        />
 
         <button 
           type="submit" 
