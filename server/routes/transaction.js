@@ -17,10 +17,41 @@ router.get('/', async (req, res) => {
 // CREAR (Asociado al usuario)
 router.post('/', async (req, res) => {
     try {
-        const userId = req.headers['x-user-id']; // <--- LEEMOS EL HEADER
+        const userId = req.headers['x-user-id']; 
         if (!userId) return res.status(400).json({ success: false, error: 'Usuario no identificado' });
 
-        const transaction = await Transaction.create({ ...req.body, userId });
+        // Extraer campos especiales de compartido
+        const { isShared, sharedWith, myShare, otherShare, ...txData } = req.body;
+
+        // 1. Crear MI transacción (con mi parte del monto)
+        const myTransactionData = {
+            ...txData,
+            userId,
+            isShared: isShared || false,
+            sharedWith: isShared ? sharedWith : '',
+            sharedStatus: isShared ? 'OWNER' : 'NONE',
+            amount: isShared ? myShare : txData.amount,
+            otherShare: isShared ? otherShare : 0
+        };
+
+        const transaction = await Transaction.create(myTransactionData);
+
+        // 2. Si es compartido con un usuario real de la BDD, le creamos su parte
+        if (isShared && sharedWith && sharedWith.length === 24) { // Simple check for ObjectId length
+             // Intentamos crear la transaccion espejo
+             // NOTA: Para el otro usuario, la descripción indicará que fue compartido
+             const otherTransactionData = {
+                ...txData,
+                userId: sharedWith, // ID del otro usuario
+                isShared: true,
+                sharedWith: userId, // Compartido CONMIGO (el creador)
+                sharedStatus: 'PARTNER',
+                amount: otherShare,
+                description: `${txData.description} (Compartido)`
+             };
+             await Transaction.create(otherTransactionData);
+        }
+
         res.status(201).json({ success: true, data: transaction });
     } catch (error) {
         res.status(400).json({ success: false, error: error.message });

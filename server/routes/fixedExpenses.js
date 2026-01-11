@@ -9,7 +9,35 @@ router.post('/', async (req, res) => {
         const userId = req.headers['x-user-id'];
         if (!userId) return res.status(400).json({ success: false, error: 'Usuario no identificado' });
 
-        const fixed = await FixedExpense.create({ ...req.body, userId });
+        const { isShared, sharedWith, myShare, otherShare, ...expenseData } = req.body;
+
+        // 1. Crear MI regla
+        const myRuleData = {
+            ...expenseData,
+            userId,
+            isShared: isShared || false,
+            sharedWith: isShared ? sharedWith : '',
+            sharedStatus: isShared ? 'OWNER' : 'NONE',
+            amount: isShared ? myShare : expenseData.amount,
+            otherShare: isShared ? otherShare : 0
+        };
+
+        const fixed = await FixedExpense.create(myRuleData);
+
+        // 2. Si es compartido con usuario BDD, crear regla espejo
+        if (isShared && sharedWith && sharedWith.length === 24) {
+            const otherRuleData = {
+                ...expenseData,
+                userId: sharedWith,
+                isShared: true,
+                sharedWith: userId,
+                sharedStatus: 'PARTNER',
+                amount: otherShare,
+                title: `${expenseData.title} (Compartido)`
+            };
+            await FixedExpense.create(otherRuleData);
+        }
+
         res.status(201).json({ success: true, data: fixed });
     } catch (error) {
         res.status(400).json({ success: false, error: error.message });
