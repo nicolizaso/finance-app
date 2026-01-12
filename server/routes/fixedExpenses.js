@@ -19,7 +19,9 @@ router.post('/', async (req, res) => {
             sharedWith: isShared ? sharedWith : '',
             sharedStatus: isShared ? 'OWNER' : 'NONE',
             amount: isShared ? myShare : expenseData.amount,
-            otherShare: isShared ? otherShare : 0
+            otherShare: isShared ? otherShare : 0,
+            isSubscription: expenseData.isSubscription || false,
+            lastAmount: expenseData.amount || 0
         };
 
         const fixed = await FixedExpense.create(myRuleData);
@@ -66,7 +68,14 @@ router.put('/:id', async (req, res) => {
         const oldRule = await FixedExpense.findOne({ _id: req.params.id, userId });
         if (!oldRule) return res.status(404).json({ success: false, error: 'No encontrado' });
 
-        const updatedRule = await FixedExpense.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        let updateData = { ...req.body };
+
+        // Logic for Price Hike Detection (Subscription Radar)
+        if (updateData.amount !== undefined && Number(updateData.amount) !== oldRule.amount) {
+            updateData.lastAmount = oldRule.amount;
+        }
+
+        const updatedRule = await FixedExpense.findByIdAndUpdate(req.params.id, updateData, { new: true });
 
         // Sincronizar con la transacción pendiente actual de ESTE usuario
         const today = new Date();
