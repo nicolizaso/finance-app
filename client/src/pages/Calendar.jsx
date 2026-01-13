@@ -1,14 +1,30 @@
-import { useState } from 'react';
-import FixedExpensesCard from '../components/FixedExpensesCard';
+import { useState, useEffect } from 'react';
 import FixedExpenseForm from '../components/FixedExpenseForm';
 import { useOutletContext } from 'react-router-dom';
+import FinancialCalendar from '../components/FinancialCalendar';
+import api from '../api/axios';
+import { Plus } from 'lucide-react';
 
 const CalendarPage = () => {
     const { transactions, onRefresh, isPrivacyMode } = useOutletContext();
+    const [fixedExpenses, setFixedExpenses] = useState([]);
     const [showFixedForm, setShowFixedForm] = useState(false);
 
+    // Fetch Fixed Expenses Templates
+    useEffect(() => {
+        const fetchFixed = async () => {
+            try {
+                const res = await api.get('/fixed-expenses');
+                if (res.data.success) {
+                    setFixedExpenses(res.data.data);
+                }
+            } catch (e) { console.error(e); }
+        };
+        fetchFixed();
+    }, [onRefresh]);
+
     return (
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto h-[calc(100vh-140px)] flex flex-col gap-4 relative">
              {/* MODAL CONFIG */}
              {showFixedForm && (
                 <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
@@ -19,13 +35,22 @@ const CalendarPage = () => {
                 </div>
             )}
 
-            <div className="h-full min-h-[500px]">
-                <FixedExpensesCard
+            <div className="flex-1 min-h-0 relative">
+                <FinancialCalendar
                     transactions={transactions}
+                    fixedExpenses={fixedExpenses}
                     onRefresh={onRefresh}
-                    onOpenConfig={() => setShowFixedForm(true)}
                     isPrivacyMode={isPrivacyMode}
                 />
+
+                {/* Floating Action Button for Fixed Expenses */}
+                <button
+                    onClick={() => setShowFixedForm(true)}
+                    className="absolute bottom-6 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-glow flex items-center justify-center hover:scale-105 transition-transform z-10 border border-white/20"
+                    title="Configurar Gastos Fijos"
+                >
+                    <Plus size={24} />
+                </button>
             </div>
         </div>
     );
