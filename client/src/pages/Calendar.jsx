@@ -41,6 +41,15 @@ const CalendarPage = () => {
                     onRefresh={onRefresh}
                     isPrivacyMode={isPrivacyMode}
                 />
+
+                {/* Floating Action Button for Fixed Expenses */}
+                <button
+                    onClick={() => setShowFixedForm(true)}
+                    className="absolute bottom-6 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-glow flex items-center justify-center hover:scale-105 transition-transform z-10 border border-white/20"
+                    title="Configurar Gastos Fijos"
+                >
+                    <Plus size={24} />
+                </button>
             </div>
 
             {/* Optional: Add a button to open Fixed Expense Configuration if needed, or rely on other menus.
