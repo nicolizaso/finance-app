@@ -3,7 +3,6 @@ import FixedExpenseForm from '../components/FixedExpenseForm';
 import { useOutletContext } from 'react-router-dom';
 import FinancialCalendar from '../components/FinancialCalendar';
 import api from '../api/axios';
-import { Plus } from 'lucide-react';
 
 const CalendarPage = () => {
     const { transactions, onRefresh, isPrivacyMode } = useOutletContext();
@@ -24,7 +23,7 @@ const CalendarPage = () => {
     }, [onRefresh]);
 
     return (
-        <div className="max-w-5xl mx-auto h-[calc(100vh-140px)] flex flex-col gap-4 relative">
+        <div className="max-w-5xl mx-auto h-[calc(100vh-140px)] flex flex-col gap-4">
              {/* MODAL CONFIG */}
              {showFixedForm && (
                 <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
@@ -35,7 +34,7 @@ const CalendarPage = () => {
                 </div>
             )}
 
-            <div className="flex-1 min-h-0 relative">
+            <div className="flex-1 min-h-0">
                 <FinancialCalendar
                     transactions={transactions}
                     fixedExpenses={fixedExpenses}
@@ -52,6 +51,12 @@ const CalendarPage = () => {
                     <Plus size={24} />
                 </button>
             </div>
+
+            {/* Optional: Add a button to open Fixed Expense Configuration if needed, or rely on other menus.
+                The prompt didn't strictly require the config button here, but keeping it accessible might be good.
+                I'll leave it out of the main view for cleanliness unless requested,
+                as the calendar itself is the main feature.
+            */}
         </div>
     );
 };
