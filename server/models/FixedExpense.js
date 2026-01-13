@@ -7,6 +7,10 @@ const FixedExpenseSchema = new mongoose.Schema({
     amount: { type: Number, default: 0 }, 
     dayOfMonth: { type: Number, required: true, min: 1, max: 31 },
     
+    // --- SUSCRIPTION RADAR ---
+    isSubscription: { type: Boolean, default: false },
+    lastAmount: { type: Number, default: 0 },
+
     // --- NUEVOS CAMPOS DE PAGO ---
     paymentMethod: { 
         type: String, 

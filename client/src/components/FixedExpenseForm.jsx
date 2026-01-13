@@ -20,7 +20,8 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
     paymentLink: '',
     cbuAlias: '',
     currency: 'ARS',
-    autoDebitCard: ''
+    autoDebitCard: '',
+    isSubscription: false
   });
   const [sharedData, setSharedData] = useState(null);
   const [initialSharedData, setInitialSharedData] = useState(null); // Snapshot para editar
@@ -50,7 +51,8 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
       paymentLink: item.paymentLink || '',
       cbuAlias: item.cbuAlias || '',
       currency: item.currency || 'ARS',
-      autoDebitCard: item.autoDebitCard || ''
+      autoDebitCard: item.autoDebitCard || '',
+      isSubscription: item.isSubscription || false
     });
     // Pasamos los datos crudos para que el selector se inicialice
     setInitialSharedData(item);
@@ -62,7 +64,7 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
     setEditingId(null);
     setFormData({ 
         title: '', amount: '', dayOfMonth: 1, category: 'Casa', 
-        paymentMethod: 'ONLINE', paymentLink: '', cbuAlias: '', currency: 'ARS', autoDebitCard: '' 
+        paymentMethod: 'ONLINE', paymentLink: '', cbuAlias: '', currency: 'ARS', autoDebitCard: '', isSubscription: false
     });
     setSharedData(null);
     setInitialSharedData(null);
@@ -177,6 +179,19 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
           <label className="absolute left-4 top-4 text-textMuted/60 text-xs transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-placeholder-shown:text-textMuted/40 peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-primary pointer-events-none">
             Nombre (ej. Internet)
           </label>
+        </div>
+
+        <div className="flex items-center gap-2 mb-2">
+            <input
+                type="checkbox"
+                id="isSubscription"
+                className="w-4 h-4 rounded border-gray-600 bg-surface focus:ring-primary"
+                checked={formData.isSubscription}
+                onChange={e => setFormData({...formData, isSubscription: e.target.checked})}
+            />
+            <label htmlFor="isSubscription" className="text-sm text-textMuted cursor-pointer select-none">
+                ¿Es una suscripción recurrente?
+            </label>
         </div>
 
         {/* --- SELECTOR DE MEDIO DE PAGO --- */}
