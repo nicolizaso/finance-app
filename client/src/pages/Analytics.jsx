@@ -1,5 +1,6 @@
 import ExpenseChart from '../components/ExpenseChart';
 import TransactionList from '../components/TransactionList';
+import BudgetCard from '../components/BudgetCard';
 import { useOutletContext } from 'react-router-dom';
 import { History } from 'lucide-react';
 
@@ -11,6 +12,13 @@ const Analytics = () => {
             <div className="lg:col-span-12">
                  <div className="h-[400px] mb-6">
                     <ExpenseChart transactions={transactions} isPrivacyMode={isPrivacyMode} />
+                </div>
+            </div>
+
+            {/* Budget Section */}
+            <div className="lg:col-span-12">
+                <div className="h-[400px]">
+                    <BudgetCard transactions={transactions} refreshTrigger={transactions} />
                 </div>
             </div>
 
