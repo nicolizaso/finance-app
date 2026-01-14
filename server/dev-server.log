@@ -1,0 +1,4 @@
+MongoMemoryServer started at mongodb://127.0.0.1:45953/
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 📡 add observability to secrets: https://dotenvx.com/ops
+Servidor corriendo en el puerto 5000
+MongoDB Conectado

@@ -47,6 +47,7 @@ app.use('/api/transactions', require('./routes/transaction'));
 app.use('/api/fixed-expenses', require('./routes/fixedExpenses'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/wealth', require('./routes/wealth'));
+app.use('/api/budgets', require('./routes/budgets'));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Servidor corriendo en el puerto ${PORT}`));
