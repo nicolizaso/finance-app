@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
 import { Eye, EyeOff, LogOut, Lock } from 'lucide-react';
 
@@ -10,7 +10,6 @@ const Layout = ({
   setIsLocked,
   childrenContext
 }) => {
-  const location = useLocation();
 
   return (
     <>
