@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
-import { PlusCircle, Edit2, X } from 'lucide-react';
+import { PlusCircle, Edit2, X, Tag } from 'lucide-react';
 import SharedExpenseSelector from './SharedExpenseSelector'; // <--- Importar
 
 // --- ESTA ES LA LÍNEA QUE FALTABA ---
@@ -17,8 +17,21 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit }) => {
     paymentMethod: 'DEBIT',
     installments: 1
   });
+  const [tags, setTags] = useState([]);
+  const [tagInput, setTagInput] = useState('');
+  const [availableTags, setAvailableTags] = useState([]);
+
   const [sharedData, setSharedData] = useState(null); // <--- Estado para datos compartidos
   const [loading, setLoading] = useState(false);
+
+  // Cargar tags disponibles
+  useEffect(() => {
+    api.get('/transactions/tags')
+      .then(res => {
+        if (res.data.success) setAvailableTags(res.data.data);
+      })
+      .catch(err => console.error("Error fetching tags", err));
+  }, []);
 
   // Cargar datos iniciales si es edición
   useEffect(() => {
@@ -31,7 +44,13 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit }) => {
         installments: initialData.installments || 1,
         // Si venía con needsReview, al editarlo lo quitaremos (lógica en submit)
       });
+      if (initialData.tags) {
+        setTags(initialData.tags);
+      }
       // TODO: Handle sharedData reconstruction if needed
+    } else {
+        // Reset tags on new transaction
+        setTags([]);
     }
   }, [initialData]);
 
@@ -44,11 +63,32 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit }) => {
     }
   };
 
+  const handleTagKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (tagInput.trim() && !tags.includes(tagInput.trim())) {
+        setTags([...tags, tagInput.trim()]);
+        setTagInput('');
+      }
+    }
+  };
+
+  const removeTag = (tagToRemove) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+
+  const addTag = (tag) => {
+    if (!tags.includes(tag)) {
+        setTags([...tags, tag]);
+        setTagInput('');
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     // Convertimos a centavos
-    let payload = { ...formData, amount: parseFloat(formData.amount) * 100 };
+    let payload = { ...formData, tags, amount: parseFloat(formData.amount) * 100 };
 
     // Si estamos editando, aseguramos que needsReview sea false
     if (initialData) {
@@ -70,6 +110,7 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit }) => {
         await api.post('/transactions', payload);
         // Reset del formulario (mantenemos fecha y tipo para agilizar carga masiva)
         setFormData(prev => ({ ...prev, description: '', amount: '' }));
+        setTags([]);
       }
       
       if (onTransactionAdded) onTransactionAdded();
@@ -238,6 +279,47 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit }) => {
                 onChange={setSharedData} 
             />
         )}
+
+        {/* Tags Input */}
+        <div className="relative">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                {tags.map(tag => (
+                    <span key={tag} className="bg-primary/20 text-primary text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                        {tag}
+                        <button type="button" onClick={() => removeTag(tag)} className="hover:text-white"><X size={12} /></button>
+                    </span>
+                ))}
+            </div>
+            <div className="relative group">
+                 <Tag className="absolute left-4 top-3.5 text-textMuted" size={16} />
+                 <input
+                    type="text"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={handleTagKeyDown}
+                    placeholder="Etiquetas (Presiona Enter)"
+                    className="input-pro pl-10 text-sm"
+                 />
+                 {/* Autocomplete Suggestions */}
+                 {tagInput && (
+                    <div className="absolute z-10 w-full bg-surface border border-border rounded-xl mt-1 shadow-xl max-h-32 overflow-y-auto">
+                        {availableTags
+                            .filter(t => t.toLowerCase().includes(tagInput.toLowerCase()) && !tags.includes(t))
+                            .map(t => (
+                                <button
+                                    key={t}
+                                    type="button"
+                                    onClick={() => addTag(t)}
+                                    className="w-full text-left px-4 py-2 hover:bg-surfaceHighlight text-sm text-textMuted hover:text-white"
+                                >
+                                    {t}
+                                </button>
+                            ))
+                        }
+                    </div>
+                 )}
+            </div>
+        </div>
 
         <button type="submit" disabled={loading} className="btn-primary mt-2">
           {loading ? 'Guardando...' : 'Guardar Transacción'}

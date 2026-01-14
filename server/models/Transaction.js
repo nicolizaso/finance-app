@@ -10,6 +10,8 @@ const TransactionSchema = new mongoose.Schema({
     status: { type: String, default: 'COMPLETED', enum: ['PENDING', 'COMPLETED'] },
     isFixed: { type: Boolean, default: false },
     
+    tags: { type: [String], default: [] },
+
     // --- DATOS HEREDADOS DEL GASTO FIJO ---
     paymentMethod: {
         type: String,
