@@ -1,0 +1,72 @@
+[33m[nodemon] 3.1.11[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[32m[nodemon] starting `node index.js`[39m
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+Servidor corriendo en el puerto 5000
+Error de conexión a MongoDB: MongooseError: The `uri` parameter to `openUri()` must be a string, got "undefined". Make sure the first parameter to `mongoose.connect()` or `mongoose.createConnection()` is a string.
+    at NativeConnection.createClient (/app/server/node_modules/mongoose/lib/drivers/node-mongodb-native/connection.js:230:11)
+    at NativeConnection.openUri (/app/server/node_modules/mongoose/lib/connection.js:1075:34)
+    at Mongoose.connect (/app/server/node_modules/mongoose/lib/mongoose.js:451:15)
+    at Object.<anonymous> (/app/server/index.js:41:10)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+[32m[nodemon] clean exit - waiting for changes before restart[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node index.js`[39m
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔄 add secrets lifecycle management: https://dotenvx.com/ops
+Servidor corriendo en el puerto 5000
+Error de conexión a MongoDB: MongooseError: The `uri` parameter to `openUri()` must be a string, got "undefined". Make sure the first parameter to `mongoose.connect()` or `mongoose.createConnection()` is a string.
+    at NativeConnection.createClient (/app/server/node_modules/mongoose/lib/drivers/node-mongodb-native/connection.js:230:11)
+    at NativeConnection.openUri (/app/server/node_modules/mongoose/lib/connection.js:1075:34)
+    at Mongoose.connect (/app/server/node_modules/mongoose/lib/mongoose.js:451:15)
+    at Object.<anonymous> (/app/server/index.js:41:10)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node index.js`[39m
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+Servidor corriendo en el puerto 5000
+MongoDB Memory Server Conectado
+
+    at Timeout._onTimeout (/app/server/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:131:25)
+    at listOnTimeout (node:internal/timers:588:17)
+    at process.processTimers (node:internal/timers:523:7)
+MongooseError: Operation `transactions.find()` buffering timed out after 10000ms
+    at Timeout._onTimeout (/app/server/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:131:25)
+    at listOnTimeout (node:internal/timers:588:17)
+    at process.processTimers (node:internal/timers:523:7)
+MongooseError: Operation `fixedexpenses.find()` buffering timed out after 10000ms
+    at Timeout._onTimeout (/app/server/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:131:25)
+    at listOnTimeout (node:internal/timers:588:17)
+    at process.processTimers (node:internal/timers:523:7)
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node index.js`[39m
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 👥 sync secrets across teammates & machines: https://dotenvx.com/ops
+Servidor corriendo en el puerto 5000
+Error de conexión a MongoDB: MongooseError: The `uri` parameter to `openUri()` must be a string, got "undefined". Make sure the first parameter to `mongoose.connect()` or `mongoose.createConnection()` is a string.
+    at NativeConnection.createClient (/app/server/node_modules/mongoose/lib/drivers/node-mongodb-native/connection.js:230:11)
+    at NativeConnection.openUri (/app/server/node_modules/mongoose/lib/connection.js:1075:34)
+    at Mongoose.connect (/app/server/node_modules/mongoose/lib/mongoose.js:451:15)
+    at Object.<anonymous> (/app/server/index.js:41:10)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+[32m[nodemon] clean exit - waiting for changes before restart[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node index.js`[39m
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+Servidor corriendo en el puerto 5000
+MongoDB Memory Server Conectado
