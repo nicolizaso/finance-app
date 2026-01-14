@@ -8,6 +8,8 @@ import PinScreen from './components/PinScreen';
 import Layout from './components/Layout';
 import QuickAddButton from './components/QuickAddButton'; // <--- Importar
 import QuickAddModal from './components/QuickAddModal';   // <--- Importar
+import AchievementsModal from './components/AchievementsModal';
+import confetti from 'canvas-confetti';
 
 // Páginas
 import Home from './pages/Home';
@@ -21,7 +23,8 @@ function App() {
   const [isLocked, setIsLocked] = useState(true);
   const [isPrivacyMode, setIsPrivacyMode] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false); // <--- Estado para Quick Add
-  
+  const [showAchievements, setShowAchievements] = useState(false);
+
   // Datos
   const [transactions, setTransactions] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -51,6 +54,33 @@ function App() {
       setCurrentUser(null);
       setIsLocked(true);
       setTransactions([]); // Limpiar datos en memoria
+  };
+
+  const fetchUserProfile = async () => {
+      try {
+          const res = await api.get('/users/profile');
+          if (res.data.success) {
+              setCurrentUser(res.data.user);
+          }
+      } catch (e) { console.error(e); }
+  };
+
+  const handleGamification = (gamificationData) => {
+      if (!gamificationData) return;
+
+      if (gamificationData.newBadges && gamificationData.newBadges.length > 0) {
+          confetti({
+              particleCount: 150,
+              spread: 80,
+              origin: { y: 0.6 },
+              colors: ['#22c55e', '#eab308', '#ec4899', '#3b82f6']
+          });
+          setShowAchievements(true);
+          fetchUserProfile(); // Asegurar datos frescos
+      } else if (gamificationData.xpGained > 0) {
+          // Solo actualizar si hubo XP (opcional, refrescamos silenciosamente)
+          fetchUserProfile();
+      }
   };
 
   // Carga de datos (Solo si está desbloqueado)
@@ -107,7 +137,7 @@ function App() {
                     setIsPrivacyMode={setIsPrivacyMode}
                     handleLogout={handleLogout}
                     setIsLocked={setIsLocked}
-                    childrenContext={{ transactions, onRefresh: handleRefresh, isPrivacyMode, currentUser, handleLogout, setIsLocked }}
+                    childrenContext={{ transactions, onRefresh: handleRefresh, isPrivacyMode, currentUser, handleLogout, setIsLocked, handleGamification, setShowAchievements }}
                 />
             }
         >
@@ -127,11 +157,15 @@ function App() {
             {showQuickAdd && (
                 <QuickAddModal
                     onClose={() => setShowQuickAdd(false)}
-                    onSuccess={() => {
+                    onSuccess={(data) => {
                         handleRefresh(); // Recargar datos
                         setShowQuickAdd(false);
+                        if (data?.gamification) handleGamification(data.gamification);
                     }}
                 />
+            )}
+            {showAchievements && currentUser && (
+                <AchievementsModal user={currentUser} onClose={() => setShowAchievements(false)} />
             )}
           </>
       )}

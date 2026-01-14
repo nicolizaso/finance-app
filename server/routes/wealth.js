@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const WealthItem = require('../models/WealthItem');
+const { checkAchievements } = require('../utils/gamification');
 
 // @desc    List all wealth items for user
 // @route   GET /api/wealth
@@ -57,7 +58,12 @@ router.put('/:id', async (req, res) => {
             runValidators: true
         });
 
-        res.status(200).json({ success: true, data: updatedItem });
+        let gamificationResult = {};
+        if (updatedItem.type === 'DEBT' && updatedItem.currentAmount === 0 && item.currentAmount > 0) {
+             gamificationResult = await checkAchievements(userId, 'PAY_DEBT', { debtPaid: true });
+        }
+
+        res.status(200).json({ success: true, data: updatedItem, gamification: gamificationResult });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }

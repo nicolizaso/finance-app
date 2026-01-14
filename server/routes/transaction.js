@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Transaction = require('../models/Transaction');
 const { calculateCreditProjection } = require('../utils/creditProjection');
+const { checkAchievements } = require('../utils/gamification');
 
 router.get('/', async (req, res) => {
     try {
@@ -90,7 +91,10 @@ router.post('/', async (req, res) => {
              await Transaction.create(otherTransactionData);
         }
 
-        res.status(201).json({ success: true, data: transaction });
+        // Gamification Check
+        const gamificationResult = await checkAchievements(userId, 'ADD_TRANSACTION');
+
+        res.status(201).json({ success: true, data: transaction, gamification: gamificationResult });
     } catch (error) {
         res.status(400).json({ success: false, error: error.message });
     }

@@ -25,6 +25,22 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// @desc    Obtener perfil del usuario (con gamificación)
+// @route   GET /api/users/profile
+router.get('/profile', async (req, res) => {
+    try {
+        const userId = req.headers['x-user-id'];
+        if (!userId) return res.status(401).json({ success: false, error: 'No autorizado' });
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ success: false, error: 'Usuario no encontrado' });
+
+        res.json({ success: true, user });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // Buscar usuarios (autocompletado)
 router.get('/search', async (req, res) => {
     try {

@@ -38,9 +38,21 @@ app.use(cors({
 }));
 
 // Conexión a MongoDB
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB Conectado'))
-  .catch(err => console.error('Error de conexión a MongoDB:', err));
+const connectDB = async () => {
+  let uri = process.env.MONGO_URI;
+  if (!uri) {
+    console.log("No MONGO_URI found, using Memory Server");
+    const { MongoMemoryServer } = require('mongodb-memory-server');
+    const mongod = await MongoMemoryServer.create();
+    uri = mongod.getUri();
+  }
+
+  mongoose.connect(uri)
+    .then(() => console.log('MongoDB Conectado'))
+    .catch(err => console.error('Error de conexión a MongoDB:', err));
+}
+
+connectDB();
 
 // Rutas
 app.use('/api/transactions', require('./routes/transaction'));
