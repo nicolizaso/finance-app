@@ -65,17 +65,17 @@ function App() {
       if (!isLocked && currentUser) fetchTransactions(); 
   }, [refreshKey, isLocked, currentUser]);
 
+  const handleRefresh = () => setRefreshKey(prev => prev + 1);
+
   // Generador recurrente
   useEffect(() => {
     if (!isLocked && currentUser) {
       const checkRecurring = async () => {
-        try { await api.post('/fixed-expenses/generate'); handleRefresh(); } catch (e) {}
+        try { await api.post('/fixed-expenses/generate'); handleRefresh(); } catch { /* ignore */ }
       };
       checkRecurring();
     }
   }, [isLocked, currentUser]);
-
-  const handleRefresh = () => setRefreshKey(prev => prev + 1);
 
   // --- RENDERIZADO CONDICIONAL DE PANTALLAS ---
 

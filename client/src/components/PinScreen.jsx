@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import api from '../api/axios'; // Importamos la api
 
 const PinScreen = ({ username, onLoginSuccess, onBack }) => { // <--- Nuevas props
