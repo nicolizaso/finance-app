@@ -15,6 +15,20 @@ router.get('/', async (req, res) => {
     }
 });
 
+// @desc    Obtener etiquetas únicas
+// @route   GET /api/transactions/tags
+router.get('/tags', async (req, res) => {
+    try {
+        const userId = req.headers['x-user-id'];
+        if (!userId) return res.json({ success: true, data: [] });
+
+        const tags = await Transaction.distinct('tags', { userId });
+        res.json({ success: true, data: tags });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // @desc    Obtener proyección de tarjeta de crédito
 // @route   GET /api/transactions/projection
 router.get('/projection', async (req, res) => {

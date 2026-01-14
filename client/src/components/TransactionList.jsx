@@ -1,9 +1,14 @@
-import { Trash2, TrendingUp, TrendingDown, Clock, Check, FileText, CreditCard, AlertCircle } from 'lucide-react'; // <--- Iconos
+import { Trash2, TrendingUp, TrendingDown, Clock, Check, FileText, CreditCard, AlertCircle, X } from 'lucide-react'; // <--- Iconos
 import api from '../api/axios';
+import { useState } from 'react';
 
 const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode, onTransactionClick }) => {
+  const [selectedTag, setSelectedTag] = useState(null);
 
-  const historyData = transactions; // .filter(t => t.status === 'COMPLETED'); // <-- MODIFICADO: Mostrar todo para ver lo pendiente
+  const historyData = selectedTag
+    ? transactions.filter(t => t.tags && t.tags.includes(selectedTag))
+    : transactions;
+
   const formatMoney = (amount) => Math.round(amount / 100).toLocaleString('es-AR');
   
   const formatDate = (dateString) => {
@@ -21,6 +26,16 @@ const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode, on
 
   return (
       <div className="space-y-3">
+        {selectedTag && (
+            <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs text-textMuted">Filtrado por:</span>
+                <span className="bg-primary/20 text-primary text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                    {selectedTag}
+                    <button onClick={() => setSelectedTag(null)} className="hover:text-white"><X size={12} /></button>
+                </span>
+            </div>
+        )}
+
         {historyData.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 text-textMuted opacity-50 border-2 border-dashed border-border rounded-2xl">
             <FileText size={32} className="mb-2" />
@@ -70,11 +85,27 @@ const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode, on
                   <p className={`font-bold text-sm md:text-base leading-tight ${t.needsReview ? 'text-orange-200' : 'text-white'}`}>
                     {t.description}
                   </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] text-textMuted bg-surface px-2 py-0.5 rounded-md border border-border">
-                        {t.category}
-                    </span>
-                    <span className="text-[10px] text-textMuted/60">{formatDate(t.date)}</span>
+                  <div className="flex flex-col gap-1 mt-1">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-textMuted bg-surface px-2 py-0.5 rounded-md border border-border">
+                            {t.category}
+                        </span>
+                        <span className="text-[10px] text-textMuted/60">{formatDate(t.date)}</span>
+                    </div>
+                    {/* Tags Display */}
+                    {t.tags && t.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                            {t.tags.map(tag => (
+                                <span
+                                    key={tag}
+                                    onClick={(e) => { e.stopPropagation(); setSelectedTag(tag); }}
+                                    className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full hover:bg-primary/30 cursor-pointer"
+                                >
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
+                    )}
                   </div>
                 </div>
               </div>
