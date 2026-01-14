@@ -2,6 +2,7 @@ import BalanceCard from '../components/BalanceCard';
 import TransactionForm from '../components/TransactionForm';
 import TransactionList from '../components/TransactionList';
 import CreditCardWidget from '../components/CreditCardWidget'; // <--- Importar
+import SubscriptionWidget from '../components/SubscriptionWidget'; // <--- Subscription Radar
 import { useOutletContext } from 'react-router-dom';
 import { useState } from 'react';
 
@@ -27,7 +28,10 @@ const Home = () => {
                  {/* ROW 1: BALANCE & CREDIT CARD */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[220px]">
                     <BalanceCard transactions={transactions} isPrivacyMode={isPrivacyMode} />
-                    <CreditCardWidget isPrivacyMode={isPrivacyMode} refreshTrigger={transactions} />
+                    <div className="flex flex-col gap-6">
+                        <CreditCardWidget isPrivacyMode={isPrivacyMode} refreshTrigger={transactions} />
+                        <SubscriptionWidget />
+                    </div>
                 </div>
 
                  {/* Transaction Form */}
