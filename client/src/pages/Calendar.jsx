@@ -3,6 +3,7 @@ import FixedExpenseForm from '../components/FixedExpenseForm';
 import { useOutletContext } from 'react-router-dom';
 import FinancialCalendar from '../components/FinancialCalendar';
 import api from '../api/axios';
+import { Plus } from 'lucide-react';
 
 const CalendarPage = () => {
     const { transactions, onRefresh, isPrivacyMode } = useOutletContext();
@@ -23,7 +24,7 @@ const CalendarPage = () => {
     }, [onRefresh]);
 
     return (
-        <div className="max-w-5xl mx-auto h-[calc(100vh-140px)] flex flex-col gap-4">
+        <div className="max-w-5xl mx-auto h-[calc(100vh-140px)] flex flex-col gap-4 relative">
              {/* MODAL CONFIG */}
              {showFixedForm && (
                 <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
@@ -34,7 +35,7 @@ const CalendarPage = () => {
                 </div>
             )}
 
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 relative">
                 <FinancialCalendar
                     transactions={transactions}
                     fixedExpenses={fixedExpenses}
