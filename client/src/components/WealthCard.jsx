@@ -12,7 +12,7 @@ import {
     CheckCircle
 } from 'lucide-react';
 
-const WealthCard = ({ isPrivacyMode }) => {
+const WealthCard = ({ isPrivacyMode, onGamification }) => {
     const [activeTab, setActiveTab] = useState('DEBT'); // DEBT, RECEIVABLE, CASH
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -110,7 +110,11 @@ const WealthCard = ({ isPrivacyMode }) => {
             }
 
             // 1. Update Wealth Item
-            await api.put(`/wealth/${selectedItem._id}`, { currentAmount: newAmount });
+            const res = await api.put(`/wealth/${selectedItem._id}`, { currentAmount: newAmount });
+
+            if (res.data.gamification && onGamification) {
+                onGamification(res.data.gamification);
+            }
 
             // 2. Create Transaction if requested
             if (createTransaction) {

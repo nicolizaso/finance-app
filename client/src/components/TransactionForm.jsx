@@ -103,17 +103,17 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit }) => {
     try {
       if (initialData) {
         // Modo Edición
-        await api.put(`/transactions/${initialData._id}`, payload);
+        const res = await api.put(`/transactions/${initialData._id}`, payload);
         if (onCancelEdit) onCancelEdit(); // Salir del modo edición
+        if (onTransactionAdded) onTransactionAdded(res.data);
       } else {
         // Modo Creación
-        await api.post('/transactions', payload);
+        const res = await api.post('/transactions', payload);
         // Reset del formulario (mantenemos fecha y tipo para agilizar carga masiva)
         setFormData(prev => ({ ...prev, description: '', amount: '' }));
         setTags([]);
+        if (onTransactionAdded) onTransactionAdded(res.data);
       }
-      
-      if (onTransactionAdded) onTransactionAdded();
       
     } catch (error) {
       console.error(error);

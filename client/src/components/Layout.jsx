@@ -1,6 +1,6 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
-import { Eye, EyeOff, LogOut, Lock } from 'lucide-react';
+import { Eye, EyeOff, LogOut, Lock, Trophy } from 'lucide-react';
 
 const Layout = ({
   currentUser,
@@ -40,6 +40,13 @@ const Layout = ({
               {/* Desktop Actions */}
               <div className="hidden md:flex gap-3 ml-4 border-l border-white/10 pl-4">
                   <button
+                      onClick={() => childrenContext.setShowAchievements(true)}
+                      className="w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center text-textMuted hover:text-yellow-400 hover:border-yellow-500 transition-all active:scale-95"
+                      title="Logros"
+                  >
+                      <Trophy size={18} />
+                  </button>
+                  <button
                   onClick={() => setIsPrivacyMode(!isPrivacyMode)}
                   className={`w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center transition-all active:scale-95 ${isPrivacyMode ? 'text-primary border-primary shadow-glow' : 'text-textMuted hover:text-white hover:border-primary'}`}
                   title="Modo Privacidad"
@@ -64,6 +71,12 @@ const Layout = ({
 
               {/* Mobile Header Actions */}
                <div className="flex md:hidden gap-2">
+                  <button
+                      onClick={() => childrenContext.setShowAchievements(true)}
+                      className="w-9 h-9 rounded-full bg-surface border border-border flex items-center justify-center transition-all active:scale-95 text-textMuted hover:text-yellow-400"
+                  >
+                      <Trophy size={16} />
+                  </button>
                   <button
                   onClick={() => setIsPrivacyMode(!isPrivacyMode)}
                   className={`w-9 h-9 rounded-full bg-surface border border-border flex items-center justify-center transition-all active:scale-95 ${isPrivacyMode ? 'text-primary border-primary shadow-glow' : 'text-textMuted hover:text-white hover:border-primary'}`}

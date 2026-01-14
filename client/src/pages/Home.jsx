@@ -10,7 +10,8 @@ const Home = () => {
     const {
         transactions,
         onRefresh,
-        isPrivacyMode
+        isPrivacyMode,
+        handleGamification
     } = useOutletContext();
 
     const [editingTransaction, setEditingTransaction] = useState(null);
@@ -37,9 +38,10 @@ const Home = () => {
                  {/* Transaction Form */}
                 <div>
                    <TransactionForm
-                        onTransactionAdded={() => {
+                        onTransactionAdded={(data) => {
                             onRefresh();
                             setEditingTransaction(null);
+                            if (data?.gamification) handleGamification(data.gamification);
                         }}
                         initialData={editingTransaction}
                         onCancelEdit={() => setEditingTransaction(null)}
