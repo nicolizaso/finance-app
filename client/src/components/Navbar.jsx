@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { Home, PieChart, Calendar, Briefcase, Menu as MenuIcon } from 'lucide-react';
 
-const Navbar = ({ currentUser, mobile }) => {
+const Navbar = ({ mobile }) => {
   const navItems = [
     { name: 'Inicio', path: '/', icon: Home },
     { name: 'Analíticas', path: '/analytics', icon: PieChart },

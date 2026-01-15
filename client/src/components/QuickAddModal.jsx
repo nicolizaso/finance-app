@@ -30,10 +30,10 @@ const QuickAddModal = ({ onClose, onSuccess }) => {
         type: 'EXPENSE'
       };
 
-      await api.post('/transactions', payload);
+      const res = await api.post('/transactions', payload);
 
       // Feedback táctil/visual si fuera posible (aquí solo cerramos)
-      onSuccess();
+      onSuccess(res.data);
       onClose();
     } catch (error) {
       console.error(error);
