@@ -29,6 +29,10 @@ function App() {
   const [transactions, setTransactions] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
 
+  // Estados para Moneda
+  const [exchangeRates, setExchangeRates] = useState({});
+  const [selectedCurrencyRate, setSelectedCurrencyRate] = useState('Blue'); // Default
+
   // 1. Al iniciar, chequeamos si hay usuario guardado en localStorage
   useEffect(() => {
     const savedUser = localStorage.getItem('finanzapp_user');
@@ -39,7 +43,34 @@ function App() {
         setCurrentUser(null);
         setIsLocked(true);
     }
+
+    // Cargar preferencia de moneda
+    const savedRate = localStorage.getItem('finanzapp_currency_rate');
+    if (savedRate) setSelectedCurrencyRate(savedRate);
+
+    // Fetch Cotizaciones
+    fetch('https://dolarapi.com/v1/dolares')
+      .then(res => res.json())
+      .then(data => {
+        // Transformar array a objeto para acceso fácil
+        // data es array de objetos con { casa: "oficial" | "blue" | "bolsa" (MEP), ... }
+        const rates = {};
+        data.forEach(item => {
+            // Mapeo de nombres API a nuestras claves
+            if (item.casa === 'oficial') rates.Official = item;
+            if (item.casa === 'blue') rates.Blue = item;
+            if (item.casa === 'bolsa') rates.MEP = item;
+        });
+        setExchangeRates(rates);
+      })
+      .catch(err => console.error("Error fetching rates:", err));
   }, []);
+
+  // Guardar preferencia de moneda
+  const updateCurrencyRate = (rateName) => {
+      setSelectedCurrencyRate(rateName);
+      localStorage.setItem('finanzapp_currency_rate', rateName);
+  };
 
   // 2. Función Login exitoso
   const handleLoginSuccess = (user) => {
@@ -137,7 +168,19 @@ function App() {
                     setIsPrivacyMode={setIsPrivacyMode}
                     handleLogout={handleLogout}
                     setIsLocked={setIsLocked}
-                    childrenContext={{ transactions, onRefresh: handleRefresh, isPrivacyMode, currentUser, handleLogout, setIsLocked, handleGamification, setShowAchievements }}
+                    childrenContext={{
+                        transactions,
+                        onRefresh: handleRefresh,
+                        isPrivacyMode,
+                        currentUser,
+                        handleLogout,
+                        setIsLocked,
+                        handleGamification,
+                        setShowAchievements,
+                        exchangeRates,
+                        selectedCurrencyRate,
+                        updateCurrencyRate
+                    }}
                 />
             }
         >

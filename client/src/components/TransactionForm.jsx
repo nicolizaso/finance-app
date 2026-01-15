@@ -6,7 +6,7 @@ import SharedExpenseSelector from './SharedExpenseSelector'; // <--- Importar
 // --- ESTA ES LA LÍNEA QUE FALTABA ---
 const CATEGORIES = ["Comida", "Casa", "Transporte", "Ocio", "Salud", "Suscripciones", "Ahorro", "Varios"];
 
-const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit }) => {
+const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchangeRates, selectedCurrencyRate }) => {
   const [formData, setFormData] = useState({
     description: '',
     amount: '',
@@ -20,6 +20,9 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit }) => {
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState('');
   const [availableTags, setAvailableTags] = useState([]);
+
+  // Currency
+  const [currency, setCurrency] = useState('ARS');
 
   const [sharedData, setSharedData] = useState(null); // <--- Estado para datos compartidos
   const [loading, setLoading] = useState(false);
@@ -87,8 +90,20 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // Convertimos a centavos
-    let payload = { ...formData, tags, amount: parseFloat(formData.amount) * 100 };
+
+    let finalAmount = parseFloat(formData.amount);
+
+    // Convertir USD a ARS si es necesario
+    if (currency === 'USD' && exchangeRates && exchangeRates[selectedCurrencyRate]) {
+        // Usamos la cotización de Venta (ya que si gastamos dólares, es como si hubieramos vendido pesos a esa tasa? No, si gastamos dolares, el valor en pesos es lo que nos costó obtenerlos o su valor de mercado)
+        // Usualmente para valuar gastos en USD a ARS se usa la tasa de venta (lo que cuesta comprar el dolar).
+        // dolarapi devuelve: { compra: 1000, venta: 1200 }
+        const rate = exchangeRates[selectedCurrencyRate].venta;
+        finalAmount = finalAmount * rate;
+    }
+
+    // Convertimos a centavos (la base de datos usa centavos de ARS)
+    let payload = { ...formData, tags, amount: Math.round(finalAmount * 100) };
 
     // Si estamos editando, aseguramos que needsReview sea false
     if (initialData) {
@@ -180,7 +195,17 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit }) => {
         {/* Fila: Monto y Fecha */}
         <div className="flex gap-4">
           <div className="relative w-1/2">
-            <span className="absolute left-4 top-3.5 text-textMuted">$</span>
+            <div className="flex items-center absolute left-4 top-3.5 gap-2">
+                <span className="text-textMuted">$</span>
+                {/* Toggle Currency */}
+                <button
+                    type="button"
+                    onClick={() => setCurrency(prev => prev === 'ARS' ? 'USD' : 'ARS')}
+                    className="text-xs bg-surfaceHighlight px-1.5 py-0.5 rounded text-white font-bold hover:bg-primary/50 transition-colors"
+                >
+                    {currency}
+                </button>
+            </div>
             <input
               type="number"
               name="amount"
@@ -188,9 +213,15 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit }) => {
               onChange={handleChange}
               placeholder="0.00"
               step="0.01"
-              className="input-pro pl-8 font-mono text-lg"
+              className="input-pro pl-20 font-mono text-lg"
               required
             />
+            {/* Visual Feedback de Conversión */}
+            {currency === 'USD' && formData.amount && exchangeRates && exchangeRates[selectedCurrencyRate] && (
+                <div className="absolute -bottom-6 left-0 text-xs text-emerald-400 font-mono">
+                    ≈ ${ (parseFloat(formData.amount) * exchangeRates[selectedCurrencyRate].venta).toLocaleString('es-AR') } ARS ({selectedCurrencyRate})
+                </div>
+            )}
           </div>
           <div className="w-1/2">
             <input
