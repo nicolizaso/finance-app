@@ -11,7 +11,9 @@ const Home = () => {
         transactions,
         onRefresh,
         isPrivacyMode,
-        handleGamification
+        handleGamification,
+        exchangeRates,
+        selectedCurrencyRate
     } = useOutletContext();
 
     const [editingTransaction, setEditingTransaction] = useState(null);
@@ -45,6 +47,8 @@ const Home = () => {
                         }}
                         initialData={editingTransaction}
                         onCancelEdit={() => setEditingTransaction(null)}
+                        exchangeRates={exchangeRates}
+                        selectedCurrencyRate={selectedCurrencyRate}
                    />
                 </div>
             </div>

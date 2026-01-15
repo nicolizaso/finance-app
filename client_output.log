@@ -1,0 +1,27 @@
+
+> client@0.0.0 dev
+> vite
+
+
+  ROLLDOWN-VITE v7.2.5  ready in 654 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+5:28:51 AM [vite] http proxy error: /api/transactions/projection
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:28:51 AM [vite] http proxy error: /api/fixed-expenses
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:28:51 AM [vite] http proxy error: /api/transactions/projection
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:28:51 AM [vite] http proxy error: /api/fixed-expenses
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:28:52 AM [vite] http proxy error: /api/transactions/projection
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:28:52 AM [vite] http proxy error: /api/transactions/projection
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
