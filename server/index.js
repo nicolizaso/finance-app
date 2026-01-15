@@ -38,9 +38,21 @@ app.use(cors({
 }));
 
 // Conexión a MongoDB
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB Conectado'))
-  .catch(err => console.error('Error de conexión a MongoDB:', err));
+const connectDB = async () => {
+  let uri = process.env.MONGO_URI;
+  if (!uri) {
+    console.log("No MONGO_URI found, using Memory Server");
+    const { MongoMemoryServer } = require('mongodb-memory-server');
+    const mongod = await MongoMemoryServer.create();
+    uri = mongod.getUri();
+  }
+
+  mongoose.connect(uri)
+    .then(() => console.log('MongoDB Conectado'))
+    .catch(err => console.error('Error de conexión a MongoDB:', err));
+}
+
+connectDB();
 
 // Rutas
 app.use('/api/transactions', require('./routes/transaction'));
@@ -48,6 +60,7 @@ app.use('/api/fixed-expenses', require('./routes/fixedExpenses'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/wealth', require('./routes/wealth'));
 app.use('/api/budgets', require('./routes/budgets'));
+app.use('/api/savings-goals', require('./routes/savings'));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Servidor corriendo en el puerto ${PORT}`));
