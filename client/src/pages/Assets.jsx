@@ -1,4 +1,5 @@
 import WealthCard from '../components/WealthCard';
+import SavingsList from '../components/SavingsList';
 import { useOutletContext } from 'react-router-dom';
 
 const Assets = () => {
