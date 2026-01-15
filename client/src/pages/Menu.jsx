@@ -1,8 +1,14 @@
 import { useOutletContext } from 'react-router-dom';
-import { LogOut, Lock } from 'lucide-react';
+import { LogOut, Lock, DollarSign } from 'lucide-react';
 
 const Menu = () => {
-    const { handleLogout, setIsLocked, currentUser } = useOutletContext();
+    const {
+        handleLogout,
+        setIsLocked,
+        currentUser,
+        selectedCurrencyRate,
+        updateCurrencyRate
+    } = useOutletContext();
 
     return (
         <div className="max-w-md mx-auto space-y-6">
@@ -17,6 +23,31 @@ const Menu = () => {
             </div>
 
             <div className="space-y-4">
+                {/* Configuración de Moneda */}
+                <div className="bento-card p-4 space-y-4">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 rounded-full bg-surfaceHighlight flex items-center justify-center text-emerald-400">
+                            <DollarSign size={20} />
+                        </div>
+                        <span className="text-white font-medium">Cotización Dólar Preferida</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                        {['Official', 'Blue', 'MEP'].map(rate => (
+                            <button
+                                key={rate}
+                                onClick={() => updateCurrencyRate(rate)}
+                                className={`py-2 px-3 rounded-xl text-sm font-bold transition-all border ${
+                                    selectedCurrencyRate === rate
+                                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500'
+                                    : 'bg-surfaceHighlight text-textMuted border-transparent hover:text-white'
+                                }`}
+                            >
+                                {rate}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
                 <button
                     onClick={() => setIsLocked(true)}
                     className="w-full bento-card p-4 flex items-center justify-between group hover:border-primary transition-all"
