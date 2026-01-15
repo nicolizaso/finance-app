@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import * as Icons from 'lucide-react';
-import { Plus, Minus, Target } from 'lucide-react';
+import { Plus, Minus } from 'lucide-react';
 
-const SavingsCard = ({ goal, onAddFunds, onWithdraw, isPrivacyMode }) => {
+export default function SavingsCard({ goal, onAddFunds, onWithdraw, isPrivacyMode }) {
     const { title, targetAmount, currentAmount, icon, color, deadline } = goal;
 
     // Percentage for Ring
@@ -104,6 +104,4 @@ const SavingsCard = ({ goal, onAddFunds, onWithdraw, isPrivacyMode }) => {
             </div>
         </div>
     );
-};
-
-export default SavingsCard;
+}

@@ -5,12 +5,12 @@ const Transaction = require('../models/Transaction');
 const { z } = require('zod');
 
 // Schema Validation
-const goalSchema = z.object({
+const CreateGoalSchema = z.object({
     title: z.string().min(1),
     targetAmount: z.number().positive(),
     currentAmount: z.number().min(0).optional(),
     icon: z.string().optional(),
-    deadline: z.string().optional().nullable(), // Date as string
+    deadline: z.string().optional().nullable(),
     color: z.string().optional()
 });
 
@@ -33,7 +33,7 @@ router.post('/', async (req, res) => {
         const userId = req.headers['x-user-id'];
         if (!userId) return res.status(401).json({ success: false, error: 'Unauthorized' });
 
-        const validation = goalSchema.safeParse(req.body);
+        const validation = CreateGoalSchema.safeParse(req.body);
         if (!validation.success) {
             return res.status(400).json({ success: false, error: validation.error.errors });
         }
@@ -57,7 +57,7 @@ router.put('/:id', async (req, res) => {
         const { id } = req.params;
 
         // Allow partial updates
-        const validation = goalSchema.partial().safeParse(req.body);
+        const validation = CreateGoalSchema.partial().safeParse(req.body);
         if (!validation.success) {
             return res.status(400).json({ success: false, error: validation.error.errors });
         }

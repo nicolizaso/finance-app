@@ -9,12 +9,14 @@ import {
     Plus,
     DollarSign,
     AlertCircle,
-    CheckCircle
+    CheckCircle,
+    PiggyBank
 } from 'lucide-react';
 
 const WealthCard = ({ isPrivacyMode, onGamification }) => {
     const [activeTab, setActiveTab] = useState('DEBT'); // DEBT, RECEIVABLE, CASH
     const [items, setItems] = useState([]);
+    const [savingsGoals, setSavingsGoals] = useState([]); // <--- New state for savings
     const [loading, setLoading] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
 
@@ -42,9 +44,16 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
     const fetchItems = async () => {
         try {
             setLoading(true);
-            const res = await api.get('/wealth');
-            if (res.data.success) {
-                setItems(res.data.data);
+            const [wealthRes, savingsRes] = await Promise.all([
+                api.get('/wealth'),
+                api.get('/savings-goals')
+            ]);
+
+            if (wealthRes.data.success) {
+                setItems(wealthRes.data.data);
+            }
+            if (savingsRes.data.success) {
+                setSavingsGoals(savingsRes.data.data);
             }
         } catch (error) {
             console.error('Error fetching wealth items:', error);
@@ -53,9 +62,33 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
         }
     };
 
-    const filteredItems = items.filter(item => item.type === activeTab);
+    // Merge Savings Goals into items when tab is CASH (or treat them as assets)
+    // We'll effectively treat them as CASH/ASSETS for display in the list if tab is CASH
+    // But they are read-only here (managed in SavingsList)
+
+    const getFilteredItems = () => {
+        const wealthItems = items.filter(item => item.type === activeTab);
+        if (activeTab === 'CASH') {
+            // Add savings goals as "fake" wealth items
+            const goalItems = savingsGoals.map(g => ({
+                _id: g._id,
+                title: g.title,
+                currentAmount: g.currentAmount,
+                totalAmount: g.targetAmount,
+                type: 'CASH',
+                currency: 'ARS', // Assuming ARS for goals
+                isSavingsGoal: true,
+                icon: g.icon
+            }));
+            return [...wealthItems, ...goalItems];
+        }
+        return wealthItems;
+    };
+
+    const filteredItems = getFilteredItems();
 
     // Totals for the current view
+    // Note: If tab is DEBT, sum debts. If CASH, sum cash + savings.
     const totalValue = filteredItems.reduce((acc, item) => acc + item.currentAmount, 0);
 
     const handleAddSubmit = async (e) => {
@@ -77,6 +110,7 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
     };
 
     const handleActionClick = (item) => {
+        if (item.isSavingsGoal) return; // Cannot edit savings here
         setSelectedItem(item);
         setActionAmount('');
         setCreateTransaction(false);
@@ -85,7 +119,7 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
 
     const handleActionSubmit = async (e) => {
         e.preventDefault();
-        if (!selectedItem) return;
+        if (!selectedItem || selectedItem.isSavingsGoal) return;
 
         try {
             const amount = Number(actionAmount);
@@ -97,16 +131,7 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
             } else if (selectedItem.type === 'RECEIVABLE') {
                 newAmount = selectedItem.currentAmount - amount; // Cobrar reduce lo que me deben
             } else if (selectedItem.type === 'CASH') {
-                // For cash, we need to know if it's deposit or withdraw.
-                // Simplified: The modal will have +/- or we handle it via "Action" prop?
-                // Let's assume the modal handles "Update Balance" or "Add/Subtract".
-                // For simplicity in this iteration:
-                // DEBT -> Amortize (Pay)
-                // RECEIVABLE -> Collect (Receive)
-                // CASH -> Adjust? Let's treat CASH actions differently or use this same modal for "Add/Subtract" if logic allows.
-                // Re-reading requirements: "Ingresar/Retirar" buttons for Cash.
-                // So CASH shouldn't use the generic "Action" modal maybe? Or the modal needs a selector.
-                // Let's stick to the Plan: "Buttons for +/-".
+                 // For manually added cash items
             }
 
             // 1. Update Wealth Item
@@ -139,6 +164,7 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
 
     // Specific handler for Cash +/-
     const handleCashUpdate = async (item, amountToAdd) => {
+        if (item.isSavingsGoal) return;
         try {
             const newAmount = item.currentAmount + amountToAdd;
             await api.put(`/wealth/${item._id}`, { currentAmount: newAmount });
@@ -206,29 +232,41 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
                 ) : (
                     filteredItems.map(item => (
                         <div key={item._id} className="bg-surfaceHighlight/10 border border-white/5 rounded-xl p-3 flex justify-between items-center group hover:border-white/10 transition-colors">
-                            <div>
-                                <h4 className="font-medium text-white text-sm">{item.title}</h4>
-                                <p className={`text-xs font-mono mt-1 ${
-                                    item.type === 'DEBT' ? 'text-rose-400' :
-                                    item.type === 'RECEIVABLE' ? 'text-emerald-400' : 'text-amber-400'
-                                }`}>
-                                    {formatMoney(item.currentAmount, item.currency)}
-                                    {item.totalAmount > item.currentAmount && item.type !== 'CASH' && (
-                                        <span className="text-textMuted ml-1 opacity-70">
-                                            / {formatMoney(item.totalAmount, item.currency)}
-                                        </span>
-                                    )}
-                                </p>
+                            <div className="flex items-center gap-3">
+                                {item.isSavingsGoal && (
+                                    <div className="p-2 rounded-full bg-pink-500/10 text-pink-500">
+                                        <PiggyBank size={16} />
+                                    </div>
+                                )}
+                                <div>
+                                    <h4 className="font-medium text-white text-sm">
+                                        {item.title}
+                                        {item.isSavingsGoal && <span className="text-[10px] ml-2 text-pink-400 border border-pink-500/30 px-1 rounded">META</span>}
+                                    </h4>
+                                    <p className={`text-xs font-mono mt-1 ${
+                                        item.type === 'DEBT' ? 'text-rose-400' :
+                                        item.type === 'RECEIVABLE' ? 'text-emerald-400' : 'text-amber-400'
+                                    }`}>
+                                        {formatMoney(item.currentAmount, item.currency)}
+                                        {item.totalAmount > item.currentAmount && item.type !== 'CASH' && (
+                                            <span className="text-textMuted ml-1 opacity-70">
+                                                / {formatMoney(item.totalAmount, item.currency)}
+                                            </span>
+                                        )}
+                                    </p>
+                                </div>
                             </div>
 
                             {/* ACTIONS */}
                             <div className="flex gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                                {item.type === 'CASH' ? (
+                                {item.isSavingsGoal ? (
+                                    <div className="text-[10px] text-textMuted px-2 py-1 bg-white/5 rounded">
+                                        Gestionar abajo
+                                    </div>
+                                ) : item.type === 'CASH' ? (
                                     <>
                                         <button
-                                            onClick={() => handleCashUpdate(item, 1000)} // Quick add placeholder, maybe allow prompt?
-                                            // Requirements said: "Botones rápidos para sumar o restar"
-                                            // Let's implement generic add/sub buttons that ask for amount
+                                            onClick={() => handleCashUpdate(item, 1000)}
                                             className="p-1.5 rounded-full bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white"
                                             title="Ingresar"
                                         >
@@ -274,7 +312,7 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
                 </div>
             </div>
 
-            {/* ADD ITEM MODAL */}
+            {/* ADD ITEM MODAL - Same as before */}
             {showAddModal && (
                 <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
                     <div className="bg-surface border border-primary/30 rounded-2xl p-6 w-full max-w-sm shadow-glow relative">
@@ -341,7 +379,7 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
                 </div>
             )}
 
-            {/* ACTION MODAL (Pay/Collect) */}
+            {/* ACTION MODAL - Same as before */}
             {showActionModal && selectedItem && (
                 <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
                     <div className="bg-surface border border-primary/30 rounded-2xl p-6 w-full max-w-sm shadow-glow">
