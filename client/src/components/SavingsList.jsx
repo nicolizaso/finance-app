@@ -3,7 +3,7 @@ import api from '../api/axios';
 import SavingsCard from './SavingsCard';
 import { Plus, X, PiggyBank, Car, Home, Plane, Gift, Smartphone, GraduationCap, Gamepad2, Briefcase } from 'lucide-react';
 
-const ICONS = [
+const AVAILABLE_ICONS = [
     { name: 'PiggyBank', icon: PiggyBank },
     { name: 'Car', icon: Car },
     { name: 'Home', icon: Home },
@@ -26,7 +26,7 @@ const COLORS = [
     '#d946ef', // Fuchsia
 ];
 
-const SavingsList = ({ isPrivacyMode }) => {
+export default function SavingsList({ isPrivacyMode }) {
     const [goals, setGoals] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -204,7 +204,7 @@ const SavingsList = ({ isPrivacyMode }) => {
                             <div>
                                 <label className="text-xs text-textMuted block mb-2">Ícono</label>
                                 <div className="flex gap-2 flex-wrap">
-                                    {ICONS.map(({ name, icon: Icon }) => (
+                                    {AVAILABLE_ICONS.map(({ name, icon: Icon }) => (
                                         <button
                                             type="button"
                                             key={name}
@@ -301,6 +301,4 @@ const SavingsList = ({ isPrivacyMode }) => {
             )}
         </div>
     );
-};
-
-export default SavingsList;
+}

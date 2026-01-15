@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const SavingsGoalSchema = new mongoose.Schema({
+const savingsGoalSchema = new mongoose.Schema({
     userId: { type: String, required: true },
     title: { type: String, required: true },
     targetAmount: { type: Number, required: true },
@@ -12,4 +12,4 @@ const SavingsGoalSchema = new mongoose.Schema({
     timestamps: true
 });
 
-module.exports = mongoose.models.SavingsGoal || mongoose.model('SavingsGoal', SavingsGoalSchema);
+module.exports = mongoose.models.SavingsGoal || mongoose.model('SavingsGoal', savingsGoalSchema);
