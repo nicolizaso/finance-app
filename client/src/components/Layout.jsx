@@ -1,6 +1,12 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
-import { Eye, EyeOff, LogOut, Lock, Trophy } from 'lucide-react';
+import BottomNavbar from './BottomNavbar';
+import SideDrawer from './SideDrawer';
+import { Eye, EyeOff, LogOut, Lock, Trophy, Plus } from 'lucide-react';
+import { useState } from 'react';
+import QuickAddModal from './QuickAddModal';
+import FixedExpenseForm from './FixedExpenseForm';
+import AchievementsModal from './AchievementsModal';
 
 const Layout = ({
   currentUser,
@@ -10,34 +16,45 @@ const Layout = ({
   setIsLocked,
   childrenContext
 }) => {
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [showFixedExpenseForm, setShowFixedExpenseForm] = useState(false);
+
+  // Extend childrenContext with layout actions if needed by views
+  const extendedContext = {
+      ...childrenContext,
+      openQuickAdd: () => setShowQuickAdd(true),
+      openFixedExpenseForm: () => setShowFixedExpenseForm(true),
+      openDrawer: () => setIsDrawerOpen(true)
+  };
 
   return (
     <>
-      <div className="min-h-screen bg-void p-4 md:p-6 lg:p-8 font-sans pb-28 md:pb-8">
-        <div className="max-w-7xl mx-auto space-y-6 animate-slide-up">
+      <div className="min-h-screen bg-void font-sans">
+        <div className="max-w-7xl mx-auto min-h-screen flex flex-col">
 
-          {/* HEADER */}
-          <header className="flex justify-between items-center px-2 sticky top-0 z-40 bg-void/80 backdrop-blur-md py-2 border-b border-white/5 md:static md:bg-transparent md:border-none md:py-0">
+          {/* DESKTOP HEADER */}
+          <header className="hidden md:flex justify-between items-center px-8 py-4 border-b border-white/5 sticky top-0 bg-void/90 backdrop-blur-md z-40">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Logo" className="w-10 h-10 md:w-11 md:h-11 rounded-full border-2 border-primary/30 object-contain shadow-glow bg-surface" />
+              <img src="/logo.png" alt="Logo" className="w-10 h-10 rounded-full border-2 border-primary/30 object-contain shadow-glow bg-surface" />
               <div>
-                <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tighter">
+                <h1 className="text-2xl font-extrabold text-white tracking-tighter">
                   Finanz<span className="text-primary drop-shadow-[0_0_10px_rgba(124,58,237,0.5)]">App</span>
                 </h1>
-                <p className="hidden md:block text-textMuted text-xs font-medium tracking-wide mt-0.5 uppercase">
-                  Hola, {currentUser?.name}
-                </p>
               </div>
             </div>
 
             <div className="flex items-center">
-              {/* Desktop Navigation (Only rendered here for desktop) */}
-              <div className="hidden md:block">
-                  <Navbar currentUser={currentUser} mobile={false} />
-              </div>
+              <Navbar currentUser={currentUser} mobile={false} />
 
-              {/* Desktop Actions */}
-              <div className="hidden md:flex gap-3 ml-4 border-l border-white/10 pl-4">
+              <div className="flex gap-3 ml-6 border-l border-white/10 pl-6">
+                  <button
+                      onClick={() => setShowQuickAdd(true)}
+                      className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-neon flex items-center justify-center text-white shadow-glow hover:scale-105 transition-all active:scale-95"
+                      title="Nuevo Movimiento"
+                  >
+                      <Plus size={20} />
+                  </button>
                   <button
                       onClick={() => childrenContext.setShowAchievements(true)}
                       className="w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center text-textMuted hover:text-yellow-400 hover:border-yellow-500 transition-all active:scale-95"
@@ -67,36 +84,71 @@ const Layout = ({
                   <Lock size={18} />
                   </button>
               </div>
-
-              {/* Mobile Header Actions */}
-               <div className="flex md:hidden gap-2">
-                  <button
-                      onClick={() => childrenContext.setShowAchievements(true)}
-                      className="w-9 h-9 rounded-full bg-surface border border-border flex items-center justify-center transition-all active:scale-95 text-textMuted hover:text-yellow-400"
-                  >
-                      <Trophy size={16} />
-                  </button>
-                  <button
-                  onClick={() => setIsPrivacyMode(!isPrivacyMode)}
-                  className={`w-9 h-9 rounded-full bg-surface border border-border flex items-center justify-center transition-all active:scale-95 ${isPrivacyMode ? 'text-primary border-primary shadow-glow' : 'text-textMuted hover:text-white hover:border-primary'}`}
-                  >
-                  {isPrivacyMode ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-               </div>
             </div>
           </header>
 
-          {/* CONTENT */}
-          <main>
-              <Outlet context={childrenContext} />
+          {/* MOBILE HEADER */}
+          <header className="md:hidden flex justify-between items-center px-4 py-3 bg-surface/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-40">
+             <div className="flex items-center gap-2">
+                 <img src="/logo.png" alt="Logo" className="w-8 h-8 rounded-full border border-primary/30" />
+                 <h1 className="text-xl font-bold text-white">Finanz<span className="text-primary">App</span></h1>
+             </div>
+             <div className="flex items-center gap-2">
+                 <button
+                    onClick={() => setIsPrivacyMode(!isPrivacyMode)}
+                    className={`p-2 rounded-full transition-colors ${isPrivacyMode ? 'text-primary' : 'text-textMuted'}`}
+                 >
+                    {isPrivacyMode ? <EyeOff size={20} /> : <Eye size={20} />}
+                 </button>
+                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-neon p-[1px] cursor-pointer" onClick={() => setIsDrawerOpen(true)}>
+                     <img src="/logo.png" className="w-full h-full rounded-full bg-surface" alt="User" />
+                 </div>
+             </div>
+          </header>
+
+          {/* MAIN CONTENT AREA */}
+          <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden">
+              <Outlet context={extendedContext} />
           </main>
         </div>
       </div>
 
-      {/* Mobile Navigation (Outside of the slide-up container) */}
-      <div className="md:hidden">
-          <Navbar currentUser={currentUser} mobile={true} />
-      </div>
+      {/* GLOBAL MODALS */}
+      {showQuickAdd && (
+        <QuickAddModal
+            onClose={() => setShowQuickAdd(false)}
+            onSuccess={(data) => {
+                childrenContext.onRefresh();
+                setShowQuickAdd(false);
+                if (data?.gamification) childrenContext.handleGamification(data.gamification);
+            }}
+        />
+      )}
+
+      {showFixedExpenseForm && (
+        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+             <div className="w-full max-w-md bg-surface border border-primary/50 rounded-3xl p-6 relative shadow-glow">
+                 <button onClick={() => setShowFixedExpenseForm(false)} className="absolute top-4 right-4 text-textMuted hover:text-white">✕</button>
+                 <FixedExpenseForm onClose={() => setShowFixedExpenseForm(false)} onSaved={childrenContext.onRefresh} />
+             </div>
+        </div>
+      )}
+
+      {/* BOTTOM NAVIGATION (Mobile) */}
+      <BottomNavbar
+         onQuickAdd={() => setShowQuickAdd(true)}
+         onOpenMenu={() => setIsDrawerOpen(true)}
+      />
+
+      {/* SIDE DRAWER (Mobile) */}
+      <SideDrawer
+         isOpen={isDrawerOpen}
+         onClose={() => setIsDrawerOpen(false)}
+         currentUser={currentUser}
+         handleLogout={handleLogout}
+         updateCurrencyRate={childrenContext.updateCurrencyRate}
+         selectedCurrencyRate={childrenContext.selectedCurrencyRate}
+      />
     </>
   );
 };

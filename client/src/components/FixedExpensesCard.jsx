@@ -180,7 +180,7 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
                   <Check size={12} className="opacity-0 group-hover:opacity-100" />
                 </button>
                 
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="text-white font-medium text-sm truncate" title={t.description}>
                      {t.description}
                   </p>
