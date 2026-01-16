@@ -3,6 +3,7 @@ import TransactionForm from '../components/TransactionForm';
 import TransactionList from '../components/TransactionList';
 import CreditCardWidget from '../components/CreditCardWidget'; // <--- Importar
 import SubscriptionWidget from '../components/SubscriptionWidget'; // <--- Subscription Radar
+import WishlistCard from '../components/WishlistCard'; // <--- Wishlist
 import { useOutletContext } from 'react-router-dom';
 import { useState } from 'react';
 
@@ -35,6 +36,24 @@ const Home = () => {
                         <CreditCardWidget isPrivacyMode={isPrivacyMode} refreshTrigger={transactions} />
                         <SubscriptionWidget />
                     </div>
+                </div>
+
+                {/* ROW 2: Wishlist (Inserted here or maybe alongside Transaction Form?) */}
+                {/* Let's put Wishlist alongside Transaction Form in a grid, or maybe below.
+                    Given the transaction form is quite tall, maybe Wishlist can go below BalanceCard if space permits.
+                    Or we can split the Transaction Form row.
+                    The current layout is:
+                    Left Col (8): Balance + (Credit/Sub), Transaction Form
+                    Right Col (4): Recent Transactions
+
+                    Adding Wishlist:
+                    Maybe move Transaction Form to be its own block and put Wishlist next to it?
+                    Or put Wishlist below Balance/Credit cards row?
+                */}
+
+                {/* Let's try inserting Wishlist above Transaction Form */}
+                <div className="h-[400px]">
+                    <WishlistCard refreshTrigger={transactions} />
                 </div>
 
                  {/* Transaction Form */}
