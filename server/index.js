@@ -48,7 +48,34 @@ const connectDB = async () => {
   }
 
   mongoose.connect(uri)
-    .then(() => console.log('MongoDB Conectado'))
+    .then(async () => {
+        console.log('MongoDB Conectado');
+
+        // SEED USER IF MEMORY SERVER
+        if (!process.env.MONGO_URI) {
+            const User = require('./models/User');
+            const exists = await User.findOne({ username: 'TestUser' });
+            if (!exists) {
+                await User.create({
+                    username: 'TestUser',
+                    pin: '1234',
+                    name: 'Test User',
+                    xp: 100,
+                    badges: []
+                });
+                console.log('✅ Usuario TestUser (PIN: 1234) creado automáticamente.');
+
+                await User.create({
+                    username: 'MobileUser',
+                    pin: '1234',
+                    name: 'Mobile User',
+                    xp: 50,
+                    badges: []
+                });
+                console.log('✅ Usuario MobileUser (PIN: 1234) creado automáticamente.');
+            }
+        }
+    })
     .catch(err => console.error('Error de conexión a MongoDB:', err));
 }
 

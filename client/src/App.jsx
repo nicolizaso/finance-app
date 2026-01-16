@@ -6,23 +6,20 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import UserScreen from './components/UserScreen';
 import PinScreen from './components/PinScreen';
 import Layout from './components/Layout';
-import QuickAddButton from './components/QuickAddButton'; // <--- Importar
-import QuickAddModal from './components/QuickAddModal';   // <--- Importar
 import AchievementsModal from './components/AchievementsModal';
 import confetti from 'canvas-confetti';
 
-// Páginas
-import Home from './pages/Home';
-import Analytics from './pages/Analytics';
-import CalendarPage from './pages/Calendar';
-import Assets from './pages/Assets';
-import Menu from './pages/Menu';
+// Vistas (New Views)
+import DashboardView from './views/DashboardView';
+import HistoryView from './views/HistoryView';
+import StatsView from './views/StatsView';
+import WealthView from './views/WealthView';
+import PlanningView from './views/PlanningView';
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isLocked, setIsLocked] = useState(true);
   const [isPrivacyMode, setIsPrivacyMode] = useState(false);
-  const [showQuickAdd, setShowQuickAdd] = useState(false); // <--- Estado para Quick Add
   const [showAchievements, setShowAchievements] = useState(false);
 
   // Datos
@@ -184,33 +181,18 @@ function App() {
                 />
             }
         >
-            <Route path="/" element={<Home />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/assets" element={<Assets />} />
-            <Route path="/menu" element={<Menu />} />
+            <Route path="/" element={<DashboardView />} />
+            <Route path="/history" element={<HistoryView />} />
+            <Route path="/stats" element={<StatsView />} />
+            <Route path="/wealth" element={<WealthView />} />
+            <Route path="/planning" element={<PlanningView />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
-      {/* FAB & Modal */}
-      {!isLocked && (
-          <>
-            <QuickAddButton onClick={() => setShowQuickAdd(true)} />
-            {showQuickAdd && (
-                <QuickAddModal
-                    onClose={() => setShowQuickAdd(false)}
-                    onSuccess={(data) => {
-                        handleRefresh(); // Recargar datos
-                        setShowQuickAdd(false);
-                        if (data?.gamification) handleGamification(data.gamification);
-                    }}
-                />
-            )}
-            {showAchievements && currentUser && (
-                <AchievementsModal user={currentUser} onClose={() => setShowAchievements(false)} />
-            )}
-          </>
+      {/* Global Modals that live outside Layout if needed, but Layout handles them now */}
+      {showAchievements && currentUser && (
+        <AchievementsModal user={currentUser} onClose={() => setShowAchievements(false)} />
       )}
 
     </BrowserRouter>
