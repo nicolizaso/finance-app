@@ -28,7 +28,7 @@ const COLORS = [
 ];
 
 export default function SavingsList({ isPrivacyMode }) {
-    const toast = useToast();
+    const { addToast } = useToast();
     const [goals, setGoals] = useState([]);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -84,11 +84,11 @@ export default function SavingsList({ isPrivacyMode }) {
                 color: '#10b981',
                 deadline: ''
             });
-            toast.success('Meta creada con éxito');
+            addToast('Meta creada con éxito', 'success');
             fetchGoals();
         } catch (error) {
             console.error(error);
-            toast.error('Error al crear la meta');
+            addToast('Error al crear la meta', 'error');
         } finally {
             setSubmitting(false);
         }
@@ -106,10 +106,10 @@ export default function SavingsList({ isPrivacyMode }) {
 
             setActionModal({ show: false, type: 'ADD', goal: null });
             setAmount('');
-            toast.success('Actualización exitosa');
+            addToast('Actualización exitosa', 'success');
             fetchGoals();
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Error processing request');
+            addToast(error.response?.data?.error || 'Error processing request', 'error');
         } finally {
             setSubmitting(false);
         }

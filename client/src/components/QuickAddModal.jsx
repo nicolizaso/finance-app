@@ -4,7 +4,7 @@ import { X, Zap } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 
 const QuickAddModal = ({ onClose, onSuccess }) => {
-  const toast = useToast();
+  const { addToast } = useToast();
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
@@ -36,11 +36,11 @@ const QuickAddModal = ({ onClose, onSuccess }) => {
 
       // Feedback táctil/visual si fuera posible (aquí solo cerramos)
       onSuccess(res.data);
-      toast && toast.success('Gasto rápido guardado');
+      addToast('Gasto rápido guardado', 'success');
       onClose();
     } catch (error) {
       console.error(error);
-      toast && toast.error('Error al guardar rápido');
+      addToast('Error al guardar rápido', 'error');
     } finally {
       setLoading(false);
     }
