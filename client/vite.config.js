@@ -15,6 +15,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5000000,
+      },
       registerType: 'autoUpdate',
       // Agregamos logo.png a los assets importantes
       includeAssets: ['logo.png'], 
@@ -38,9 +41,6 @@ export default defineConfig({
             type: 'image/png'
           }
         ],
-        workbox: {
-          maximumFileSizeToCacheInBytes: 5000000
-        },
       }
     })
   ],
