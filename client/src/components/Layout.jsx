@@ -2,7 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import BottomNavbar from './BottomNavbar';
 import SideDrawer from './SideDrawer';
-import { Eye, EyeOff, LogOut, Lock, Trophy, Plus } from 'lucide-react';
+import { Eye, EyeOff, LogOut, Lock, Trophy, Plus, Menu } from 'lucide-react';
 import { useState } from 'react';
 import QuickAddModal from './QuickAddModal';
 import FixedExpenseForm from './FixedExpenseForm';
@@ -109,16 +109,19 @@ const Layout = ({
                  <img src="/logo.png" alt="Logo" className="w-8 h-8 rounded-full border border-primary/30" />
                  <h1 className="text-xl font-bold text-white">Finanz<span className="text-primary">App</span></h1>
              </div>
-             <div className="flex items-center gap-2">
+             <div className="flex items-center gap-3">
                  <button
                     onClick={() => setIsPrivacyMode(!isPrivacyMode)}
                     className={`p-2 rounded-full transition-colors ${isPrivacyMode ? 'text-primary' : 'text-textMuted'}`}
                  >
                     {isPrivacyMode ? <EyeOff size={20} /> : <Eye size={20} />}
                  </button>
-                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-neon p-[1px] cursor-pointer" onClick={() => setIsDrawerOpen(true)}>
-                     <img src="/logo.png" className="w-full h-full rounded-full bg-surface" alt="User" />
-                 </div>
+                 <button
+                    onClick={() => setIsDrawerOpen(true)}
+                    className="p-2 text-textMuted hover:text-white transition-colors"
+                 >
+                     <Menu size={24} />
+                 </button>
              </div>
           </header>
 
