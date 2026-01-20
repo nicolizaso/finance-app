@@ -16,6 +16,7 @@ const WishlistCard = ({ refreshTrigger }) => {
     items: []
   });
   const [newItem, setNewItem] = useState({ description: '', estimatedPrice: '', link: '' });
+  const [isCreating, setIsCreating] = useState(false);
 
   // Access context for transaction creation
   const { onRefresh, handleGamification } = useOutletContext() || {};
@@ -43,6 +44,7 @@ const WishlistCard = ({ refreshTrigger }) => {
 
   const handleCreate = async (e) => {
     e.preventDefault();
+    setIsCreating(true);
     try {
         const payload = { ...formData };
 
@@ -61,12 +63,21 @@ const WishlistCard = ({ refreshTrigger }) => {
         }
 
         await api.post('/wishlist', payload);
+
+        // Success Feedback & Reset
+        alert('Proyecto creado con éxito');
         setShowModal(false);
         setFormData({ title: '', type: 'ITEM', items: [] });
         setNewItem({ description: '', estimatedPrice: '', link: '' });
+
         fetchWishlists();
+        if (onRefresh) onRefresh();
+
     } catch (err) {
         console.error(err);
+        alert('Error al crear el proyecto');
+    } finally {
+        setIsCreating(false);
     }
   };
 
@@ -328,8 +339,8 @@ const WishlistCard = ({ refreshTrigger }) => {
                         </div>
 
                         <div className="pt-2">
-                            <button type="submit" className="btn-primary w-full">
-                                Crear {formData.type === 'PROJECT' ? 'Proyecto' : 'Deseo'}
+                            <button type="submit" disabled={isCreating} className="btn-primary w-full disabled:opacity-50">
+                                {isCreating ? 'Creando...' : `Crear ${formData.type === 'PROJECT' ? 'Proyecto' : 'Deseo'}`}
                             </button>
                         </div>
                     </form>
