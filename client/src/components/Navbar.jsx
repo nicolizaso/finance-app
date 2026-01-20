@@ -8,6 +8,7 @@ const Navbar = ({ mobile, currentUser }) => {
   const navItems = [
     { name: 'Dashboard', path: '/', icon: Home },
     { name: 'Actividad', path: '/history', icon: Activity },
+    { name: 'Calendario', path: '/calendar', icon: Calendar },
     { name: 'Análisis', path: '/stats', icon: PieChart },
     { name: 'Planning', path: '/planning', icon: Gift }, // Map Planning to Wishlist/Planning icon
     { name: 'Patrimonio', path: '/wealth', icon: Briefcase },
