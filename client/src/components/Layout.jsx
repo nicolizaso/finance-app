@@ -7,6 +7,7 @@ import { useState } from 'react';
 import QuickAddModal from './QuickAddModal';
 import FixedExpenseForm from './FixedExpenseForm';
 import AchievementsModal from './AchievementsModal';
+import NotificationPopup from './NotificationPopup';
 
 const Layout = ({
   currentUser,
@@ -19,6 +20,10 @@ const Layout = ({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [showFixedExpenseForm, setShowFixedExpenseForm] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  // Calculate pending transactions
+  const pendingCount = childrenContext.transactions.filter(t => t.needsReview).length;
 
   // Extend childrenContext with layout actions if needed by views
   const extendedContext = {
@@ -48,6 +53,20 @@ const Layout = ({
               <Navbar currentUser={currentUser} mobile={false} />
 
               <div className="flex gap-3 ml-6 border-l border-white/10 pl-6">
+                  {/* Notification Bell (Desktop) */}
+                  {pendingCount > 0 && (
+                      <button
+                          onClick={() => setShowNotifications(true)}
+                          className="relative w-10 h-10 rounded-full bg-surface border border-orange-500/50 flex items-center justify-center text-orange-400 hover:text-orange-300 hover:border-orange-500 hover:shadow-glow transition-all active:scale-95"
+                          title="Revisiones Pendientes"
+                      >
+                          <Eye size={18} className="animate-pulse" />
+                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-surface">
+                              {pendingCount}
+                          </span>
+                      </button>
+                  )}
+
                   <button
                       onClick={() => setShowQuickAdd(true)}
                       className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-neon flex items-center justify-center text-white shadow-glow hover:scale-105 transition-all active:scale-95"
@@ -134,10 +153,20 @@ const Layout = ({
         </div>
       )}
 
+      {/* NOTIFICATIONS POPUP */}
+      {showNotifications && (
+        <NotificationPopup
+            count={pendingCount}
+            onClose={() => setShowNotifications(false)}
+        />
+      )}
+
       {/* BOTTOM NAVIGATION (Mobile) */}
       <BottomNavbar
          onQuickAdd={() => setShowQuickAdd(true)}
          onOpenMenu={() => setIsDrawerOpen(true)}
+         pendingCount={pendingCount}
+         onOpenNotifications={() => setShowNotifications(!showNotifications)}
       />
 
       {/* SIDE DRAWER (Mobile) */}

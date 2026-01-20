@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { Plus, Trash2, Check, ExternalLink, ChevronDown, ChevronUp, ShoppingBag, LayoutList, Package, Gift } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
+import { useToast } from '../context/ToastContext';
 
 const WishlistCard = ({ refreshTrigger }) => {
   const [wishlists, setWishlists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
+
+  const toast = useToast();
 
   // Modal states
   const [showModal, setShowModal] = useState(false);
@@ -65,7 +68,11 @@ const WishlistCard = ({ refreshTrigger }) => {
         await api.post('/wishlist', payload);
 
         // Success Feedback & Reset
-        alert('Proyecto creado con éxito');
+        if (payload.type === 'ITEM') {
+            toast.success('Item agregado con éxito');
+        } else {
+            toast.success('Proyecto creado con éxito');
+        }
         setShowModal(false);
         setFormData({ title: '', type: 'ITEM', items: [] });
         setNewItem({ description: '', estimatedPrice: '', link: '' });
@@ -75,7 +82,7 @@ const WishlistCard = ({ refreshTrigger }) => {
 
     } catch (err) {
         console.error(err);
-        alert('Error al crear el proyecto');
+        toast.error('Error al crear el proyecto');
     } finally {
         setIsCreating(false);
     }
@@ -131,7 +138,7 @@ const WishlistCard = ({ refreshTrigger }) => {
 
     } catch (err) {
         console.error("Error processing purchase:", err);
-        alert("Error al procesar la compra");
+        toast.error("Error al procesar la compra");
     }
   };
 

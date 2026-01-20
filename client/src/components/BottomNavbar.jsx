@@ -1,17 +1,39 @@
-import { Home, Activity, PieChart, Menu as MenuIcon, Plus } from 'lucide-react';
+import { Home, Activity, Calendar, Menu as MenuIcon, Plus, AlertCircle } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
-const BottomNavbar = ({ onQuickAdd, onOpenMenu }) => {
+const BottomNavbar = ({ onQuickAdd, onOpenMenu, pendingCount, onOpenNotifications }) => {
     const navItems = [
         { icon: Home, label: 'Inicio', path: '/' },
         { icon: Activity, label: 'Actividad', path: '/history' },
         { icon: Plus, label: 'Quick Add', action: onQuickAdd, isMain: true },
-        { icon: PieChart, label: 'Análisis', path: '/stats' },
+        { icon: Calendar, label: 'Agenda', path: '/calendar' }, // Swapped Analysis with Calendar
         { icon: MenuIcon, label: 'Más', action: onOpenMenu },
     ];
 
     return (
         <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+            {/* Notification Icon (Absolute positioned on top right of Navbar) */}
+            {pendingCount > 0 && (
+                <motion.button
+                    onClick={onOpenNotifications}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="absolute -top-3 right-4 z-50 bg-surface border border-orange-500 rounded-full p-2 text-orange-400 shadow-glow flex items-center justify-center"
+                >
+                     <motion.div
+                        animate={{ rotate: [0, -10, 10, -10, 10, 0] }}
+                        transition={{ duration: 1, repeat: Infinity, repeatDelay: 2 }}
+                     >
+                        <AlertCircle size={20} />
+                     </motion.div>
+                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-surface">
+                        {pendingCount}
+                     </span>
+                </motion.button>
+            )}
+
             <div className="absolute inset-0 bg-surface/80 backdrop-blur-lg border-t border-white/10"></div>
             <div className="relative flex justify-around items-center h-[70px] pb-2 px-2">
                 {navItems.map((item, index) => {

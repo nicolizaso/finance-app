@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
 import { X, Zap } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 const QuickAddModal = ({ onClose, onSuccess }) => {
+  const toast = useToast();
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
@@ -34,10 +36,11 @@ const QuickAddModal = ({ onClose, onSuccess }) => {
 
       // Feedback táctil/visual si fuera posible (aquí solo cerramos)
       onSuccess(res.data);
+      toast && toast.success('Gasto rápido guardado');
       onClose();
     } catch (error) {
       console.error(error);
-      alert('Error al guardar rápido');
+      toast && toast.error('Error al guardar rápido');
     } finally {
       setLoading(false);
     }

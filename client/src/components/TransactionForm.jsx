@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { PlusCircle, Edit2, X, Tag } from 'lucide-react';
 import SharedExpenseSelector from './SharedExpenseSelector'; // <--- Importar
+import { useToast } from '../context/ToastContext';
 
 // --- ESTA ES LA LÍNEA QUE FALTABA ---
 const CATEGORIES = ["Comida", "Casa", "Transporte", "Ocio", "Salud", "Suscripciones", "Ahorro", "Varios"];
 
 const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchangeRates, selectedCurrencyRate }) => {
+  const toast = useToast();
   const [formData, setFormData] = useState({
     description: '',
     amount: '',
@@ -136,10 +138,10 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
         setTags([]);
         if (onTransactionAdded) onTransactionAdded(res.data);
       }
-      
+      toast && toast.success(initialData ? 'Transacción actualizada' : 'Transacción creada');
     } catch (error) {
       console.error(error);
-      alert('Error al guardar la transacción');
+      toast && toast.error('Error al guardar la transacción');
     } finally {
       setLoading(false);
     }
