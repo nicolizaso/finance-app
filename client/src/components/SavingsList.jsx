@@ -29,6 +29,7 @@ const COLORS = [
 export default function SavingsList({ isPrivacyMode }) {
     const [goals, setGoals] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
     const [showModal, setShowModal] = useState(false);
 
     // Action Modal State (Add/Withdraw)
@@ -65,6 +66,7 @@ export default function SavingsList({ isPrivacyMode }) {
 
     const handleCreateSubmit = async (e) => {
         e.preventDefault();
+        setSubmitting(true);
         try {
             await api.post('/savings-goals', {
                 ...formData,
@@ -83,6 +85,8 @@ export default function SavingsList({ isPrivacyMode }) {
             fetchGoals();
         } catch (error) {
             console.error(error);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -90,6 +94,7 @@ export default function SavingsList({ isPrivacyMode }) {
         e.preventDefault();
         const { type, goal } = actionModal;
         if (!goal) return;
+        setSubmitting(true);
 
         try {
             const endpoint = type === 'ADD' ? `/savings-goals/${goal._id}/add` : `/savings-goals/${goal._id}/withdraw`;
@@ -100,6 +105,8 @@ export default function SavingsList({ isPrivacyMode }) {
             fetchGoals();
         } catch (error) {
             alert(error.response?.data?.error || 'Error processing request');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -241,7 +248,9 @@ export default function SavingsList({ isPrivacyMode }) {
                                 </div>
                             </div>
 
-                            <button type="submit" className="w-full btn-primary mt-4">Crear Meta</button>
+                            <button type="submit" disabled={submitting} className="w-full btn-primary mt-4 disabled:opacity-50">
+                                {submitting ? 'Creando...' : 'Crear Meta'}
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -287,12 +296,13 @@ export default function SavingsList({ isPrivacyMode }) {
                                 <button
                                     type="button"
                                     onClick={() => setActionModal({ show: false, type: 'ADD', goal: null })}
-                                    className="flex-1 btn-ghost text-sm"
+                                    disabled={submitting}
+                                    className="flex-1 btn-ghost text-sm disabled:opacity-50"
                                 >
                                     Cancelar
                                 </button>
-                                <button type="submit" className="flex-1 btn-primary text-sm">
-                                    Confirmar
+                                <button type="submit" disabled={submitting} className="flex-1 btn-primary text-sm disabled:opacity-50">
+                                    {submitting ? 'Procesando...' : 'Confirmar'}
                                 </button>
                             </div>
                         </form>

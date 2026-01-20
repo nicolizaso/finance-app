@@ -21,6 +21,7 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
     const [items, setItems] = useState([]);
     const [savingsGoals, setSavingsGoals] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
 
     // Modal States
@@ -100,6 +101,7 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
 
     const handleAddSubmit = async (e) => {
         e.preventDefault();
+        setSubmitting(true);
         try {
             const payload = {
                 ...formData,
@@ -117,6 +119,8 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
             closeModal();
         } catch (error) {
             console.error(error);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -157,6 +161,7 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
     const handleActionSubmit = async (e) => {
         e.preventDefault();
         if (!selectedItem || selectedItem.isSavingsGoal) return;
+        setSubmitting(true);
 
         try {
             const amount = Number(actionAmount);
@@ -191,6 +196,8 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
             setShowActionModal(false);
         } catch (error) {
             console.error(error);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -440,9 +447,9 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
                             )}
 
                             <div className="flex gap-3 pt-2">
-                                <button type="button" onClick={closeModal} className="flex-1 btn-ghost text-sm">Cancelar</button>
-                                <button type="submit" className="flex-1 btn-primary text-sm">
-                                    {isEditing ? 'Actualizar Registro' : 'Guardar'}
+                                <button type="button" onClick={closeModal} disabled={submitting} className="flex-1 btn-ghost text-sm disabled:opacity-50">Cancelar</button>
+                                <button type="submit" disabled={submitting} className="flex-1 btn-primary text-sm disabled:opacity-50">
+                                    {submitting ? 'Guardando...' : (isEditing ? 'Actualizar Registro' : 'Guardar')}
                                 </button>
                             </div>
                         </form>
@@ -490,8 +497,10 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
                             </div>
 
                             <div className="flex gap-3 pt-2">
-                                <button type="button" onClick={() => setShowActionModal(false)} className="flex-1 btn-ghost text-sm">Cancelar</button>
-                                <button type="submit" className="flex-1 btn-primary text-sm">Confirmar</button>
+                                <button type="button" onClick={() => setShowActionModal(false)} disabled={submitting} className="flex-1 btn-ghost text-sm disabled:opacity-50">Cancelar</button>
+                                <button type="submit" disabled={submitting} className="flex-1 btn-primary text-sm disabled:opacity-50">
+                                    {submitting ? 'Procesando...' : 'Confirmar'}
+                                </button>
                             </div>
                         </form>
                     </div>

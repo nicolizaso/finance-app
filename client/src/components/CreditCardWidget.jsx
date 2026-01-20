@@ -23,19 +23,13 @@ const CreditCardWidget = ({ isPrivacyMode, refreshTrigger }) => {
     fetchProjection();
   }, [refreshTrigger]); // Re-fetch when transactions change
 
-  const formatMoney = (amount) => {
-    if (isPrivacyMode) return '****';
-    // Amount is in cents, assuming backend returns cents as calculation base was cents
-    // Wait, backend: totalDebt += remainingInstallments * monthlyAmount
-    // monthlyAmount = amount (cents) / installments.
-    // So result is in cents.
-    return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(data.totalDebt ? amount / 100 : 0); // Handle 0
-  };
-
-  // Need separate formatting for nextMonthBill
   const formatValue = (val) => {
      if (isPrivacyMode) return '****';
-     return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(val / 100);
+     return new Intl.NumberFormat('es-AR', {
+       style: 'currency',
+       currency: 'ARS',
+       maximumFractionDigits: 0
+     }).format(val / 100);
   };
 
   return (
