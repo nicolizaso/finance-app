@@ -5,7 +5,7 @@ import { getEffectiveAmount } from '../utils/financeHelpers';
 import { useToast } from '../context/ToastContext'; // Importación necesaria
 
 const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMode }) => {
-  const toast = useToast();
+  const { addToast } = useToast();
   const [payingTransaction, setPayingTransaction] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [filterMode, setFilterMode] = useState('ALL');
@@ -45,7 +45,7 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
   // Función para copiar al portapapeles
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    toast.success("¡Copiado al portapapeles!");
+    addToast("¡Copiado al portapapeles!", "success");
   };
 
   // --- MODAL HANDLERS ---
@@ -66,7 +66,7 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
     const cleanAmount = parseInt(paymentAmount.replace(/\./g, ''), 10);
     
     if (isNaN(cleanAmount) || cleanAmount <= 0) {
-        toast.error("Por favor ingresa un monto válido"); return;
+        addToast("Por favor ingresa un monto válido", "error"); return;
     }
 
     try {
@@ -78,8 +78,8 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
       });
       onRefresh(); 
       setPayingTransaction(null);
-      toast.success("Gasto marcado como pagado");
-    } catch (error) { console.error(error); toast.error("Error al procesar el pago"); }
+      addToast("Gasto marcado como pagado", "success");
+    } catch (error) { console.error(error); addToast("Error al procesar el pago", "error"); }
   };
 
   // --- RENDERIZADO CONDICIONAL DE INFORMACIÓN DE PAGO ---

@@ -3,6 +3,7 @@ import Navbar from './Navbar';
 import BottomNavbar from './BottomNavbar';
 import SideDrawer from './SideDrawer';
 import { useState } from 'react';
+import { Wallet, Eye, EyeOff } from 'lucide-react';
 import QuickAddModal from './QuickAddModal';
 import FixedExpenseForm from './FixedExpenseForm';
 import AchievementsModal from './AchievementsModal';
@@ -43,14 +44,32 @@ const Layout = ({
 
   return (
     <div className="min-h-screen pb-24 md:pb-0 bg-void text-textMain font-sans selection:bg-primary/30">
+      {/* MOBILE HEADER */}
+      <div className="md:hidden fixed top-0 left-0 w-full z-40 bg-void/90 backdrop-blur-md border-b border-white/5 px-4 py-3 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+               <Wallet size={20} />
+            </div>
+            <span className="font-heading font-bold text-lg text-white tracking-wide">FinanzApp</span>
+        </div>
+        <button
+           onClick={() => setIsPrivacyMode(!isPrivacyMode)}
+           className="w-10 h-10 rounded-full bg-surfaceHighlight flex items-center justify-center text-textMuted hover:text-white transition-colors"
+        >
+            {isPrivacyMode ? <Eye size={20} /> : <EyeOff size={20} />}
+        </button>
+      </div>
+
       {/* NAVBAR (Desktop) */}
-      <Navbar
-        user={currentUser}
-        isPrivacyMode={isPrivacyMode}
-        togglePrivacy={() => setIsPrivacyMode(!isPrivacyMode)}
-        onLogout={handleLogout}
-        onLock={() => setIsLocked(true)}
-      />
+      <div className="hidden md:flex">
+        <Navbar
+          user={currentUser}
+          isPrivacyMode={isPrivacyMode}
+          togglePrivacy={() => setIsPrivacyMode(!isPrivacyMode)}
+          onLogout={handleLogout}
+          onLock={() => setIsLocked(true)}
+        />
+      </div>
 
       {/* MAIN CONTENT */}
       <main className="p-4 md:p-8 max-w-7xl mx-auto pt-20 md:pt-24 animate-fade-in">

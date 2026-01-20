@@ -7,7 +7,7 @@ import { useToast } from '../context/ToastContext';
 const CATEGORIES = ["Comida", "Casa", "Transporte", "Ocio", "Salud", "Suscripciones", "Ahorro", "Varios"];
 
 const FixedExpenseForm = ({ onClose, onSaved }) => {
-  const toast = useToast();
+  const { addToast } = useToast();
   const [view, setView] = useState('list'); 
   const [loading, setLoading] = useState(false);
   const [fixedList, setFixedList] = useState([]);
@@ -112,10 +112,10 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
       if (onSaved) onSaved();
       fetchFixedExpenses();
       setView('list');
-      toast && toast.success(editingId ? 'Regla actualizada' : 'Regla creada');
+      addToast(editingId ? 'Regla actualizada' : 'Regla creada', 'success');
     } catch (error) {
       console.error(error);
-      toast && toast.error('Error guardando');
+      addToast('Error guardando', 'error');
     } finally {
       setLoading(false);
     }
