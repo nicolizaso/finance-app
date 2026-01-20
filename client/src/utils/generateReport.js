@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 export const generateReport = (currentUser, transactions) => {
   const doc = new jsPDF();
@@ -62,7 +62,7 @@ export const generateReport = (currentUser, transactions) => {
       ['Balance Neto', `$ ${balance.toLocaleString('es-AR')}`]
   ];
 
-  doc.autoTable({
+  autoTable(doc, {
       startY: startY + 5,
       head: [],
       body: summaryData,
@@ -92,7 +92,7 @@ export const generateReport = (currentUser, transactions) => {
       `$ ${Number(t.amount).toLocaleString('es-AR')}`
   ]);
 
-  doc.autoTable({
+  autoTable(doc, {
       startY: tableStartY + 5,
       head: [['Fecha', 'Descripción', 'Categoría', 'Tipo', 'Monto']],
       body: tableRows,
