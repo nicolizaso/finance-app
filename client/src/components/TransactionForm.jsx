@@ -155,7 +155,7 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
           {initialData ? 'Editar / Revisar' : 'Agregar'}
         </h3>
         
-        {initialData && (
+        {onCancelEdit && (
             <button onClick={onCancelEdit} className="text-textMuted hover:text-white p-1">
                 <X size={20} />
             </button>
