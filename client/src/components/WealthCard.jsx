@@ -10,13 +10,16 @@ import {
     DollarSign,
     AlertCircle,
     CheckCircle,
-    PiggyBank
+    PiggyBank,
+    Edit2,
+    Trash2,
+    Check
 } from 'lucide-react';
 
 const WealthCard = ({ isPrivacyMode, onGamification }) => {
     const [activeTab, setActiveTab] = useState('DEBT'); // DEBT, RECEIVABLE, CASH
     const [items, setItems] = useState([]);
-    const [savingsGoals, setSavingsGoals] = useState([]); // <--- New state for savings
+    const [savingsGoals, setSavingsGoals] = useState([]);
     const [loading, setLoading] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
 
@@ -24,6 +27,10 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [showActionModal, setShowActionModal] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
+
+    // Edit State
+    const [isEditing, setIsEditing] = useState(false);
+    const [editItemId, setEditItemId] = useState(null);
 
     // Form States
     const [formData, setFormData] = useState({
@@ -62,21 +69,16 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
         }
     };
 
-    // Merge Savings Goals into items when tab is CASH (or treat them as assets)
-    // We'll effectively treat them as CASH/ASSETS for display in the list if tab is CASH
-    // But they are read-only here (managed in SavingsList)
-
     const getFilteredItems = () => {
         const wealthItems = items.filter(item => item.type === activeTab);
         if (activeTab === 'CASH') {
-            // Add savings goals as "fake" wealth items
             const goalItems = savingsGoals.map(g => ({
                 _id: g._id,
                 title: g.title,
                 currentAmount: g.currentAmount,
                 totalAmount: g.targetAmount,
                 type: 'CASH',
-                currency: 'ARS', // Assuming ARS for goals
+                currency: 'ARS',
                 isSavingsGoal: true,
                 icon: g.icon
             }));
@@ -87,30 +89,65 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
 
     const filteredItems = getFilteredItems();
 
-    // Totals for the current view
-    // Note: If tab is DEBT, sum debts. If CASH, sum cash + savings.
     const totalValue = filteredItems.reduce((acc, item) => acc + item.currentAmount, 0);
+
+    const closeModal = () => {
+        setShowAddModal(false);
+        setIsEditing(false);
+        setEditItemId(null);
+        setFormData({ title: '', totalAmount: '', currentAmount: '', currency: 'ARS', type: 'DEBT' });
+    };
 
     const handleAddSubmit = async (e) => {
         e.preventDefault();
         try {
             const payload = {
                 ...formData,
-                type: activeTab, // Force type based on tab
-                totalAmount: formData.totalAmount || formData.currentAmount // If not set, use current
+                type: activeTab,
+                totalAmount: formData.totalAmount || formData.currentAmount
             };
 
-            await api.post('/wealth', payload);
+            if (isEditing && editItemId) {
+                await api.put(`/wealth/${editItemId}`, payload);
+            } else {
+                await api.post('/wealth', payload);
+            }
+
             setRefreshKey(prev => prev + 1);
-            setShowAddModal(false);
-            setFormData({ title: '', totalAmount: '', currentAmount: '', currency: 'ARS', type: 'DEBT' });
+            closeModal();
         } catch (error) {
             console.error(error);
         }
     };
 
+    const handleEditClick = (item) => {
+        if (item.isSavingsGoal) return;
+        setFormData({
+            title: item.title,
+            totalAmount: item.totalAmount,
+            currentAmount: item.currentAmount,
+            currency: item.currency,
+            type: item.type
+        });
+        setEditItemId(item._id);
+        setIsEditing(true);
+        setShowAddModal(true);
+    };
+
+    const handleDeleteClick = async (item) => {
+        if (item.isSavingsGoal) return;
+        if (window.confirm('¿Estás seguro de que deseas eliminar este registro permanentemente?')) {
+            try {
+                await api.delete(`/wealth/${item._id}`);
+                setRefreshKey(prev => prev + 1);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+    };
+
     const handleActionClick = (item) => {
-        if (item.isSavingsGoal) return; // Cannot edit savings here
+        if (item.isSavingsGoal) return;
         setSelectedItem(item);
         setActionAmount('');
         setCreateTransaction(false);
@@ -125,30 +162,25 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
             const amount = Number(actionAmount);
             let newAmount = selectedItem.currentAmount;
 
-            // Logic for calculating new amount
             if (selectedItem.type === 'DEBT') {
-                newAmount = selectedItem.currentAmount - amount; // Amortizar reduce deuda
+                newAmount = selectedItem.currentAmount - amount;
             } else if (selectedItem.type === 'RECEIVABLE') {
-                newAmount = selectedItem.currentAmount - amount; // Cobrar reduce lo que me deben
-            } else if (selectedItem.type === 'CASH') {
-                 // For manually added cash items
+                newAmount = selectedItem.currentAmount - amount;
             }
 
-            // 1. Update Wealth Item
             const res = await api.put(`/wealth/${selectedItem._id}`, { currentAmount: newAmount });
 
             if (res.data.gamification && onGamification) {
                 onGamification(res.data.gamification);
             }
 
-            // 2. Create Transaction if requested
             if (createTransaction) {
                 const txType = selectedItem.type === 'DEBT' ? 'EXPENSE' : 'INCOME';
                 const txData = {
                     description: `${selectedItem.type === 'DEBT' ? 'Pago deuda' : 'Cobro'}: ${selectedItem.title}`,
                     amount: amount,
                     type: txType,
-                    category: 'Financiero', // Or Debt/Investment
+                    category: 'Financiero',
                     currency: selectedItem.currency,
                     date: new Date()
                 };
@@ -162,7 +194,6 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
         }
     };
 
-    // Specific handler for Cash +/-
     const handleCashUpdate = async (item, amountToAdd) => {
         if (item.isSavingsGoal) return;
         try {
@@ -174,7 +205,6 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
         }
     };
 
-    // --- UI HELPERS ---
     const formatMoney = (amount, currency = 'ARS') => {
         if (isPrivacyMode) return '****';
         return new Intl.NumberFormat('es-AR', { style: 'currency', currency }).format(amount);
@@ -230,75 +260,114 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
                         No hay registros
                     </div>
                 ) : (
-                    filteredItems.map(item => (
-                        <div key={item._id} className="bg-surfaceHighlight/10 border border-white/5 rounded-xl p-3 flex justify-between items-center group hover:border-white/10 transition-colors">
-                            <div className="flex items-center gap-3">
-                                {item.isSavingsGoal && (
-                                    <div className="p-2 rounded-full bg-pink-500/10 text-pink-500">
-                                        <PiggyBank size={16} />
+                    filteredItems.map(item => {
+                        const isCompleted = (item.type === 'DEBT' || item.type === 'RECEIVABLE') && item.currentAmount === 0;
+
+                        return (
+                            <div key={item._id} className="bg-surfaceHighlight/10 border border-white/5 rounded-xl p-3 flex justify-between items-center group hover:border-white/10 transition-colors">
+                                <div className="flex items-center gap-3">
+                                    {item.isSavingsGoal && (
+                                        <div className="p-2 rounded-full bg-pink-500/10 text-pink-500">
+                                            <PiggyBank size={16} />
+                                        </div>
+                                    )}
+                                    <div>
+                                        <h4 className={`font-medium text-white text-sm ${isCompleted ? 'line-through opacity-50' : ''}`}>
+                                            {item.title}
+                                            {item.isSavingsGoal && <span className="text-[10px] ml-2 text-pink-400 border border-pink-500/30 px-1 rounded">META</span>}
+                                        </h4>
+                                        <p className={`text-xs font-mono mt-1 ${
+                                            item.type === 'DEBT' ? 'text-rose-400' :
+                                            item.type === 'RECEIVABLE' ? 'text-emerald-400' : 'text-amber-400'
+                                        }`}>
+                                            {formatMoney(item.currentAmount, item.currency)}
+                                            {item.totalAmount > item.currentAmount && item.type !== 'CASH' && (
+                                                <span className="text-textMuted ml-1 opacity-70">
+                                                    / {formatMoney(item.totalAmount, item.currency)}
+                                                </span>
+                                            )}
+                                        </p>
                                     </div>
-                                )}
-                                <div>
-                                    <h4 className="font-medium text-white text-sm">
-                                        {item.title}
-                                        {item.isSavingsGoal && <span className="text-[10px] ml-2 text-pink-400 border border-pink-500/30 px-1 rounded">META</span>}
-                                    </h4>
-                                    <p className={`text-xs font-mono mt-1 ${
-                                        item.type === 'DEBT' ? 'text-rose-400' :
-                                        item.type === 'RECEIVABLE' ? 'text-emerald-400' : 'text-amber-400'
-                                    }`}>
-                                        {formatMoney(item.currentAmount, item.currency)}
-                                        {item.totalAmount > item.currentAmount && item.type !== 'CASH' && (
-                                            <span className="text-textMuted ml-1 opacity-70">
-                                                / {formatMoney(item.totalAmount, item.currency)}
-                                            </span>
-                                        )}
-                                    </p>
+                                </div>
+
+                                {/* ACTIONS */}
+                                <div className="flex items-center gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                                    {item.isSavingsGoal ? (
+                                        <div className="text-[10px] text-textMuted px-2 py-1 bg-white/5 rounded">
+                                            Gestionar abajo
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {/* Primary Actions */}
+                                            {item.type === 'CASH' ? (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleCashUpdate(item, 1000)}
+                                                        className="p-1.5 rounded-full bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white"
+                                                        title="Ingresar"
+                                                    >
+                                                        <Plus size={14} onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            const amt = prompt('Monto a ingresar:');
+                                                            if (amt) handleCashUpdate(item, Number(amt));
+                                                        }}/>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {}}
+                                                        className="p-1.5 rounded-full bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white"
+                                                        title="Retirar"
+                                                    >
+                                                        <TrendingDown size={14} onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            const amt = prompt('Monto a retirar:');
+                                                            if (amt) handleCashUpdate(item, -Number(amt));
+                                                        }}/>
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                isCompleted ? (
+                                                    <button
+                                                        onClick={() => handleDeleteClick(item)}
+                                                        className="btn-xs bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white px-2 py-1 rounded flex items-center gap-1"
+                                                        title="Finalizar y Eliminar"
+                                                    >
+                                                        <Check size={12} /> <span className="text-xs">Finalizar</span>
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => handleActionClick(item)}
+                                                        className="btn-xs btn-outline text-xs px-2 py-1"
+                                                    >
+                                                        {item.type === 'DEBT' ? 'Pagar' : 'Cobrar'}
+                                                    </button>
+                                                )
+                                            )}
+
+                                            {/* Separator */}
+                                            <div className="w-px h-4 bg-white/10 mx-1"></div>
+
+                                            {/* Edit & Delete Actions */}
+                                            <button
+                                                onClick={() => handleEditClick(item)}
+                                                className="p-1.5 text-primary hover:text-white hover:bg-primary/20 rounded transition-colors"
+                                                title="Editar"
+                                            >
+                                                <Edit2 size={14} />
+                                            </button>
+
+                                            <button
+                                                onClick={() => handleDeleteClick(item)}
+                                                className="p-1.5 text-rose-400 hover:text-white hover:bg-rose-500/20 rounded transition-colors"
+                                                title="Eliminar"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
-
-                            {/* ACTIONS */}
-                            <div className="flex gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                                {item.isSavingsGoal ? (
-                                    <div className="text-[10px] text-textMuted px-2 py-1 bg-white/5 rounded">
-                                        Gestionar abajo
-                                    </div>
-                                ) : item.type === 'CASH' ? (
-                                    <>
-                                        <button
-                                            onClick={() => handleCashUpdate(item, 1000)}
-                                            className="p-1.5 rounded-full bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white"
-                                            title="Ingresar"
-                                        >
-                                            <Plus size={14} onClick={(e) => {
-                                                e.stopPropagation();
-                                                const amt = prompt('Monto a ingresar:');
-                                                if (amt) handleCashUpdate(item, Number(amt));
-                                            }}/>
-                                        </button>
-                                        <button
-                                            onClick={() => {}}
-                                            className="p-1.5 rounded-full bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white"
-                                            title="Retirar"
-                                        >
-                                            <TrendingDown size={14} onClick={(e) => {
-                                                e.stopPropagation();
-                                                const amt = prompt('Monto a retirar:');
-                                                if (amt) handleCashUpdate(item, -Number(amt));
-                                            }}/>
-                                        </button>
-                                    </>
-                                ) : (
-                                    <button
-                                        onClick={() => handleActionClick(item)}
-                                        className="btn-xs btn-outline text-xs px-2 py-1"
-                                    >
-                                        {item.type === 'DEBT' ? 'Pagar' : 'Cobrar'}
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
 
@@ -312,12 +381,12 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
                 </div>
             </div>
 
-            {/* ADD ITEM MODAL - Same as before */}
+            {/* ADD/EDIT MODAL */}
             {showAddModal && (
                 <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
                     <div className="bg-surface border border-primary/30 rounded-2xl p-6 w-full max-w-sm shadow-glow relative">
                         <h3 className="text-lg font-bold text-white mb-4">
-                            Nuevo {activeTab === 'DEBT' ? 'Pasivo' : activeTab === 'RECEIVABLE' ? 'Activo' : 'Fondo'}
+                            {isEditing ? 'Editar Registro' : `Nuevo ${activeTab === 'DEBT' ? 'Pasivo' : activeTab === 'RECEIVABLE' ? 'Activo' : 'Fondo'}`}
                         </h3>
 
                         <form onSubmit={handleAddSubmit} className="space-y-4">
@@ -371,15 +440,17 @@ const WealthCard = ({ isPrivacyMode, onGamification }) => {
                             )}
 
                             <div className="flex gap-3 pt-2">
-                                <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 btn-ghost text-sm">Cancelar</button>
-                                <button type="submit" className="flex-1 btn-primary text-sm">Guardar</button>
+                                <button type="button" onClick={closeModal} className="flex-1 btn-ghost text-sm">Cancelar</button>
+                                <button type="submit" className="flex-1 btn-primary text-sm">
+                                    {isEditing ? 'Actualizar Registro' : 'Guardar'}
+                                </button>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
 
-            {/* ACTION MODAL - Same as before */}
+            {/* ACTION MODAL */}
             {showActionModal && selectedItem && (
                 <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
                     <div className="bg-surface border border-primary/30 rounded-2xl p-6 w-full max-w-sm shadow-glow">
