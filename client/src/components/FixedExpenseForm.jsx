@@ -37,10 +37,18 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
 
   const handleEdit = (item) => {
     setEditingId(item._id);
-    // Si es compartido, reconstruimos el Total (Mi Parte + Su Parte) para mostrar en el input
-    const totalAmount = item.isShared 
-        ? ((item.amount + (item.otherShare || 0)) / 100) 
-        : (item.amount / 100);
+    // Reconstruir monto total si es compartido (soportando Legacy vs New)
+    let totalAmount = item.amount / 100;
+
+    if (item.isShared) {
+         // Legacy check: myShare is undefined/null
+         const isLegacy = item.myShare === undefined || item.myShare === null;
+         if (isLegacy) {
+             // Legacy: stored amount was the share
+             totalAmount = (item.amount + (item.otherShare || 0)) / 100;
+         }
+         // Else: amount is already Total
+    }
 
     setFormData({
       title: item.title,
@@ -86,9 +94,9 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
     let payload = { ...formData, amount: parseFloat(formData.amount) * 100 };
 
     if (sharedData && sharedData.isShared) {
-        // Al guardar compartido, el amount principal pasa a ser SOLO mi parte
-        // sharedData ya viene con myShare en centavos
-        payload = { ...payload, ...sharedData, amount: sharedData.myShare };
+        // Al guardar compartido, el amount principal es el TOTAL
+        // No sobreescribimos amount con myShare
+        payload = { ...payload, ...sharedData };
     }
 
     try {

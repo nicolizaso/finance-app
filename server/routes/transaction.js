@@ -62,15 +62,18 @@ router.post('/', async (req, res) => {
         // Extraer campos especiales de compartido
         const { isShared, sharedWith, myShare, otherShare, ...txData } = req.body;
 
-        // 1. Crear MI transacción (con mi parte del monto)
+        // 1. Crear MI transacción
+        // NEW LOGIC: 'amount' siempre es el Total.
+        // Guardamos 'myShare' explícitamente.
         const myTransactionData = {
             ...txData,
             userId,
             isShared: isShared || false,
             sharedWith: isShared ? sharedWith : '',
             sharedStatus: isShared ? 'OWNER' : 'NONE',
-            amount: isShared ? myShare : txData.amount,
-            otherShare: isShared ? otherShare : 0
+            amount: txData.amount, // Siempre Total
+            otherShare: isShared ? otherShare : 0,
+            myShare: isShared ? myShare : 0
         };
 
         const transaction = await Transaction.create(myTransactionData);
@@ -78,15 +81,20 @@ router.post('/', async (req, res) => {
         // 2. Si es compartido con un usuario real de la BDD, le creamos su parte
         if (isShared && sharedWith && sharedWith.length === 24) { // Simple check for ObjectId length
              // Intentamos crear la transaccion espejo
-             // NOTA: Para el otro usuario, la descripción indicará que fue compartido
+             // Para el PARTNER:
+             // - amount: Total
+             // - myShare: lo que ERA 'otherShare' para mí (su parte)
+             // - otherShare: lo que ERA 'myShare' para mí (mi parte)
              const otherTransactionData = {
                 ...txData,
                 userId: sharedWith, // ID del otro usuario
                 isShared: true,
                 sharedWith: userId, // Compartido CONMIGO (el creador)
                 sharedStatus: 'PARTNER',
-                amount: otherShare,
-                description: `${txData.description} (Compartido)`
+                amount: txData.amount, // Total
+                description: `${txData.description} (Compartido)`,
+                myShare: otherShare, // Su parte
+                otherShare: myShare // La parte del creador
              };
              await Transaction.create(otherTransactionData);
         }

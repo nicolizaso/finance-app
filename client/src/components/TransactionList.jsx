@@ -1,6 +1,7 @@
-import { Trash2, TrendingUp, TrendingDown, Clock, Check, FileText, CreditCard, AlertCircle, X } from 'lucide-react'; // <--- Iconos
+import { Trash2, TrendingUp, TrendingDown, Clock, Check, FileText, CreditCard, AlertCircle, X, Users } from 'lucide-react'; // <--- Iconos
 import api from '../api/axios';
 import { useState } from 'react';
+import { getEffectiveAmount } from '../utils/financeHelpers';
 
 const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode, onTransactionClick }) => {
   const [selectedTag, setSelectedTag] = useState(null);
@@ -86,6 +87,13 @@ const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode, on
                     {t.description}
                   </p>
                   <div className="flex flex-col gap-1 mt-1">
+                    {/* Indicador de compartido */}
+                    {t.isShared && (
+                         <div className="flex items-center gap-1 text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded w-fit">
+                            <Users size={10} />
+                            <span>Compartido</span>
+                         </div>
+                    )}
                     <div className="flex items-center gap-2">
                         <span className="text-[10px] text-textMuted bg-surface px-2 py-0.5 rounded-md border border-border">
                             {t.category}
@@ -117,6 +125,12 @@ const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode, on
                   {t.type === 'INCOME' ? '+' : '-'}${isPrivacyMode ? '***' : formatMoney(t.amount)}
                 </span>
                 
+                {t.isShared && (
+                    <span className="text-[10px] text-textMuted/70 font-mono">
+                        Tu parte: ${isPrivacyMode ? '***' : formatMoney(getEffectiveAmount(t))}
+                    </span>
+                )}
+
                 <button 
                   onClick={(e) => { e.stopPropagation(); handleDelete(t._id); }}
                   className="mt-1 opacity-0 group-hover:opacity-100 text-rose-500/50 hover:text-rose-500 transition-all"

@@ -42,7 +42,17 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
       // Reconstruir monto total si es compartido
       let amountToShow = initialData.amount;
       if (initialData.isShared) {
-         amountToShow = initialData.amount + (initialData.otherShare || 0);
+         // Check if legacy: myShare is undefined/null (not present in DB)
+         // In new logic, myShare is explicitly stored.
+         const isLegacy = initialData.myShare === undefined || initialData.myShare === null;
+
+         if (isLegacy) {
+             // Legacy: stored amount was the share
+             amountToShow = initialData.amount + (initialData.otherShare || 0);
+         } else {
+             // New data: stored amount is already Total
+             amountToShow = initialData.amount;
+         }
       }
 
       setFormData({
@@ -118,8 +128,8 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
     // Inyectar datos compartidos si existen
     if (sharedData && sharedData.isShared) {
         payload = { ...payload, ...sharedData };
-        // FIX: Ensure 'amount' stored in DB is myShare, not Total
-        payload.amount = sharedData.myShare;
+        // FIX: Ensure 'amount' stored in DB is the Total Amount, not just the share.
+        // We do NOT overwrite payload.amount here anymore.
     }
 
     try {

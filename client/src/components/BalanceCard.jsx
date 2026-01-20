@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
+import { getEffectiveAmount } from '../utils/financeHelpers';
 
 const BalanceCard = ({ transactions, isPrivacyMode }) => {
   const stats = useMemo(() => {
     const completedTransactions = transactions.filter(t => t.status === 'COMPLETED');
-    const amounts = completedTransactions.map(t => ({ amount: t.amount, type: t.type }));
+    const amounts = completedTransactions.map(t => ({ amount: getEffectiveAmount(t), type: t.type }));
     
     const income = amounts.filter(i => i.type === 'INCOME').reduce((acc, i) => acc + i.amount, 0);
     const expense = amounts.filter(i => i.type === 'EXPENSE').reduce((acc, i) => acc + i.amount, 0);
