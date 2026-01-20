@@ -16,6 +16,7 @@ import StatsView from './views/StatsView';
 import WealthView from './views/WealthView';
 import PlanningView from './views/PlanningView';
 import CalendarView from './views/CalendarView';
+import SavingsView from './views/SavingsView';
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -186,6 +187,7 @@ function App() {
             <Route path="/history" element={<HistoryView />} />
             <Route path="/calendar" element={<CalendarView />} />
             <Route path="/stats" element={<StatsView />} />
+            <Route path="/savings" element={<SavingsView />} />
             <Route path="/wealth" element={<WealthView />} />
             <Route path="/planning" element={<PlanningView />} />
         </Route>
