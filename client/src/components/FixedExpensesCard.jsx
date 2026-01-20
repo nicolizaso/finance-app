@@ -1,16 +1,25 @@
 import { useState, useMemo } from 'react';
 import api from '../api/axios';
-import { Calendar, Plus, PartyPopper, Check, X, Wallet, AlertCircle, ExternalLink, CheckCircle2, Copy, CreditCard, Banknote } from 'lucide-react';
+import { Calendar, Plus, PartyPopper, Check, X, Wallet, AlertCircle, ExternalLink, CheckCircle2, Copy, CreditCard, Banknote, Users } from 'lucide-react';
 
 const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMode }) => {
   const [payingTransaction, setPayingTransaction] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState('');
+  const [filterMode, setFilterMode] = useState('ALL'); // 'ALL' | 'PERSONAL' | 'SHARED'
 
   // Lógica principal de filtrado y ordenamiento
   const { pending, paid, totalDebt, totalPaid } = useMemo(() => {
-    const allFixed = transactions.filter(t => 
+    // 1. Filtrar transacciones relevantes (Fixed o Pending Expense)
+    let allFixed = transactions.filter(t =>
       t.type === 'EXPENSE' && (t.isFixed === true || t.status === 'PENDING')
     );
+
+    // 2. Aplicar filtro de modo (Personal / Shared)
+    if (filterMode === 'PERSONAL') {
+        allFixed = allFixed.filter(t => !t.isShared);
+    } else if (filterMode === 'SHARED') {
+        allFixed = allFixed.filter(t => t.isShared);
+    }
 
     const pending = allFixed
       .filter(t => t.status === 'PENDING')
@@ -20,11 +29,12 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
       .filter(t => t.status === 'COMPLETED' && t.isFixed === true) 
       .sort((a, b) => new Date(b.date) - new Date(a.date)); 
 
+    // Sumar solo la parte del usuario (t.amount ya es My Share)
     const totalDebt = pending.reduce((acc, t) => acc + t.amount, 0);
     const totalPaid = paid.reduce((acc, t) => acc + t.amount, 0);
 
     return { pending, paid, totalDebt, totalPaid };
-  }, [transactions]);
+  }, [transactions, filterMode]);
 
   const formatMoney = (amount) => Math.round(amount / 100).toLocaleString('es-AR');
   const getSafeLink = (url) => (!url ? null : (url.startsWith('http') ? url : `https://${url}`));
@@ -133,7 +143,7 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
     <>
       <div className="bento-card h-full flex flex-col w-full relative min-h-[350px]">
         {/* Header con Resumen Doble */}
-        <div className="flex justify-between items-start mb-4 border-b border-border pb-3 shrink-0">
+        <div className="flex justify-between items-start mb-2 border-b border-border pb-3 shrink-0">
           <div>
             <h3 className="text-white font-bold font-heading text-lg flex items-center gap-2">
               <Calendar size={20} className="text-primary" /> Gastos del Mes
@@ -159,6 +169,23 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
           </button>
         </div>
 
+        {/* TABS DE FILTRO */}
+        <div className="flex p-1 bg-surfaceHighlight/50 rounded-xl mb-3 shrink-0">
+            {['ALL', 'PERSONAL', 'SHARED'].map((mode) => (
+                <button
+                    key={mode}
+                    onClick={() => setFilterMode(mode)}
+                    className={`flex-1 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${
+                        filterMode === mode
+                        ? 'bg-primary/20 text-white shadow-sm border border-primary/30'
+                        : 'text-textMuted hover:text-white'
+                    }`}
+                >
+                    {mode === 'ALL' ? 'Todos' : (mode === 'PERSONAL' ? 'Personal' : 'Compartido')}
+                </button>
+            ))}
+        </div>
+
         {/* LISTA UNIFICADA */}
         <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3 max-h-[250px]">
           {pending.length === 0 && paid.length === 0 && (
@@ -181,18 +208,31 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
                 </button>
                 
                 <div className="min-w-0 flex-1">
-                  <p className="text-white font-medium text-sm truncate" title={t.description}>
-                     {t.description}
-                  </p>
+                  <div className="flex items-center gap-1">
+                      {t.isShared && <Users size={12} className="text-blue-400 shrink-0" title="Gasto Compartido" />}
+                      <p className="text-white font-medium text-sm truncate" title={t.description}>
+                        {t.description}
+                      </p>
+                  </div>
                   <div className="flex items-center gap-1 text-textMuted text-[10px]">
                      <AlertCircle size={10} />
                      <span>Vence: {new Date(t.date).getDate()}/{new Date().getMonth()+1}</span>
                   </div>
                 </div>
               </div>
-              <span className={`font-mono text-white font-bold text-sm whitespace-nowrap ml-3 bg-surface/50 px-2 py-1 rounded-lg border border-white/5 ${isPrivacyMode ? 'blur-sm' : ''}`}>
-                ${isPrivacyMode ? '***' : formatMoney(t.amount)}
-              </span>
+
+              <div className="flex flex-col items-end ml-3">
+                  <span className={`font-mono text-white font-bold text-sm whitespace-nowrap bg-surface/50 px-2 py-0.5 rounded-lg border border-white/5 ${isPrivacyMode ? 'blur-sm' : ''}`}>
+                    ${isPrivacyMode ? '***' : formatMoney(t.amount)}
+                  </span>
+
+                  {/* Mostrar Total si es compartido */}
+                  {t.isShared && (
+                      <span className={`text-[9px] text-textMuted font-mono mt-0.5 ${isPrivacyMode ? 'blur-sm' : ''}`}>
+                          (Total: ${isPrivacyMode ? '***' : formatMoney(t.amount + (t.otherShare || 0))})
+                      </span>
+                  )}
+              </div>
             </div>
           ))}
 
@@ -212,9 +252,12 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
                 </div>
                 
                 <div className="min-w-0">
-                  <p className="text-textMuted font-medium text-sm truncate line-through decoration-emerald-500/50 decoration-2">
-                     {t.description}
-                  </p>
+                  <div className="flex items-center gap-1">
+                      {t.isShared && <Users size={12} className="text-blue-400/50 shrink-0" />}
+                      <p className="text-textMuted font-medium text-sm truncate line-through decoration-emerald-500/50 decoration-2">
+                        {t.description}
+                      </p>
+                  </div>
                   <p className="text-emerald-500/80 text-[10px] font-bold tracking-wide">PAGADO</p>
                 </div>
               </div>
