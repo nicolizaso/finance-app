@@ -1,12 +1,12 @@
-import { Home, Activity, PieChart, Menu as MenuIcon, Plus } from 'lucide-react';
+import { Home, Activity, PieChart, Menu as MenuIcon, Plus, Calendar } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
 const BottomNavbar = ({ onQuickAdd, onOpenMenu }) => {
     const navItems = [
         { icon: Home, label: 'Inicio', path: '/' },
-        { icon: Activity, label: 'Actividad', path: '/history' },
+        { icon: Calendar, label: 'Agenda', path: '/calendar' },
         { icon: Plus, label: 'Quick Add', action: onQuickAdd, isMain: true },
-        { icon: PieChart, label: 'Análisis', path: '/stats' },
+        { icon: Activity, label: 'Actividad', path: '/history' },
         { icon: MenuIcon, label: 'Más', action: onOpenMenu },
     ];
 
