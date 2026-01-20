@@ -53,7 +53,16 @@ router.put('/:id', async (req, res) => {
             return res.status(404).json({ success: false, error: 'Item no encontrado' });
         }
 
-        const updatedItem = await WealthItem.findByIdAndUpdate(req.params.id, req.body, {
+        // Filter allowed fields
+        const { title, totalAmount, currentAmount, currency, type } = req.body;
+        const updateData = {};
+        if (title !== undefined) updateData.title = title;
+        if (totalAmount !== undefined) updateData.totalAmount = Number(totalAmount);
+        if (currentAmount !== undefined) updateData.currentAmount = Number(currentAmount);
+        if (currency !== undefined) updateData.currency = currency;
+        if (type !== undefined) updateData.type = type;
+
+        const updatedItem = await WealthItem.findByIdAndUpdate(req.params.id, updateData, {
             new: true,
             runValidators: true
         });
