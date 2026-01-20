@@ -7,7 +7,7 @@ import { useToast } from '../context/ToastContext';
 const CATEGORIES = ["Comida", "Casa", "Transporte", "Ocio", "Salud", "Suscripciones", "Ahorro", "Varios"];
 
 const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchangeRates, selectedCurrencyRate }) => {
-  const toast = useToast();
+  const { addToast } = useToast();
   const [formData, setFormData] = useState({
     description: '',
     amount: '',
@@ -143,10 +143,10 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
         setTags([]);
         if (onTransactionAdded) onTransactionAdded(res.data);
       }
-      toast.success(initialData ? 'Transacción actualizada' : 'Transacción creada');
+      addToast(initialData ? 'Transacción actualizada' : 'Transacción creada', 'success');
     } catch (error) {
       console.error(error);
-      toast.error('Error al guardar la transacción');
+      addToast('Error al guardar la transacción', 'error');
     } finally {
       setLoading(false);
     }

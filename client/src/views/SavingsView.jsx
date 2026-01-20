@@ -17,6 +17,7 @@ export default function SavingsView() {
     const [editingGoal, setEditingGoal] = useState(null);
     const [actionModal, setActionModal] = useState({ show: false, type: 'ADD', goal: null });
     const [amount, setAmount] = useState('');
+    const [currency, setCurrency] = useState('ARS');
     const [submitting, setSubmitting] = useState(false);
 
     const { addToast } = useToast();
@@ -88,7 +89,7 @@ export default function SavingsView() {
 
         try {
             const endpoint = type === 'ADD' ? `/savings-goals/${goal._id}/add` : `/savings-goals/${goal._id}/withdraw`;
-            const res = await api.post(endpoint, { amount: Number(amount) });
+            const res = await api.post(endpoint, { amount: Number(amount), currency });
 
             if (res.data.success) {
                  addToast(type === 'ADD' ? 'Fondos agregados' : 'Fondos retirados', 'success');
@@ -108,6 +109,7 @@ export default function SavingsView() {
     const openActionModal = (goal, type) => {
         setActionModal({ show: true, type, goal });
         setAmount('');
+        setCurrency(goal.currency || 'ARS');
     };
 
     return (
@@ -160,7 +162,7 @@ export default function SavingsView() {
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-fr">
                         {goals.map(goal => (
                             <SavingsCard
                                 key={goal._id}
@@ -198,16 +200,36 @@ export default function SavingsView() {
 
                         <form onSubmit={handleActionSubmit} className="space-y-4">
                             <div>
-                                <label className="text-xs text-textMuted block mb-1">Monto ({actionModal.goal.currency})</label>
-                                <input
-                                    type="number"
-                                    className="input-pro w-full text-lg"
-                                    placeholder="0.00"
-                                    value={amount}
-                                    onChange={e => setAmount(e.target.value)}
-                                    required
-                                    autoFocus
-                                />
+                                <label className="text-xs text-textMuted block mb-1">Monto ({currency})</label>
+                                <div className="flex gap-2">
+                                    <div className="relative flex-1">
+                                         <input
+                                            type="number"
+                                            className="input-pro w-full text-lg"
+                                            placeholder="0.00"
+                                            value={amount}
+                                            onChange={e => setAmount(e.target.value)}
+                                            required
+                                            autoFocus
+                                        />
+                                    </div>
+                                    <div className="bg-surfaceHighlight rounded-xl flex items-center px-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => setCurrency('ARS')}
+                                            className={`px-3 py-2 rounded-lg text-sm font-bold transition-all ${currency === 'ARS' ? 'bg-primary text-white shadow-sm' : 'text-textMuted hover:text-white'}`}
+                                        >
+                                            ARS
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setCurrency('USD')}
+                                            className={`px-3 py-2 rounded-lg text-sm font-bold transition-all ${currency === 'USD' ? 'bg-primary text-white shadow-sm' : 'text-textMuted hover:text-white'}`}
+                                        >
+                                            USD
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
                             {actionModal.type === 'ADD' && (
