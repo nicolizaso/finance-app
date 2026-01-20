@@ -1,4 +1,4 @@
-import { X, User, Gift, DollarSign, FileText, Trophy, LogOut, Wallet, Calendar, PieChart } from 'lucide-react';
+import { X, User, Gift, DollarSign, FileText, Trophy, LogOut, Wallet, Calendar, PieChart, PiggyBank } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
 const SideDrawer = ({ isOpen, onClose, currentUser, handleLogout, updateCurrencyRate, selectedCurrencyRate, onShowAchievements, onExportPDF }) => {
@@ -54,6 +54,16 @@ const SideDrawer = ({ isOpen, onClose, currentUser, handleLogout, updateCurrency
                         >
                             <PieChart size={20} />
                             <span className="font-medium">Análisis</span>
+                        </NavLink>
+
+                        {/* Savings Goals */}
+                        <NavLink
+                            to="/savings"
+                            onClick={onClose}
+                            className={({ isActive }) => `w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-primary/10 text-primary' : 'text-textMuted hover:text-white hover:bg-white/5'}`}
+                        >
+                            <PiggyBank size={20} />
+                            <span className="font-medium">Metas de Ahorro</span>
                         </NavLink>
 
                         {/* Planning / Wishlist */}

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import * as Icons from 'lucide-react';
-import { Plus, Minus } from 'lucide-react';
+import { Plus, Minus, Edit2, Trash2 } from 'lucide-react';
 
-export default function SavingsCard({ goal, onAddFunds, onWithdraw, isPrivacyMode }) {
-    const { title, targetAmount, currentAmount, icon, color, deadline } = goal;
+export default function SavingsCard({ goal, onAddFunds, onWithdraw, onEdit, onDelete, isPrivacyMode }) {
+    const { title, targetAmount, currentAmount, icon, color, deadline, currency = 'ARS' } = goal;
 
     // Percentage for Ring
     const percentage = Math.min(100, Math.max(0, (currentAmount / targetAmount) * 100));
@@ -15,28 +15,39 @@ export default function SavingsCard({ goal, onAddFunds, onWithdraw, isPrivacyMod
     // Format Money
     const formatMoney = (amount) => {
         if (isPrivacyMode) return '****';
-        return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(amount);
+        return new Intl.NumberFormat('es-AR', { style: 'currency', currency: currency, maximumFractionDigits: 0 }).format(amount);
     };
 
     return (
-        <div className="bg-surfaceHighlight/10 border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-between gap-4 min-w-[200px] hover:border-white/20 transition-all group relative overflow-hidden">
+        <div className="bg-surfaceHighlight/10 border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-between gap-4 w-full max-w-[300px] hover:border-white/20 transition-all group relative overflow-hidden">
             {/* Background Glow */}
             <div
                 className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none"
                 style={{ backgroundColor: color }}
             ></div>
 
-            {/* Header */}
-            <div className="w-full text-center z-10">
-                <h3 className="font-bold text-white text-md truncate">{title}</h3>
-                <p className="text-xs text-textMuted mt-1">
-                    Meta: {formatMoney(targetAmount)}
-                </p>
-                {deadline && (
-                    <p className="text-[10px] text-textMuted mt-0.5">
-                        {new Date(deadline).toLocaleDateString()}
+            {/* Header & Edit Actions */}
+            <div className="w-full relative z-10 flex justify-between items-start">
+                <div className="text-left w-full pr-8">
+                    <h3 className="font-bold text-white text-md truncate">{title}</h3>
+                    <p className="text-xs text-textMuted mt-1">
+                        Meta: {formatMoney(targetAmount)}
                     </p>
-                )}
+                    {deadline && (
+                        <p className="text-[10px] text-textMuted mt-0.5">
+                            {new Date(deadline).toLocaleDateString()}
+                        </p>
+                    )}
+                </div>
+                 {/* Top Right Actions (Visible on Hover/Focus) */}
+                 <div className="absolute top-0 right-0 flex flex-col gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => onEdit(goal)} className="p-1.5 text-textMuted hover:text-white bg-black/20 rounded-md">
+                        <Edit2 size={14} />
+                    </button>
+                    <button onClick={() => onDelete(goal)} className="p-1.5 text-textMuted hover:text-rose-500 bg-black/20 rounded-md">
+                        <Trash2 size={14} />
+                    </button>
+                </div>
             </div>
 
             {/* Circular Progress */}

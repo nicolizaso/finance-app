@@ -2,12 +2,9 @@
 > server@1.0.0 start
 > node index.js
 
-[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
 No MONGO_URI found, using Memory Server
 Servidor corriendo en el puerto 5000
-Downloading MongoDB "8.2.1": 0% (0mb / 122mb)
-Downloading MongoDB "8.2.1": 100% (122mb / 122mb)
-Downloading MongoDB "8.2.1": 100% (0mb / 0mb)
 MongoDB Conectado
 ✅ Usuario TestUser (PIN: 1234) creado automáticamente.
 ✅ Usuario MobileUser (PIN: 1234) creado automáticamente.

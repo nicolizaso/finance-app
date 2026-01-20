@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, PieChart, Calendar, Briefcase, Gift, Menu as MenuIcon, Activity } from 'lucide-react';
+import { Home, PieChart, Calendar, Briefcase, Gift, Menu as MenuIcon, Activity, PiggyBank } from 'lucide-react';
 
 const Navbar = ({ mobile, currentUser }) => {
   // Desktop Menu Items
@@ -9,6 +9,7 @@ const Navbar = ({ mobile, currentUser }) => {
     { name: 'Dashboard', path: '/', icon: Home },
     { name: 'Actividad', path: '/history', icon: Activity },
     { name: 'Calendario', path: '/calendar', icon: Calendar },
+    { name: 'Metas', path: '/savings', icon: PiggyBank },
     { name: 'Análisis', path: '/stats', icon: PieChart },
     { name: 'Planning', path: '/planning', icon: Gift }, // Map Planning to Wishlist/Planning icon
     { name: 'Patrimonio', path: '/wealth', icon: Briefcase },
