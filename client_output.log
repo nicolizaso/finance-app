@@ -3,7 +3,9 @@
 > vite
 
 
-  ROLLDOWN-VITE v7.2.5  ready in 365 ms
+  ROLLDOWN-VITE v7.2.5  ready in 306 ms
 
   ➜  Local:   http://localhost:5173/
   ➜  Network: use --host to expose
+2:34:27 AM [vite] (client) hmr update /src/views/TestView.jsx, /src/index.css
+2:34:31 AM [vite] (client) hmr update /src/App.jsx, /src/index.css

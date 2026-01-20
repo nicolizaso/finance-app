@@ -39,9 +39,15 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
   // Cargar datos iniciales si es edición
   useEffect(() => {
     if (initialData) {
+      // Reconstruir monto total si es compartido
+      let amountToShow = initialData.amount;
+      if (initialData.isShared) {
+         amountToShow = initialData.amount + (initialData.otherShare || 0);
+      }
+
       setFormData({
         ...initialData,
-        amount: initialData.amount / 100, // Convertir de centavos a unidades
+        amount: amountToShow / 100, // Convertir de centavos a unidades
         date: new Date(initialData.date).toISOString().split('T')[0],
         paymentMethod: initialData.paymentMethod || 'DEBIT',
         installments: initialData.installments || 1,
@@ -50,7 +56,6 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
       if (initialData.tags) {
         setTags(initialData.tags);
       }
-      // TODO: Handle sharedData reconstruction if needed
     } else {
         // Reset tags on new transaction
         setTags([]);
@@ -113,6 +118,8 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
     // Inyectar datos compartidos si existen
     if (sharedData && sharedData.isShared) {
         payload = { ...payload, ...sharedData };
+        // FIX: Ensure 'amount' stored in DB is myShare, not Total
+        payload.amount = sharedData.myShare;
     }
 
     try {
@@ -308,6 +315,7 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
             <SharedExpenseSelector 
                 totalAmount={formData.amount} 
                 onChange={setSharedData} 
+                initialData={initialData}
             />
         )}
 
