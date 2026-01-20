@@ -1,8 +1,8 @@
 import TransactionList from '../components/TransactionList';
+import TransactionForm from '../components/TransactionForm';
 import { useOutletContext } from 'react-router-dom';
 import { Search, Plus, X } from 'lucide-react';
 import { useState } from 'react';
-import TransactionForm from '../components/TransactionForm';
 
 const HistoryView = () => {
     const {
@@ -79,10 +79,10 @@ const HistoryView = () => {
             {/* Detailed Transaction Form Modal */}
             {isFormOpen && (
                 <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-                    {/* Wrapper con dimensiones pero sin estilos visuales redundantes (el Form ya los tiene) */}
+                    {/* Wrapper con dimensiones */}
                     <div className="w-full max-w-md h-[85vh] relative flex flex-col">
 
-                        {/* Botón Cerrar Flotante (necesario porque TransactionForm solo lo muestra en modo edición) */}
+                        {/* Botón Cerrar Flotante */}
                         <button
                             onClick={handleCloseForm}
                             className="absolute top-4 right-4 z-20 text-textMuted hover:text-white bg-surface/50 rounded-full p-1"
