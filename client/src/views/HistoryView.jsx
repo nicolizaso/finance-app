@@ -1,8 +1,8 @@
 import TransactionList from '../components/TransactionList';
 import TransactionForm from '../components/TransactionForm';
-import { useOutletContext } from 'react-router-dom';
-import { Search, Plus, X } from 'lucide-react';
-import { useState } from 'react';
+import { useOutletContext, useLocation } from 'react-router-dom';
+import { Search, Plus, X, Filter } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 const HistoryView = () => {
     const {
@@ -13,16 +13,35 @@ const HistoryView = () => {
         selectedCurrencyRate
     } = useOutletContext();
 
+    const location = useLocation();
+    
+    // Estados combinados
     const [searchTerm, setSearchTerm] = useState('');
+    const [showPendingOnly, setShowPendingOnly] = useState(false);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingTransaction, setEditingTransaction] = useState(null);
 
-    // Filter transactions based on search
-    const filteredTransactions = transactions.filter(t =>
-        t.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (t.tags && t.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
-    );
+    // Efecto: Detectar si venimos de la notificación (Pending Filter)
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        if (params.get('filter') === 'pending') {
+            setShowPendingOnly(true);
+        }
+    }, [location]);
+
+    // Lógica de Filtrado Unificada (Búsqueda + Pendientes)
+    const filteredTransactions = transactions.filter(t => {
+        // 1. Filtro de Pendientes (si está activo)
+        if (showPendingOnly && !t.needsReview) return false;
+
+        // 2. Filtro de Texto (Buscador)
+        const searchLower = searchTerm.toLowerCase();
+        return (
+            t.description.toLowerCase().includes(searchLower) ||
+            t.category.toLowerCase().includes(searchLower) ||
+            (t.tags && t.tags.some(tag => tag.toLowerCase().includes(searchLower)))
+        );
+    });
 
     // Handlers
     const handleTransactionClick = (t) => {
@@ -40,10 +59,14 @@ const HistoryView = () => {
         setEditingTransaction(null);
     };
 
+    const togglePendingFilter = () => {
+        setShowPendingOnly(!showPendingOnly);
+    };
+
     return (
         <div className="flex flex-col h-[calc(100vh-140px)] md:h-[calc(100vh-100px)] pb-20 md:pb-0 relative">
 
-            {/* Header / Search Bar */}
+            {/* Header: Search Bar & Actions */}
             <div className="mb-4 flex gap-2">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-textMuted" size={18} />
@@ -56,7 +79,16 @@ const HistoryView = () => {
                     />
                 </div>
 
-                {/* Botón para carga detallada */}
+                {/* Botón Filtro Pendientes (Nuevo) */}
+                <button
+                    onClick={togglePendingFilter}
+                    className={`w-12 rounded-xl flex items-center justify-center transition-all ${showPendingOnly ? 'bg-amber-500/20 text-amber-500 border border-amber-500/50' : 'bg-surface border border-white/10 text-textMuted hover:text-white'}`}
+                    title="Ver solo pendientes de revisión"
+                >
+                    <Filter size={20} className={showPendingOnly ? "animate-pulse" : ""} />
+                </button>
+
+                {/* Botón Nuevo Movimiento */}
                 <button
                     onClick={handleCreateNew}
                     className="bg-primary hover:bg-primaryHover text-white w-12 rounded-xl flex items-center justify-center shadow-glow transition-all active:scale-95"
@@ -65,6 +97,17 @@ const HistoryView = () => {
                     <Plus size={24} />
                 </button>
             </div>
+
+            {/* Chip de Filtro Activo (Feedback Visual) */}
+            {showPendingOnly && (
+                <div className="mb-2 flex items-center gap-2">
+                    <span className="text-xs bg-amber-500/10 text-amber-500 px-3 py-1 rounded-full border border-amber-500/20 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        Filtrando pendientes de revisión
+                        <button onClick={() => setShowPendingOnly(false)} className="hover:text-white ml-1"><X size={12} /></button>
+                    </span>
+                </div>
+            )}
 
             {/* List */}
             <div className="flex-1 overflow-y-auto custom-scrollbar bento-card p-0 border-primary/10 bg-surface/50">
@@ -80,7 +123,7 @@ const HistoryView = () => {
             {isFormOpen && (
                 <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
                     {/* Wrapper con dimensiones */}
-                    <div className="w-full max-w-md h-[85vh] relative flex flex-col">
+                    <div className="w-full max-w-md h-[85vh] relative flex flex-col bg-transparent">
 
                         {/* Botón Cerrar Flotante */}
                         <button

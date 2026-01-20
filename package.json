@@ -1,7 +1,10 @@
 {
   "dependencies": {
+    "clsx": "^2.1.1",
     "firebase-admin": "^13.6.0",
+    "framer-motion": "^12.27.1",
     "mongodb": "^7.0.0",
-    "playwright": "^1.57.0"
+    "playwright": "^1.57.0",
+    "tailwind-merge": "^3.4.0"
   }
 }

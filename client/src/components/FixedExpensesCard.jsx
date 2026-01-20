@@ -2,11 +2,13 @@ import { useState, useMemo } from 'react';
 import api from '../api/axios';
 import { Calendar, Plus, PartyPopper, Check, X, Wallet, AlertCircle, ExternalLink, CheckCircle2, Copy, CreditCard, Banknote, Users } from 'lucide-react';
 import { getEffectiveAmount } from '../utils/financeHelpers';
+import { useToast } from '../context/ToastContext'; // Importación necesaria
 
 const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMode }) => {
+  const toast = useToast();
   const [payingTransaction, setPayingTransaction] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState('');
-  const [filterMode, setFilterMode] = useState('ALL'); // 'ALL' | 'PERSONAL' | 'SHARED'
+  const [filterMode, setFilterMode] = useState('ALL');
 
   // Lógica principal de filtrado y ordenamiento
   const { pending, paid, totalDebt, totalPaid } = useMemo(() => {
@@ -43,7 +45,7 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
   // Función para copiar al portapapeles
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    alert("¡Copiado al portapapeles!");
+    toast.success("¡Copiado al portapapeles!");
   };
 
   // --- MODAL HANDLERS ---
@@ -64,7 +66,7 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
     const cleanAmount = parseInt(paymentAmount.replace(/\./g, ''), 10);
     
     if (isNaN(cleanAmount) || cleanAmount <= 0) {
-        alert("Por favor ingresa un monto válido"); return;
+        toast.error("Por favor ingresa un monto válido"); return;
     }
 
     try {
@@ -76,7 +78,8 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
       });
       onRefresh(); 
       setPayingTransaction(null);
-    } catch (error) { console.error(error); }
+      toast.success("Gasto marcado como pagado");
+    } catch (error) { console.error(error); toast.error("Error al procesar el pago"); }
   };
 
   // --- RENDERIZADO CONDICIONAL DE INFORMACIÓN DE PAGO ---

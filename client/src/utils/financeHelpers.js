@@ -3,20 +3,34 @@
 /**
  * Calculates the effective amount for a transaction that impacts the user's balance.
  * - For normal transactions, returns the full amount.
- * - For shared transactions, returns the user's share (myShare).
- *
- * Handles both legacy data (where amount = share) and new data (where amount = total).
- * Relying on 'myShare' being present for shared transactions.
+ * - For shared transactions, calculates the user's portion properly.
  *
  * @param {Object} transaction - The transaction object
- * @returns {number} The effective amount in centavos
+ * @returns {number} The effective amount
  */
 export const getEffectiveAmount = (transaction) => {
-    // If it's a shared transaction:
-    // 1. If 'myShare' is defined (even if 0), it's a NEW transaction structure where amount=Total. Use myShare.
-    // 2. If 'myShare' is undefined/null, it's a LEGACY transaction where amount=Share. Use amount.
-    if (transaction.isShared && transaction.myShare !== undefined && transaction.myShare !== null) {
-        return transaction.myShare;
-    }
-    return transaction.amount;
+  if (!transaction || !transaction.amount) return 0;
+
+  // Caso 1: Estructura Nueva (Explícita)
+  if (transaction.isShared && transaction.myShare !== undefined && transaction.myShare !== null) {
+      return transaction.myShare;
+  }
+
+  // Caso 2: Estructura Calculada (Total - Parte del otro)
+  if (transaction.isShared && transaction.otherShare) {
+      return Math.max(0, transaction.amount - transaction.otherShare);
+  }
+
+  // Caso 3: Gasto Individual o Fallback
+  return transaction.amount;
+};
+
+// Formateador estándar para toda la app (sin decimales para ARS)
+export const formatMoney = (amount) => {
+  if (amount === undefined || amount === null) return '$0';
+  return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      maximumFractionDigits: 0, 
+  }).format(amount);
 };

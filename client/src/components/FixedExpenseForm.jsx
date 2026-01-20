@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { Repeat, Link as LinkIcon, Save, Trash2, Edit2, Plus, ArrowLeft, CreditCard, Banknote, ArrowRightLeft, Globe } from 'lucide-react';
 import SharedExpenseSelector from './SharedExpenseSelector';
+import { useToast } from '../context/ToastContext';
 
 const CATEGORIES = ["Comida", "Casa", "Transporte", "Ocio", "Salud", "Suscripciones", "Ahorro", "Varios"];
 
 const FixedExpenseForm = ({ onClose, onSaved }) => {
+  const toast = useToast();
   const [view, setView] = useState('list'); 
   const [loading, setLoading] = useState(false);
   const [fixedList, setFixedList] = useState([]);
@@ -110,9 +112,10 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
       if (onSaved) onSaved();
       fetchFixedExpenses();
       setView('list');
+      toast && toast.success(editingId ? 'Regla actualizada' : 'Regla creada');
     } catch (error) {
       console.error(error);
-      alert('Error guardando');
+      toast && toast.error('Error guardando');
     } finally {
       setLoading(false);
     }

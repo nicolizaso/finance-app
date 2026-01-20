@@ -1,34 +1,10 @@
-[dotenv@17.2.3] injecting env (1) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+
+> server@1.0.0 start
+> node index.js
+
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+No MONGO_URI found, using Memory Server
 Servidor corriendo en el puerto 5000
-Error de conexión a MongoDB: MongooseServerSelectionError: connect ECONNREFUSED 127.0.0.1:27017
-    at _handleConnectionErrors (/app/server/node_modules/mongoose/lib/connection.js:1169:11)
-    at NativeConnection.openUri (/app/server/node_modules/mongoose/lib/connection.js:1100:11) {
-  errorLabelSet: Set(0) {},
-  reason: TopologyDescription {
-    type: 'Unknown',
-    servers: Map(1) { '127.0.0.1:27017' => [ServerDescription] },
-    stale: false,
-    compatible: true,
-    heartbeatFrequencyMS: 10000,
-    localThresholdMS: 15,
-    setName: null,
-    maxElectionId: null,
-    maxSetVersion: null,
-    commonWireVersion: 0,
-    logicalSessionTimeoutMinutes: null
-  },
-  code: undefined,
-  cause: TopologyDescription {
-    type: 'Unknown',
-    servers: Map(1) { '127.0.0.1:27017' => [ServerDescription] },
-    stale: false,
-    compatible: true,
-    heartbeatFrequencyMS: 10000,
-    localThresholdMS: 15,
-    setName: null,
-    maxElectionId: null,
-    maxSetVersion: null,
-    commonWireVersion: 0,
-    logicalSessionTimeoutMinutes: null
-  }
-}
+MongoDB Conectado
+✅ Usuario TestUser (PIN: 1234) creado automáticamente.
+✅ Usuario MobileUser (PIN: 1234) creado automáticamente.

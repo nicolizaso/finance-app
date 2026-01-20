@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import SavingsCard from './SavingsCard';
 import { Plus, X, PiggyBank, Car, Home, Plane, Gift, Smartphone, GraduationCap, Gamepad2, Briefcase } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 const AVAILABLE_ICONS = [
     { name: 'PiggyBank', icon: PiggyBank },
@@ -27,6 +28,7 @@ const COLORS = [
 ];
 
 export default function SavingsList({ isPrivacyMode }) {
+    const toast = useToast();
     const [goals, setGoals] = useState([]);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -82,9 +84,11 @@ export default function SavingsList({ isPrivacyMode }) {
                 color: '#10b981',
                 deadline: ''
             });
+            toast.success('Meta creada con éxito');
             fetchGoals();
         } catch (error) {
             console.error(error);
+            toast.error('Error al crear la meta');
         } finally {
             setSubmitting(false);
         }
@@ -102,9 +106,10 @@ export default function SavingsList({ isPrivacyMode }) {
 
             setActionModal({ show: false, type: 'ADD', goal: null });
             setAmount('');
+            toast.success('Actualización exitosa');
             fetchGoals();
         } catch (error) {
-            alert(error.response?.data?.error || 'Error processing request');
+            toast.error(error.response?.data?.error || 'Error processing request');
         } finally {
             setSubmitting(false);
         }
