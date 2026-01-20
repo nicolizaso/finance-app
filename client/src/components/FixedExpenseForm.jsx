@@ -86,7 +86,9 @@ const FixedExpenseForm = ({ onClose, onSaved }) => {
     let payload = { ...formData, amount: parseFloat(formData.amount) * 100 };
 
     if (sharedData && sharedData.isShared) {
-        payload = { ...payload, ...sharedData };
+        // Al guardar compartido, el amount principal pasa a ser SOLO mi parte
+        // sharedData ya viene con myShare en centavos
+        payload = { ...payload, ...sharedData, amount: sharedData.myShare };
     }
 
     try {

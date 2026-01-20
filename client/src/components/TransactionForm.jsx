@@ -120,6 +120,14 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
         payload = { ...payload, ...sharedData };
         // FIX: Ensure 'amount' stored in DB is myShare, not Total
         payload.amount = sharedData.myShare;
+    } else if (initialData && initialData.isShared) {
+        // Si antes era compartido y ahora no lo es (se desmarcó), forzamos isShared: false
+        // y reseteamos los campos de compartido
+        payload.isShared = false;
+        payload.sharedWith = '';
+        payload.sharedStatus = 'NONE';
+        payload.otherShare = 0;
+        // payload.amount ya viene de formData.amount que es el total inputado
     }
 
     try {

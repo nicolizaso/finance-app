@@ -14,7 +14,7 @@ const HistoryView = () => {
     } = useOutletContext();
 
     const [searchTerm, setSearchTerm] = useState('');
-    const [showModal, setShowModal] = useState(false);
+    const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingTransaction, setEditingTransaction] = useState(null);
 
     // Filter transactions based on search
@@ -24,30 +24,27 @@ const HistoryView = () => {
         (t.tags && t.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
     );
 
-    const handleAddClick = () => {
+    // Handlers
+    const handleTransactionClick = (t) => {
+        setEditingTransaction(t);
+        setIsFormOpen(true);
+    };
+
+    const handleCreateNew = () => {
         setEditingTransaction(null);
-        setShowModal(true);
+        setIsFormOpen(true);
     };
 
-    const handleEditClick = (transaction) => {
-        setEditingTransaction(transaction);
-        setShowModal(true);
-    };
-
-    const handleCloseModal = () => {
-        setShowModal(false);
+    const handleCloseForm = () => {
+        setIsFormOpen(false);
         setEditingTransaction(null);
-    };
-
-    const handleTransactionSaved = () => {
-        onRefresh();
-        handleCloseModal();
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-140px)] md:h-[calc(100vh-100px)] pb-20 md:pb-0">
-            {/* Header: Search & Add Button */}
-            <div className="mb-4 flex gap-3">
+        <div className="flex flex-col h-[calc(100vh-140px)] md:h-[calc(100vh-100px)] pb-20 md:pb-0 relative">
+
+            {/* Header / Search Bar */}
+            <div className="mb-4 flex gap-2">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-textMuted" size={18} />
                     <input
@@ -58,10 +55,12 @@ const HistoryView = () => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
+
+                {/* Botón para carga detallada */}
                 <button
-                    onClick={handleAddClick}
-                    className="bg-primary hover:bg-primary/80 text-white p-3 rounded-xl flex items-center justify-center transition-colors shadow-lg shadow-primary/20"
-                    aria-label="Agregar movimiento"
+                    onClick={handleCreateNew}
+                    className="bg-primary hover:bg-primaryHover text-white w-12 rounded-xl flex items-center justify-center shadow-glow transition-all active:scale-95"
+                    title="Nuevo Movimiento Detallado"
                 >
                     <Plus size={24} />
                 </button>
@@ -73,28 +72,34 @@ const HistoryView = () => {
                     transactions={filteredTransactions}
                     onTransactionUpdated={onRefresh}
                     isPrivacyMode={isPrivacyMode}
-                    onTransactionClick={handleEditClick}
+                    onTransactionClick={handleTransactionClick}
                 />
             </div>
 
-            {/* Modal */}
-            {showModal && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
-                    onClick={handleCloseModal}
-                >
-                    <div
-                        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar rounded-3xl animate-scale-in shadow-2xl"
-                        onClick={e => e.stopPropagation()}
-                    >
-                         {/* We pass onCancelEdit to handle closing/cancel logic, and onTransactionAdded for success */}
-                         <TransactionForm
-                            onTransactionAdded={handleTransactionSaved}
+            {/* Detailed Transaction Form Modal */}
+            {isFormOpen && (
+                <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+                    {/* Wrapper con dimensiones */}
+                    <div className="w-full max-w-md h-[85vh] relative flex flex-col">
+
+                        {/* Botón Cerrar Flotante */}
+                        <button
+                            onClick={handleCloseForm}
+                            className="absolute top-4 right-4 z-20 text-textMuted hover:text-white bg-surface/50 rounded-full p-1"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <TransactionForm
+                            onTransactionAdded={(data) => {
+                                onRefresh();
+                                handleCloseForm();
+                            }}
                             initialData={editingTransaction}
-                            onCancelEdit={handleCloseModal}
+                            onCancelEdit={handleCloseForm}
                             exchangeRates={exchangeRates}
                             selectedCurrencyRate={selectedCurrencyRate}
-                         />
+                        />
                     </div>
                 </div>
             )}

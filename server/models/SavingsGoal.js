@@ -7,7 +7,8 @@ const savingsGoalSchema = new mongoose.Schema({
     currentAmount: { type: Number, default: 0 },
     icon: { type: String, default: 'PiggyBank' }, // Default icon name
     deadline: { type: Date },
-    color: { type: String, default: '#10b981' } // Default neon green
+    color: { type: String, default: '#10b981' }, // Default neon green
+    currency: { type: String, enum: ['ARS', 'USD'], default: 'ARS' }
 }, {
     timestamps: true
 });
