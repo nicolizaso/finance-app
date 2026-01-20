@@ -7,6 +7,7 @@ import { useState } from 'react';
 import QuickAddModal from './QuickAddModal';
 import FixedExpenseForm from './FixedExpenseForm';
 import AchievementsModal from './AchievementsModal';
+import { generateReport } from '../utils/generateReport';
 
 const Layout = ({
   currentUser,
@@ -19,6 +20,7 @@ const Layout = ({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [showFixedExpenseForm, setShowFixedExpenseForm] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   // Extend childrenContext with layout actions if needed by views
   const extendedContext = {
@@ -26,6 +28,20 @@ const Layout = ({
       openQuickAdd: () => setShowQuickAdd(true),
       openFixedExpenseForm: () => setShowFixedExpenseForm(true),
       openDrawer: () => setIsDrawerOpen(true)
+  };
+
+  const handleExportPDF = async () => {
+    setIsGeneratingPDF(true);
+    // Simulate a small delay for the loading state to be visible
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+        generateReport(currentUser, childrenContext.transactions || []);
+    } catch (error) {
+        console.error("Error generating PDF", error);
+        alert("Hubo un error al generar el PDF.");
+    } finally {
+        setIsGeneratingPDF(false);
+    }
   };
 
   return (
@@ -148,7 +164,22 @@ const Layout = ({
          handleLogout={handleLogout}
          updateCurrencyRate={childrenContext.updateCurrencyRate}
          selectedCurrencyRate={childrenContext.selectedCurrencyRate}
+         onShowAchievements={() => {
+             setIsDrawerOpen(false);
+             childrenContext.setShowAchievements(true);
+         }}
+         onExportPDF={handleExportPDF}
       />
+
+      {/* PDF Loading Overlay */}
+      {isGeneratingPDF && (
+          <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center">
+              <div className="bg-surface border border-primary/50 p-6 rounded-2xl flex flex-col items-center gap-4 animate-scale-in">
+                  <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-white font-bold animate-pulse">Generando Reporte PDF...</p>
+              </div>
+          </div>
+      )}
     </>
   );
 };

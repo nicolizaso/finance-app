@@ -1,7 +1,7 @@
 import { X, User, Gift, DollarSign, FileText, Trophy, LogOut, Wallet, Calendar, PieChart } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
-const SideDrawer = ({ isOpen, onClose, currentUser, handleLogout, updateCurrencyRate, selectedCurrencyRate }) => {
+const SideDrawer = ({ isOpen, onClose, currentUser, handleLogout, updateCurrencyRate, selectedCurrencyRate, onShowAchievements, onExportPDF }) => {
     return (
         <>
             {/* Backdrop */}
@@ -104,11 +104,17 @@ const SideDrawer = ({ isOpen, onClose, currentUser, handleLogout, updateCurrency
                         <div className="my-2 border-t border-white/5 mx-4"></div>
 
                         {/* Other Items */}
-                        <button className="w-full flex items-center gap-3 px-4 py-3 text-textMuted hover:text-white hover:bg-white/5 rounded-xl transition-all">
+                        <button
+                            onClick={() => { onClose(); onExportPDF(); }}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-textMuted hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                        >
                             <FileText size={20} />
                             <span className="font-medium">Exportar PDF</span>
                         </button>
-                         <button className="w-full flex items-center gap-3 px-4 py-3 text-textMuted hover:text-white hover:bg-white/5 rounded-xl transition-all">
+                         <button
+                            onClick={onShowAchievements}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-textMuted hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                         >
                             <Trophy size={20} />
                             <span className="font-medium">Logros</span>
                         </button>
