@@ -30,6 +30,7 @@ const TransactionSchema = new mongoose.Schema({
     sharedWith: { type: String, default: '' }, // ID de usuario o Nombre "Otro"
     sharedStatus: { type: String, default: 'NONE' }, // OWNER (yo pagué/creé), PARTER (soy el invitado)
     otherShare: { type: Number, default: 0 }, // La parte del otro (para poder reconstruir el total al editar)
+    myShare: { type: Number }, // Mi parte del gasto (SIN DEFAULT para distinguir Legacy vs New)
 
     // --- CARGA RÁPIDA ---
     needsReview: { type: Boolean, default: false }

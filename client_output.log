@@ -3,53 +3,10 @@
 > vite
 
 
-  ROLLDOWN-VITE v7.2.5  ready in 407 ms
+  ROLLDOWN-VITE v7.2.5  ready in 260 ms
 
   ➜  Local:   http://localhost:5173/
   ➜  Network: use --host to expose
-4:33:48 AM [vite] (client) Pre-transform error: Failed to resolve import "../context/ToastContext" from "src/views/SavingsView.jsx". Does the file exist?
-  Plugin: vite:import-analysis
-  File: /app/client/src/views/SavingsView.jsx:8:25
-  6  |  import SavingsCard from "../components/SavingsCard";
-  7  |  import SavingsGoalForm from "../components/SavingsGoalForm";
-  8  |  import { useToast } from "../context/ToastContext";
-     |                            ^
-  9  |  var _jsxFileName = "/app/client/src/views/SavingsView.jsx";
-  10 |  import { jsxDEV as _jsxDEV } from "react/jsx-dev-runtime";
-4:33:48 AM [vite] (client) Pre-transform error: Failed to resolve import "../context/ToastContext" from "src/views/SavingsView.jsx". Does the file exist?
-  Plugin: vite:import-analysis
-  File: /app/client/src/views/SavingsView.jsx:8:25
-  6  |  import SavingsCard from "../components/SavingsCard";
-  7  |  import SavingsGoalForm from "../components/SavingsGoalForm";
-  8  |  import { useToast } from "../context/ToastContext";
-     |                            ^
-  9  |  var _jsxFileName = "/app/client/src/views/SavingsView.jsx";
-  10 |  import { jsxDEV as _jsxDEV } from "react/jsx-dev-runtime";
-4:33:49 AM [vite] (client) Pre-transform error: Failed to resolve import "../context/ToastContext" from "src/views/SavingsView.jsx". Does the file exist?
-  Plugin: vite:import-analysis
-  File: /app/client/src/views/SavingsView.jsx:8:25
-  6  |  import SavingsCard from "../components/SavingsCard";
-  7  |  import SavingsGoalForm from "../components/SavingsGoalForm";
-  8  |  import { useToast } from "../context/ToastContext";
-     |                            ^
-  9  |  var _jsxFileName = "/app/client/src/views/SavingsView.jsx";
-  10 |  import { jsxDEV as _jsxDEV } from "react/jsx-dev-runtime";
-4:33:49 AM [vite] Internal server error: Failed to resolve import "../context/ToastContext" from "src/views/SavingsView.jsx". Does the file exist?
-  Plugin: vite:import-analysis
-  File: /app/client/src/views/SavingsView.jsx:8:25
-  6  |  import SavingsCard from "../components/SavingsCard";
-  7  |  import SavingsGoalForm from "../components/SavingsGoalForm";
-  8  |  import { useToast } from "../context/ToastContext";
-     |                            ^
-  9  |  var _jsxFileName = "/app/client/src/views/SavingsView.jsx";
-  10 |  import { jsxDEV as _jsxDEV } from "react/jsx-dev-runtime";
-      at TransformPluginContext._formatLog (file:///app/client/node_modules/vite/dist/node/chunks/node.js:30679:43)
-      at TransformPluginContext.error (file:///app/client/node_modules/vite/dist/node/chunks/node.js:30676:14)
-      at normalizeUrl (file:///app/client/node_modules/vite/dist/node/chunks/node.js:28717:18)
-      at async file:///app/client/node_modules/vite/dist/node/chunks/node.js:28780:32
-      at async Promise.all (index 7)
-      at async TransformPluginContext.transform (file:///app/client/node_modules/vite/dist/node/chunks/node.js:28748:4)
-      at async EnvironmentPluginContainer.transform (file:///app/client/node_modules/vite/dist/node/chunks/node.js:30468:14)
-      at async loadAndTransform (file:///app/client/node_modules/vite/dist/node/chunks/node.js:21586:26)
-4:36:22 AM [vite] (client) hmr update /src/App.jsx
-4:36:27 AM [vite] (client) page reload src/main.jsx
+5:08:06 AM [vite] (client) hmr update /src/index.css, /src/components/FixedExpensesCard.jsx, /src/components/BalanceCard.jsx, /src/components/TransactionList.jsx
+5:10:35 AM [vite] (client) hmr update /src/index.css, /src/components/TransactionForm.jsx
+5:10:41 AM [vite] (client) hmr update /src/index.css, /src/components/FixedExpenseForm.jsx

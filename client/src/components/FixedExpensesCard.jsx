@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import api from '../api/axios';
 import { Calendar, Plus, PartyPopper, Check, X, Wallet, AlertCircle, ExternalLink, CheckCircle2, Copy, CreditCard, Banknote, Users } from 'lucide-react';
+import { getEffectiveAmount } from '../utils/financeHelpers';
 
 const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMode }) => {
   const [payingTransaction, setPayingTransaction] = useState(null);
@@ -29,9 +30,9 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
       .filter(t => t.status === 'COMPLETED' && t.isFixed === true) 
       .sort((a, b) => new Date(b.date) - new Date(a.date)); 
 
-    // Sumar solo la parte del usuario (t.amount ya es My Share)
-    const totalDebt = pending.reduce((acc, t) => acc + t.amount, 0);
-    const totalPaid = paid.reduce((acc, t) => acc + t.amount, 0);
+    // Sumar solo la parte del usuario (usando helper para soportar legacy/new)
+    const totalDebt = pending.reduce((acc, t) => acc + getEffectiveAmount(t), 0);
+    const totalPaid = paid.reduce((acc, t) => acc + getEffectiveAmount(t), 0);
 
     return { pending, paid, totalDebt, totalPaid };
   }, [transactions, filterMode]);
@@ -226,10 +227,10 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
                     ${isPrivacyMode ? '***' : formatMoney(t.amount)}
                   </span>
 
-                  {/* Mostrar Total si es compartido */}
+                  {/* Mostrar Mi Parte si es compartido */}
                   {t.isShared && (
                       <span className={`text-[9px] text-textMuted font-mono mt-0.5 ${isPrivacyMode ? 'blur-sm' : ''}`}>
-                          (Total: ${isPrivacyMode ? '***' : formatMoney(t.amount + (t.otherShare || 0))})
+                          (Tu parte: ${isPrivacyMode ? '***' : formatMoney(getEffectiveAmount(t))})
                       </span>
                   )}
               </div>
