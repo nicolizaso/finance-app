@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { PlusCircle, Edit2, X, Tag } from 'lucide-react';
-import SharedExpenseSelector from './SharedExpenseSelector'; // <--- Importar
+import SharedExpenseSelector from './SharedExpenseSelector';
 import { useToast } from '../context/ToastContext';
 
-// --- ESTA ES LA LÍNEA QUE FALTABA ---
 const CATEGORIES = ["Comida", "Casa", "Transporte", "Ocio", "Salud", "Suscripciones", "Ahorro", "Varios"];
 
 const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchangeRates, selectedCurrencyRate }) => {
@@ -26,7 +25,7 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
   // Currency
   const [currency, setCurrency] = useState('ARS');
 
-  const [sharedData, setSharedData] = useState(null); // <--- Estado para datos compartidos
+  const [sharedData, setSharedData] = useState(null);
   const [loading, setLoading] = useState(false);
 
   // Cargar tags disponibles
@@ -53,7 +52,6 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
         date: new Date(initialData.date).toISOString().split('T')[0],
         paymentMethod: initialData.paymentMethod || 'DEBIT',
         installments: initialData.installments || 1,
-        // Si venía con needsReview, al editarlo lo quitaremos (lógica en submit)
       });
       if (initialData.tags) {
         setTags(initialData.tags);
@@ -102,9 +100,6 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
 
     // Convertir USD a ARS si es necesario
     if (currency === 'USD' && exchangeRates && exchangeRates[selectedCurrencyRate]) {
-        // Usamos la cotización de Venta (ya que si gastamos dólares, es como si hubieramos vendido pesos a esa tasa? No, si gastamos dolares, el valor en pesos es lo que nos costó obtenerlos o su valor de mercado)
-        // Usualmente para valuar gastos en USD a ARS se usa la tasa de venta (lo que cuesta comprar el dolar).
-        // dolarapi devuelve: { compra: 1000, venta: 1200 }
         const rate = exchangeRates[selectedCurrencyRate].venta;
         finalAmount = finalAmount * rate;
     }
@@ -112,7 +107,7 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
     // Convertimos a centavos (la base de datos usa centavos de ARS)
     let payload = { ...formData, tags, amount: Math.round(finalAmount * 100) };
 
-    // Si estamos editando, aseguramos que needsReview sea false
+    // --- CRITICAL FIX: Ensure needsReview is false on save/edit ---
     if (initialData) {
         payload.needsReview = false;
     }
@@ -138,10 +133,10 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
         setTags([]);
         if (onTransactionAdded) onTransactionAdded(res.data);
       }
-      toast && toast.success(initialData ? 'Transacción actualizada' : 'Transacción creada');
+      toast.success(initialData ? 'Transacción actualizada' : 'Transacción creada');
     } catch (error) {
       console.error(error);
-      toast && toast.error('Error al guardar la transacción');
+      toast.error('Error al guardar la transacción');
     } finally {
       setLoading(false);
     }

@@ -1,7 +1,7 @@
 import TransactionList from '../components/TransactionList';
 import TransactionForm from '../components/TransactionForm';
 import { useOutletContext, useLocation } from 'react-router-dom';
-import { Search, Filter, X } from 'lucide-react';
+import { Search, Plus, Filter, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const HistoryView = () => {
@@ -17,6 +17,7 @@ const HistoryView = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showPendingOnly, setShowPendingOnly] = useState(false);
     const [editingTransaction, setEditingTransaction] = useState(null);
+    const [isFormOpen, setIsFormOpen] = useState(false);
 
     // Check for "pending" query param or state
     useEffect(() => {
@@ -36,15 +37,35 @@ const HistoryView = () => {
         return matchesSearch && matchesPending;
     });
 
-    const handleTransactionClick = (transaction) => {
-        if (transaction.needsReview) {
-            setEditingTransaction(transaction);
+    const handleTransactionClick = (t) => {
+        if (t.needsReview) {
+            setEditingTransaction(t);
+            // We use the same modal state for both, or just set editingTransaction and reuse the logic.
+            // Since the code had two modal implementations, I will unify them.
+            setIsFormOpen(true);
+        } else {
+            // Original behavior if not needing review? Or allow editing all?
+            // HEAD allowed editing all via click. Feature allowed editing pending.
+            // I'll allow editing all, but if it's pending it might have specific handling in Form.
+            setEditingTransaction(t);
+            setIsFormOpen(true);
         }
+    };
+
+    const handleCreateNew = () => {
+        setEditingTransaction(null);
+        setIsFormOpen(true);
+    };
+
+    const handleCloseForm = () => {
+        setIsFormOpen(false);
+        setEditingTransaction(null);
     };
 
     return (
         <div className="flex flex-col h-[calc(100vh-140px)] md:h-[calc(100vh-100px)] pb-20 md:pb-0 relative">
-            {/* Search Bar & Filters */}
+
+            {/* Header / Search Bar */}
             <div className="mb-4 flex gap-2">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-textMuted" size={18} />
@@ -56,6 +77,7 @@ const HistoryView = () => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
+
                 <button
                     onClick={() => setShowPendingOnly(!showPendingOnly)}
                     className={`flex items-center justify-center w-12 rounded-xl border transition-all ${
@@ -66,6 +88,15 @@ const HistoryView = () => {
                     title="Mostrar solo pendientes de revisión"
                 >
                     <Filter size={20} className={showPendingOnly ? "animate-pulse" : ""} />
+                </button>
+
+                {/* Botón para carga detallada */}
+                <button
+                    onClick={handleCreateNew}
+                    className="bg-primary hover:bg-primaryHover text-white w-12 rounded-xl flex items-center justify-center shadow-glow transition-all active:scale-95"
+                    title="Nuevo Movimiento Detallado"
+                >
+                    <Plus size={24} />
                 </button>
             </div>
 
@@ -79,21 +110,30 @@ const HistoryView = () => {
                 />
             </div>
 
-            {/* Edit Modal */}
-            {editingTransaction && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                    <div className="w-full max-w-lg relative">
-                        {/* We reuse TransactionForm but wrapped in a container that looks like a modal */}
-                         <TransactionForm
-                            initialData={editingTransaction}
-                            onCancelEdit={() => setEditingTransaction(null)}
-                            onTransactionAdded={() => {
-                                setEditingTransaction(null);
+            {/* Detailed Transaction Form Modal */}
+            {isFormOpen && (
+                <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+                    {/* Wrapper con dimensiones - Adjusted for mobile/desktop compatibility */}
+                    <div className="w-full max-w-md h-[85vh] relative flex flex-col bg-transparent">
+
+                        {/* Botón Cerrar Flotante */}
+                        <button
+                            onClick={handleCloseForm}
+                            className="absolute top-4 right-4 z-20 text-textMuted hover:text-white bg-surface/50 rounded-full p-1"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <TransactionForm
+                            onTransactionAdded={(data) => {
                                 onRefresh();
+                                handleCloseForm();
                             }}
+                            initialData={editingTransaction}
+                            onCancelEdit={handleCloseForm}
                             exchangeRates={exchangeRates}
                             selectedCurrencyRate={selectedCurrencyRate}
-                         />
+                        />
                     </div>
                 </div>
             )}

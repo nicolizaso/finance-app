@@ -1,367 +1,297 @@
-import { useState, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { Package, Plus, Trash2, Edit2, CheckCircle2, Circle, AlertCircle, Sparkles, DollarSign, X } from 'lucide-react';
 import api from '../api/axios';
-import { Plus, Trash2, Check, ExternalLink, ChevronDown, ChevronUp, ShoppingBag, LayoutList, Package, Gift } from 'lucide-react';
-import { useOutletContext } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../context/ToastContext';
 
-const WishlistCard = ({ refreshTrigger }) => {
-  const [wishlists, setWishlists] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [expandedId, setExpandedId] = useState(null);
-
-  const toast = useToast();
-
-  // Modal states
-  const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    type: 'ITEM', // PROJECT or ITEM
-    items: []
-  });
-  const [newItem, setNewItem] = useState({ description: '', estimatedPrice: '', link: '' });
-  const [isCreating, setIsCreating] = useState(false);
-
-  // Access context for transaction creation
-  const { onRefresh, handleGamification } = useOutletContext() || {};
-
-  const fetchWishlists = async () => {
-    try {
-      const res = await api.get('/wishlist');
-      if (res.data.success) {
-        setWishlists(res.data.data);
-      }
-    } catch (err) {
-      console.error("Error fetching wishlists:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchWishlists();
-  }, [refreshTrigger]);
-
-  const toggleExpand = (id) => {
-    setExpandedId(expandedId === id ? null : id);
-  };
-
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    setIsCreating(true);
-    try {
-        const payload = { ...formData };
-
-        // If type is ITEM, ensure we have one item in the list if not already added?
-        // Actually, let's just use the form data.
-        // If it's ITEM type but user didn't add items manually, we can treat the main title/price as the item?
-        // But the UI below allows adding items.
-        // Let's enforce adding at least one item or auto-create one for ITEM type.
-
-        if (payload.type === 'ITEM' && payload.items.length === 0 && newItem.estimatedPrice) {
-            payload.items.push({
-                description: payload.title,
-                estimatedPrice: newItem.estimatedPrice,
-                link: newItem.link
-            });
-        }
-
-        await api.post('/wishlist', payload);
-
-        // Success Feedback & Reset
-        if (payload.type === 'ITEM') {
-            toast.success('Item agregado con éxito');
-        } else {
-            toast.success('Proyecto creado con éxito');
-        }
-        setShowModal(false);
-        setFormData({ title: '', type: 'ITEM', items: [] });
-        setNewItem({ description: '', estimatedPrice: '', link: '' });
-
-        fetchWishlists();
-        if (onRefresh) onRefresh();
-
-    } catch (err) {
-        console.error(err);
-        toast.error('Error al crear el proyecto');
-    } finally {
-        setIsCreating(false);
-    }
-  };
-
-  const addItemToForm = () => {
-    if (!newItem.description || !newItem.estimatedPrice) return;
-    setFormData({
-        ...formData,
-        items: [...formData.items, { ...newItem, estimatedPrice: parseFloat(newItem.estimatedPrice) }]
+const WishlistCard = ({ items, onRefresh, isPrivacyMode }) => {
+    const toast = useToast();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [newItem, setNewItem] = useState({
+        title: '',
+        estimatedCost: '',
+        currency: 'ARS',
+        priority: 'MEDIUM',
+        link: '',
+        type: 'ITEM',
+        items: [] // Sub-items for PROJECT
     });
-    setNewItem({ description: '', estimatedPrice: '', link: '' });
-  };
 
-  const deleteWishlist = async (id) => {
-    if (!confirm('¿Eliminar esta lista?')) return;
-    try {
-        await api.delete(`/wishlist/${id}`);
-        fetchWishlists();
-    } catch(err) { console.error(err); }
-  };
+    // Sub-item editing state
+    const [subItemInput, setSubItemInput] = useState({ description: '', estimatedCost: '', currency: 'ARS' });
 
-  const markItemBought = async (wishlist, item) => {
-    if (item.isBought) return; // Already bought
+    // Editing State for Main Items
+    const [editingId, setEditingId] = useState(null);
 
-    const confirmed = confirm(`¿Compraste "${item.description}"? \nEsto creará una transacción de gasto automáticamente.`);
-    if (!confirmed) return;
+    const [filter, setFilter] = useState('ALL'); // ALL, COMPLETED, PENDING
+    const scrollContainerRef = useRef(null);
 
-    try {
-        // 1. Mark as bought in wishlist
-        await api.patch(`/wishlist/${wishlist._id}/items/${item._id}`, { isBought: true });
+    // Reset Form
+    const resetForm = () => {
+        setNewItem({ title: '', estimatedCost: '', currency: 'ARS', priority: 'MEDIUM', link: '', type: 'ITEM', items: [] });
+        setSubItemInput({ description: '', estimatedCost: '', currency: 'ARS' });
+        setEditingId(null);
+    };
 
-        // 2. Create actual transaction
-        // We need to guess some fields or use defaults
-        const transactionPayload = {
-            description: item.description,
-            amount: Math.round(item.estimatedPrice * 100), // convert to cents
-            type: 'EXPENSE',
-            category: 'Varios', // Default category
-            date: new Date().toISOString().split('T')[0],
-            paymentMethod: 'DEBIT',
-            installments: 1,
-            status: 'COMPLETED',
-            needsReview: true // Flag for review so user can adjust category/method later
-        };
+    const handleOpenModal = (itemToEdit = null) => {
+        if (itemToEdit) {
+            setEditingId(itemToEdit._id);
+            setNewItem({
+                title: itemToEdit.title,
+                estimatedCost: itemToEdit.estimatedCost, // Will be ignored if PROJECT on backend, but good for form state
+                currency: itemToEdit.currency,
+                priority: itemToEdit.priority,
+                link: itemToEdit.link || '',
+                type: itemToEdit.type || 'ITEM',
+                items: itemToEdit.items || []
+            });
+        } else {
+            resetForm();
+        }
+        setIsModalOpen(true);
+    };
 
-        const res = await api.post('/transactions', transactionPayload);
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        resetForm();
+    };
 
-        // Refresh everything
-        fetchWishlists();
-        if (onRefresh) onRefresh();
-        if (handleGamification && res.data.gamification) handleGamification(res.data.gamification);
+    const handleAddSubItem = () => {
+        if (!subItemInput.description || !subItemInput.estimatedCost) return;
+        setNewItem(prev => ({
+            ...prev,
+            items: [...prev.items, { ...subItemInput, isCompleted: false }]
+        }));
+        setSubItemInput({ description: '', estimatedCost: '', currency: 'ARS' });
+    };
 
-    } catch (err) {
-        console.error("Error processing purchase:", err);
-        toast.error("Error al procesar la compra");
-    }
-  };
+    const handleRemoveSubItem = (index) => {
+        setNewItem(prev => ({
+            ...prev,
+            items: prev.items.filter((_, i) => i !== index)
+        }));
+    };
 
-  return (
-    <div className="bento-card relative overflow-hidden flex flex-col h-full min-h-[400px]">
-      <div className="flex justify-between items-start mb-4 relative z-10">
-        <div>
-          <h3 className="text-xl font-bold text-white flex items-center gap-2">
-            <Gift className="text-purple-400" /> Wishlist & Planes
-          </h3>
-          <p className="text-textMuted text-xs">Metas de compra y proyectos</p>
-        </div>
-        <button
-            onClick={() => setShowModal(true)}
-            className="p-2 bg-primary/20 hover:bg-primary/30 text-primary rounded-xl transition-colors"
-        >
-            <Plus size={20} />
-        </button>
-      </div>
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            if (editingId) {
+                await api.put(`/wishlist/${editingId}`, newItem);
+                toast.success('Elemento actualizado correctamente');
+            } else {
+                await api.post('/wishlist', newItem);
+                // Corrected Success Message Logic
+                if (newItem.type === 'PROJECT') {
+                    toast.success('Proyecto creado correctamente');
+                } else {
+                    toast.success('Item agregado exitosamente');
+                }
+            }
+            onRefresh();
+            handleCloseModal();
+        } catch (error) {
+            console.error(error);
+            toast.error('Error al guardar en wishlist');
+        }
+    };
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 relative z-10 pr-2">
-        {loading ? (
-            <p className="text-textMuted text-center py-10">Cargando...</p>
-        ) : wishlists.length === 0 ? (
-            <div className="text-center py-10 opacity-50">
-                <Gift size={48} className="mx-auto mb-2" />
-                <p>Tu lista de deseos está vacía</p>
-            </div>
-        ) : (
-            wishlists.map(w => {
-                const totalItems = w.items.length;
-                const boughtItems = w.items.filter(i => i.isBought).length;
-                const progress = totalItems > 0 ? (boughtItems / totalItems) * 100 : 0;
+    const toggleComplete = async (item) => {
+        try {
+             // Logic to toggle completion. For PROJECT, maybe can't complete whole thing via single click?
+             // Assuming simple toggle for ITEM.
+             await api.put(`/wishlist/${item._id}`, { ...item, isCompleted: !item.isCompleted });
+             onRefresh();
+             toast.success(item.isCompleted ? 'Marcado como pendiente' : '¡Completado!');
+        } catch (error) {
+            console.error(error);
+            toast.error('Error al actualizar estado');
+        }
+    };
 
-                return (
-                    <div key={w._id} className="bg-surfaceHighlight/30 border border-white/5 rounded-xl overflow-hidden hover:border-purple-500/30 transition-colors">
-                        {/* Header Row */}
-                        <div
-                            className="p-3 flex justify-between items-center cursor-pointer"
-                            onClick={() => toggleExpand(w._id)}
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-lg ${w.type === 'PROJECT' ? 'bg-blue-500/20 text-blue-400' : 'bg-pink-500/20 text-pink-400'}`}>
-                                    {w.type === 'PROJECT' ? <LayoutList size={18} /> : <Package size={18} />}
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-sm text-white">{w.title}</h4>
-                                    <div className="flex items-center gap-2 text-xs text-textMuted">
-                                        <span className="font-mono text-emerald-400">${w.totalEstimated.toLocaleString()}</span>
-                                        <span>• {boughtItems}/{totalItems} items</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                {w.type === 'PROJECT' && (
-                                     <div className="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                                        <div className="h-full bg-purple-500" style={{ width: `${progress}%` }}></div>
-                                     </div>
-                                )}
-                                {expandedId === w._id ? <ChevronUp size={16} className="text-textMuted" /> : <ChevronDown size={16} className="text-textMuted" />}
-                            </div>
-                        </div>
+    const deleteItem = async (id) => {
+        if (!confirm('¿Eliminar este deseo?')) return;
+        try {
+            await api.delete(`/wishlist/${id}`);
+            toast.success('Eliminado correctamente');
+            onRefresh();
+        } catch (error) {
+            console.error(error);
+            toast.error('Error al eliminar');
+        }
+    };
 
-                        {/* Expanded Details */}
-                        {expandedId === w._id && (
-                            <div className="bg-black/20 p-3 border-t border-white/5 space-y-2">
-                                {w.items.map((item, idx) => (
-                                    <div key={idx} className={`flex justify-between items-center text-sm p-2 rounded-lg ${item.isBought ? 'opacity-50 line-through' : 'hover:bg-white/5'}`}>
-                                        <div className="flex flex-col min-w-0 flex-1">
-                                            <span className="text-white truncate">{item.description}</span>
-                                            <div className="flex gap-2 text-xs text-textMuted">
-                                                <span>${item.estimatedPrice.toLocaleString()}</span>
-                                                {item.link && (
-                                                    <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                                                        Link <ExternalLink size={10} />
-                                                    </a>
+    // Helper to format money
+    const formatMoney = (amount) => amount ? Math.round(amount).toLocaleString('es-AR') : '0';
+
+    // Filter Logic
+    const filteredItems = items.filter(i => {
+        if (filter === 'COMPLETED') return i.isCompleted;
+        if (filter === 'PENDING') return !i.isCompleted;
+        return true;
+    });
+
+    return (
+        <>
+            <div className="bento-card w-full h-full flex flex-col min-h-[300px]">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-white font-bold font-heading text-lg flex items-center gap-2">
+                        <Package size={20} className="text-primary" /> Wishlist
+                    </h3>
+                    <div className="flex gap-2">
+                        <button onClick={() => setFilter(filter === 'ALL' ? 'PENDING' : (filter === 'PENDING' ? 'COMPLETED' : 'ALL'))} className="text-xs font-bold text-textMuted uppercase px-2 py-1 bg-surfaceHighlight rounded-lg hover:text-white transition-colors">
+                            {filter === 'ALL' ? 'Todos' : (filter === 'PENDING' ? 'Pendientes' : 'Completados')}
+                        </button>
+                        <button onClick={() => handleOpenModal()} className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white hover:bg-primaryHover transition-all shadow-glow">
+                            <Plus size={18} />
+                        </button>
+                    </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2" ref={scrollContainerRef}>
+                    <AnimatePresence>
+                        {filteredItems.map(item => (
+                            <motion.div
+                                key={item._id}
+                                layout
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className={`p-3 rounded-xl border transition-all group ${item.isCompleted ? 'bg-surfaceHighlight/20 border-white/5 opacity-60' : 'bg-surfaceHighlight/40 border-white/5 hover:border-primary/30'}`}
+                            >
+                                <div className="flex justify-between items-start">
+                                    <div className="flex items-start gap-3 flex-1">
+                                        <button onClick={() => toggleComplete(item)} className={`mt-0.5 transition-colors ${item.isCompleted ? 'text-emerald-400' : 'text-textMuted hover:text-primary'}`}>
+                                            {item.isCompleted ? <CheckCircle2 size={18} /> : <Circle size={18} />}
+                                        </button>
+                                        <div>
+                                            <p className={`text-sm font-medium ${item.isCompleted ? 'line-through text-textMuted' : 'text-white'}`}>
+                                                {item.title}
+                                            </p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className={`text-xs font-mono ${isPrivacyMode ? 'blur-sm' : ''} ${item.isCompleted ? 'text-textMuted' : 'text-emerald-400'}`}>
+                                                    ${formatMoney(item.estimatedCost || item.totalEstimated)}
+                                                </span>
+                                                {item.type === 'PROJECT' && (
+                                                    <span className="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded border border-blue-500/30">PROYECTO</span>
                                                 )}
+                                                {item.priority === 'HIGH' && !item.isCompleted && <AlertCircle size={12} className="text-rose-400" />}
                                             </div>
                                         </div>
-
-                                        {!item.isBought ? (
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); markItemBought(w, item); }}
-                                                className="ml-2 p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg hover:bg-emerald-500/40 transition-colors"
-                                                title="Marcar como comprado y agregar gasto"
-                                            >
-                                                <ShoppingBag size={16} />
-                                            </button>
-                                        ) : (
-                                            <Check size={16} className="text-emerald-500 ml-2" />
-                                        )}
                                     </div>
-                                ))}
-                                <div className="pt-2 flex justify-end">
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); deleteWishlist(w._id); }}
-                                        className="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1"
-                                    >
-                                        <Trash2 size={12} /> Eliminar Lista
-                                    </button>
+
+                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button onClick={() => handleOpenModal(item)} className="p-1.5 hover:bg-white/10 rounded-lg text-textMuted hover:text-white transition-colors">
+                                            <Edit2 size={14} />
+                                        </button>
+                                        <button onClick={() => deleteItem(item._id)} className="p-1.5 hover:bg-rose-500/20 rounded-lg text-textMuted hover:text-rose-400 transition-colors">
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {item.type === 'PROJECT' && item.items && item.items.length > 0 && (
+                                    <div className="mt-3 pl-8 space-y-1">
+                                        {item.items.map((sub, idx) => (
+                                            <div key={idx} className="flex justify-between text-xs text-textMuted border-l-2 border-white/10 pl-2">
+                                                <span>{sub.description}</span>
+                                                <span className={`${isPrivacyMode ? 'blur-sm' : ''}`}>${formatMoney(sub.estimatedCost)}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+
+                    {items.length === 0 && (
+                        <div className="flex flex-col items-center justify-center h-full min-h-[150px] opacity-50">
+                            <Sparkles size={32} className="text-textMuted mb-2" />
+                            <p className="text-sm text-textMuted">Lista de deseos vacía</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* MODAL */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-surface border border-white/10 rounded-2xl w-full max-w-md p-6 relative shadow-2xl">
+                        <button onClick={handleCloseModal} className="absolute top-4 right-4 text-textMuted hover:text-white"><X size={20} /></button>
+
+                        <h3 className="text-xl font-bold text-white mb-4">{editingId ? 'Editar Deseo' : 'Nuevo Deseo'}</h3>
+
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="label">Título</label>
+                                <input type="text" className="input-pro w-full bg-void" value={newItem.title} onChange={e => setNewItem({...newItem, title: e.target.value})} required placeholder="Ej: Nueva Laptop" />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="label">Tipo</label>
+                                    <select className="input-pro w-full bg-void" value={newItem.type} onChange={e => setNewItem({...newItem, type: e.target.value})}>
+                                        <option value="ITEM">Item Único</option>
+                                        <option value="PROJECT">Proyecto</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="label">Prioridad</label>
+                                    <select className="input-pro w-full bg-void" value={newItem.priority} onChange={e => setNewItem({...newItem, priority: e.target.value})}>
+                                        <option value="LOW">Baja</option>
+                                        <option value="MEDIUM">Media</option>
+                                        <option value="HIGH">Alta</option>
+                                    </select>
                                 </div>
                             </div>
-                        )}
-                    </div>
-                );
-            })
-        )}
-      </div>
 
-      {/* Modal de Creación */}
-      {showModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-             <div className="bg-surface border border-purple-500/30 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                <div className="p-4 border-b border-border bg-surfaceHighlight/20 flex justify-between items-center">
-                    <h3 className="text-lg font-bold text-white">Nuevo Deseo / Proyecto</h3>
-                    <button onClick={() => setShowModal(false)} className="text-textMuted hover:text-white"><X size={20} /></button>
-                </div>
-
-                <div className="p-4 overflow-y-auto custom-scrollbar">
-                    <form onSubmit={handleCreate} className="space-y-4">
-                        <div>
-                            <label className="block text-xs text-textMuted mb-1">Título</label>
-                            <input
-                                type="text"
-                                value={formData.title}
-                                onChange={e => setFormData({...formData, title: e.target.value})}
-                                className="input-pro"
-                                placeholder="ej. Decoración Patio o PS5"
-                                required
-                            />
-                        </div>
-
-                        <div className="flex gap-2">
-                             <button
-                                type="button"
-                                onClick={() => setFormData({...formData, type: 'ITEM'})}
-                                className={`flex-1 py-2 rounded-xl text-sm font-bold border ${formData.type === 'ITEM' ? 'bg-pink-500/20 border-pink-500/50 text-pink-400' : 'border-transparent bg-surfaceHighlight text-textMuted'}`}
-                             >
-                                Item Único
-                             </button>
-                             <button
-                                type="button"
-                                onClick={() => setFormData({...formData, type: 'PROJECT'})}
-                                className={`flex-1 py-2 rounded-xl text-sm font-bold border ${formData.type === 'PROJECT' ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' : 'border-transparent bg-surfaceHighlight text-textMuted'}`}
-                             >
-                                Proyecto
-                             </button>
-                        </div>
-
-                        {/* Add Items Section */}
-                        <div className="bg-black/20 p-3 rounded-xl border border-white/5">
-                            <h4 className="text-xs font-bold text-textMuted mb-2 uppercase">
-                                {formData.type === 'PROJECT' ? 'Items del Proyecto' : 'Detalles del Item'}
-                            </h4>
-
-                            {/* List of added items (for PROJECT) */}
-                            {formData.items.length > 0 && (
-                                <div className="space-y-2 mb-3">
-                                    {formData.items.map((it, idx) => (
-                                        <div key={idx} className="flex justify-between text-sm bg-surfaceHighlight/30 p-2 rounded">
-                                            <span className="truncate">{it.description}</span>
-                                            <span className="font-mono">${it.estimatedPrice}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Input fields for new item */}
-                            {(formData.type === 'PROJECT' || formData.items.length === 0) && (
-                                <div className="space-y-2">
-                                    <input
-                                        type="text"
-                                        placeholder="Descripción Item"
-                                        value={newItem.description}
-                                        onChange={e => setNewItem({...newItem, description: e.target.value})}
-                                        className="input-pro text-sm"
-                                    />
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="number"
-                                            placeholder="Precio Est."
-                                            value={newItem.estimatedPrice}
-                                            onChange={e => setNewItem({...newItem, estimatedPrice: e.target.value})}
-                                            className="input-pro text-sm flex-1"
-                                        />
-                                         <input
-                                            type="text"
-                                            placeholder="Link (opc)"
-                                            value={newItem.link}
-                                            onChange={e => setNewItem({...newItem, link: e.target.value})}
-                                            className="input-pro text-sm flex-1"
-                                        />
+                            {newItem.type === 'ITEM' && (
+                                <div>
+                                    <label className="label">Costo Estimado</label>
+                                    <div className="relative">
+                                        <DollarSign size={16} className="absolute left-3 top-3 text-textMuted" />
+                                        <input type="number" className="input-pro w-full bg-void pl-9" value={newItem.estimatedCost} onChange={e => setNewItem({...newItem, estimatedCost: e.target.value})} placeholder="0.00" />
                                     </div>
-                                    {formData.type === 'PROJECT' && (
-                                        <button
-                                            type="button"
-                                            onClick={addItemToForm}
-                                            className="w-full py-2 bg-surfaceHighlight hover:bg-white/10 text-xs rounded-lg transition-colors"
-                                        >
-                                            + Agregar a la lista
-                                        </button>
-                                    )}
                                 </div>
                             )}
-                        </div>
 
-                        <div className="pt-2">
-                            <button type="submit" disabled={isCreating} className="btn-primary w-full disabled:opacity-50">
-                                {isCreating ? 'Creando...' : `Crear ${formData.type === 'PROJECT' ? 'Proyecto' : 'Deseo'}`}
+                            {newItem.type === 'PROJECT' && (
+                                <div className="bg-surfaceHighlight/30 p-3 rounded-xl space-y-3">
+                                    <label className="text-xs font-bold text-textMuted uppercase">Sub-items del Proyecto</label>
+
+                                    <div className="flex gap-2">
+                                        <input type="text" className="input-pro flex-1 h-9 text-sm bg-void" placeholder="Descripción" value={subItemInput.description} onChange={e => setSubItemInput({...subItemInput, description: e.target.value})} />
+                                        <input type="number" className="input-pro w-24 h-9 text-sm bg-void" placeholder="$ Costo" value={subItemInput.estimatedCost} onChange={e => setSubItemInput({...subItemInput, estimatedCost: e.target.value})} />
+                                        <button type="button" onClick={handleAddSubItem} className="bg-primary hover:bg-primaryHover text-white p-2 rounded-lg transition-colors"><Plus size={16} /></button>
+                                    </div>
+
+                                    <div className="space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
+                                        {newItem.items.map((sub, idx) => (
+                                            <div key={idx} className="flex justify-between items-center bg-surface p-2 rounded-lg border border-white/5 text-sm">
+                                                <span className="text-white">{sub.description}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-mono text-emerald-400">${sub.estimatedCost}</span>
+                                                    <button type="button" onClick={() => handleRemoveSubItem(idx)} className="text-rose-400 hover:text-rose-300"><X size={14} /></button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="label">Link (Opcional)</label>
+                                <input type="url" className="input-pro w-full bg-void" value={newItem.link} onChange={e => setNewItem({...newItem, link: e.target.value})} placeholder="https://..." />
+                            </div>
+
+                            <button type="submit" className="btn-primary w-full mt-2">
+                                {editingId ? 'Guardar Cambios' : 'Agregar a Wishlist'}
                             </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
-             </div>
-        </div>
-      )}
-    </div>
-  );
+            )}
+        </>
+    );
 };
-
-// Helper icon
-const X = ({ size }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-);
 
 export default WishlistCard;
