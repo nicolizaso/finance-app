@@ -16,9 +16,9 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
 
     // 2. Aplicar filtro de modo (Personal / Shared)
     if (filterMode === 'PERSONAL') {
-        allFixed = allFixed.filter(t => !t.isShared);
+        allFixed = allFixed.filter(t => t.isShared !== true);
     } else if (filterMode === 'SHARED') {
-        allFixed = allFixed.filter(t => t.isShared);
+        allFixed = allFixed.filter(t => t.isShared === true);
     }
 
     const pending = allFixed
@@ -209,7 +209,7 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
                 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1">
-                      {t.isShared && <Users size={12} className="text-blue-400 shrink-0" title="Gasto Compartido" />}
+                      {t.isShared && <Users size={14} className="text-blue-400 shrink-0" title="Gasto Compartido" />}
                       <p className="text-white font-medium text-sm truncate" title={t.description}>
                         {t.description}
                       </p>
@@ -253,7 +253,7 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
                 
                 <div className="min-w-0">
                   <div className="flex items-center gap-1">
-                      {t.isShared && <Users size={12} className="text-blue-400/50 shrink-0" />}
+                      {t.isShared && <Users size={14} className="text-blue-400 shrink-0" title="Gasto Compartido" />}
                       <p className="text-textMuted font-medium text-sm truncate line-through decoration-emerald-500/50 decoration-2">
                         {t.description}
                       </p>
