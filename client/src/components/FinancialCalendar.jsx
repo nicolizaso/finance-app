@@ -82,34 +82,16 @@ const FinancialCalendar = ({ transactions, fixedExpenses, onRefresh, isPrivacyMo
         });
 
         // 3. Fixed Expenses (Projected)
-        // Project for ANY month (future or current) IF not already covered by a real transaction.
-        // This ensures unpaid expenses show up in current month too if system didn't generate them yet
-        // or user deleted them but rule exists.
-
         fixedExpenses.forEach(rule => {
              const actualDay = Math.min(rule.dayOfMonth, maxDays);
 
-             // Check if a real transaction already exists for this rule in THIS month
-             // Matching Criteria: Same description (roughly) and same month/year
-             // This avoids duplication if the transaction was already generated/paid
              const alreadyExists = items.some(i =>
                  i.type === 'TRANSACTION' &&
                  i.data.description === rule.title &&
-                 // Optional: Check amount or fuzzy match?
-                 // Description matching is the most reliable link if no ID link exists.
-                 // The system generates transactions with same description as title.
-                 (i.data.amount === rule.amount || true) // Amount might change if edited, so ignore?
+                 (i.data.amount === rule.amount || true)
              );
 
              if (!alreadyExists) {
-                 // Only project if the projected date is valid for this month
-                 // (e.g. if rule is on 31st and month has 30, we already clamped actualDay)
-
-                 // If we are in the past month (relative to real time), maybe we shouldn't project?
-                 // But requirements say "Financial Calendar", usually historical view shows what happened.
-                 // If user didn't pay in past month, it won't show unless we project "Missed Payments".
-                 // For now, let's project always, assuming user wants to see what SHOULD happen/happened.
-
                  items.push({
                     id: `fixed_${rule._id}_${month}`,
                     date: actualDay,
@@ -141,13 +123,11 @@ const FinancialCalendar = ({ transactions, fixedExpenses, onRefresh, isPrivacyMo
                     status: 'COMPLETED'
                 });
                 onRefresh();
-                // Update local state temporarily to reflect change instantly
                 setSelectedItems(prev => prev.map(i => i.id === item.id ? { ...i, status: 'COMPLETED', isPaid: true } : i));
             } catch (error) {
                 console.error(error);
             }
         } else if (item.type === 'FIXED_PROJECTION') {
-            // Create the transaction as COMPLETED
             try {
                 const rule = item.data;
                 const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), item.date);
@@ -160,7 +140,6 @@ const FinancialCalendar = ({ transactions, fixedExpenses, onRefresh, isPrivacyMo
                     date: date,
                     status: 'COMPLETED',
                     isFixed: true,
-                    // Payment details
                     paymentMethod: rule.paymentMethod,
                     paymentLink: rule.paymentLink,
                     cbuAlias: rule.cbuAlias,
@@ -168,7 +147,6 @@ const FinancialCalendar = ({ transactions, fixedExpenses, onRefresh, isPrivacyMo
                     autoDebitCard: rule.autoDebitCard
                 });
                 onRefresh();
-                // Close modal as data will refresh
                 setSelectedDate(null);
             } catch (error) {
                 console.error(error);
@@ -179,12 +157,12 @@ const FinancialCalendar = ({ transactions, fixedExpenses, onRefresh, isPrivacyMo
     // --- RENDER ---
     const renderGrid = () => {
         const daysInMonth = getDaysInMonth(currentDate);
-        const startDay = getFirstDayOfMonth(currentDate); // 0-6
+        const startDay = getFirstDayOfMonth(currentDate);
         const days = [];
 
         // Empty slots
         for (let i = 0; i < startDay; i++) {
-            days.push(<div key={`empty-${i}`} className="h-24 bg-transparent border border-border/20 opacity-30"></div>);
+            days.push(<div key={`empty-${i}`} className="min-h-[100px] bg-transparent border border-border/20 opacity-30"></div>);
         }
 
         // Days
@@ -192,42 +170,38 @@ const FinancialCalendar = ({ transactions, fixedExpenses, onRefresh, isPrivacyMo
             const items = calendarItems.filter(i => i.date === day);
             const isToday = new Date().toDateString() === new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toDateString();
 
-            // Indicators
             const hasOverdue = items.some(i => !i.isPaid && new Date(currentDate.getFullYear(), currentDate.getMonth(), day) < new Date() && i.type !== 'INSTALLMENT');
             const hasPending = items.some(i => !i.isPaid);
             const allPaid = items.length > 0 && items.every(i => i.isPaid);
-
-            let indicatorColor = 'bg-gray-500'; // Default Future/Pending
-            if (allPaid) indicatorColor = 'bg-emerald-500';
-            else if (hasOverdue) indicatorColor = 'bg-rose-500';
-            else if (hasPending) indicatorColor = 'bg-gray-400';
 
             days.push(
                 <div
                     key={day}
                     onClick={() => handleDayClick(day)}
-                    className={`h-24 border border-border/20 p-2 relative transition-all hover:bg-white/5 cursor-pointer flex flex-col items-start justify-between
+                    className={`min-h-[100px] border border-border/20 p-2 relative transition-all hover:bg-white/5 cursor-pointer flex flex-col items-start gap-1 overflow-hidden
                         ${isToday ? 'bg-primary/10 border-primary/50' : 'bg-surface/30'}
                     `}
                 >
                     <span className={`text-sm font-bold ${isToday ? 'text-primary' : 'text-textMuted'}`}>{day}</span>
 
-                    {items.length > 0 && (
-                        <div className="flex flex-wrap gap-1 content-end w-full">
-                            {/* Simple Dots */}
-                            {items.slice(0, 5).map((item, idx) => {
-                                let dotColor = 'bg-gray-500';
-                                if (item.isPaid) dotColor = 'bg-emerald-500';
-                                else if (item.type === 'INSTALLMENT') dotColor = 'bg-blue-400'; // Installments blueish?
-                                else if (new Date(currentDate.getFullYear(), currentDate.getMonth(), day) < new Date()) dotColor = 'bg-rose-500';
+                    {/* Enhanced Titles on Days */}
+                    <div className="flex flex-col gap-1 w-full">
+                        {items.slice(0, 3).map((item, idx) => {
+                             let barColor = 'bg-gray-500';
+                             if (item.isPaid) barColor = 'bg-emerald-500';
+                             else if (item.type === 'INSTALLMENT') barColor = 'bg-blue-400';
+                             else if (new Date(currentDate.getFullYear(), currentDate.getMonth(), day) < new Date()) barColor = 'bg-rose-500';
 
-                                return (
-                                    <div key={idx} className={`w-2 h-2 rounded-full ${dotColor}`} title={item.data.description || item.data.title} />
-                                );
-                            })}
-                            {items.length > 5 && <span className="text-[10px] text-textMuted">+</span>}
-                        </div>
-                    )}
+                             return (
+                                 <div key={idx} className={`text-[9px] md:text-[10px] w-full px-1 py-0.5 rounded-md truncate ${barColor} text-white font-medium shadow-sm`}>
+                                     {item.data.description || item.data.title}
+                                 </div>
+                             );
+                        })}
+                        {items.length > 3 && (
+                            <span className="text-[9px] text-textMuted pl-1">+{items.length - 3} más</span>
+                        )}
+                    </div>
                 </div>
             );
         }
@@ -251,16 +225,16 @@ const FinancialCalendar = ({ transactions, fixedExpenses, onRefresh, isPrivacyMo
             {/* Weekdays */}
             <div className="grid grid-cols-7 bg-surfaceHighlight/50 border-b border-border">
                 {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
-                    <div key={d} className="py-2 text-center text-xs font-bold text-textMuted uppercase tracking-wider">{d}</div>
+                    <div key={d} className="py-3 text-center text-xs font-bold text-textMuted uppercase tracking-wider">{d}</div>
                 ))}
             </div>
 
             {/* Grid */}
-            <div className="grid grid-cols-7 flex-1 overflow-y-auto custom-scrollbar">
+            <div className="grid grid-cols-7 flex-1 overflow-y-auto custom-scrollbar bg-black/20">
                 {renderGrid()}
             </div>
 
-            {/* Day Summary Modal */}
+            {/* Day Summary Modal (Same as before but ensured persistence) */}
             {selectedDate && (
                 <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
                     <div className="w-full max-w-md bg-surface border border-primary/50 rounded-3xl p-6 relative shadow-glow">
@@ -307,7 +281,6 @@ const FinancialCalendar = ({ transactions, fixedExpenses, onRefresh, isPrivacyMo
                                             </span>
                                         </div>
 
-                                        {/* Action Button */}
                                         {canPay && (
                                             <button
                                                 onClick={() => handleMarkAsPaid(item)}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
-import { Plus, Trash2, Check, ExternalLink, ChevronDown, ChevronUp, ShoppingBag, LayoutList, Package, Gift } from 'lucide-react';
+import { Plus, Trash2, Check, ExternalLink, ChevronDown, ChevronUp, ShoppingBag, LayoutList, Package, Gift, Edit2, X as XIcon } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
 
 const WishlistCard = ({ refreshTrigger }) => {
@@ -10,13 +10,16 @@ const WishlistCard = ({ refreshTrigger }) => {
 
   // Modal states
   const [showModal, setShowModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editId, setEditId] = useState(null);
+
   const [formData, setFormData] = useState({
     title: '',
     type: 'ITEM', // PROJECT or ITEM
     items: []
   });
   const [newItem, setNewItem] = useState({ description: '', estimatedPrice: '', link: '' });
-  const [isCreating, setIsCreating] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Access context for transaction creation
   const { onRefresh, handleGamification } = useOutletContext() || {};
@@ -42,19 +45,34 @@ const WishlistCard = ({ refreshTrigger }) => {
     setExpandedId(expandedId === id ? null : id);
   };
 
-  const handleCreate = async (e) => {
+  const openCreateModal = () => {
+      setIsEditing(false);
+      setEditId(null);
+      setFormData({ title: '', type: 'ITEM', items: [] });
+      setNewItem({ description: '', estimatedPrice: '', link: '' });
+      setShowModal(true);
+  };
+
+  const openEditModal = (wishlist) => {
+      setIsEditing(true);
+      setEditId(wishlist._id);
+      setFormData({
+          title: wishlist.title,
+          type: wishlist.type,
+          items: wishlist.items.map(i => ({...i})) // Create copy
+      });
+      setNewItem({ description: '', estimatedPrice: '', link: '' });
+      setShowModal(true);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsCreating(true);
+    setIsSubmitting(true);
     try {
         const payload = { ...formData };
 
-        // If type is ITEM, ensure we have one item in the list if not already added?
-        // Actually, let's just use the form data.
-        // If it's ITEM type but user didn't add items manually, we can treat the main title/price as the item?
-        // But the UI below allows adding items.
-        // Let's enforce adding at least one item or auto-create one for ITEM type.
-
-        if (payload.type === 'ITEM' && payload.items.length === 0 && newItem.estimatedPrice) {
+        // For ITEM type creation, ensure at least one item if list is empty
+        if (!isEditing && payload.type === 'ITEM' && payload.items.length === 0 && newItem.estimatedPrice) {
             payload.items.push({
                 description: payload.title,
                 estimatedPrice: newItem.estimatedPrice,
@@ -62,22 +80,23 @@ const WishlistCard = ({ refreshTrigger }) => {
             });
         }
 
-        await api.post('/wishlist', payload);
+        if (isEditing) {
+            await api.put(`/wishlist/${editId}`, payload);
+            alert('Proyecto actualizado');
+        } else {
+            await api.post('/wishlist', payload);
+            alert('Proyecto creado con éxito');
+        }
 
-        // Success Feedback & Reset
-        alert('Proyecto creado con éxito');
         setShowModal(false);
-        setFormData({ title: '', type: 'ITEM', items: [] });
-        setNewItem({ description: '', estimatedPrice: '', link: '' });
-
         fetchWishlists();
         if (onRefresh) onRefresh();
 
     } catch (err) {
         console.error(err);
-        alert('Error al crear el proyecto');
+        alert(`Error al ${isEditing ? 'actualizar' : 'crear'} el proyecto`);
     } finally {
-        setIsCreating(false);
+        setIsSubmitting(false);
     }
   };
 
@@ -88,6 +107,18 @@ const WishlistCard = ({ refreshTrigger }) => {
         items: [...formData.items, { ...newItem, estimatedPrice: parseFloat(newItem.estimatedPrice) }]
     });
     setNewItem({ description: '', estimatedPrice: '', link: '' });
+  };
+
+  // Modify existing item in form
+  const updateFormItem = (index, field, value) => {
+      const updatedItems = [...formData.items];
+      updatedItems[index] = { ...updatedItems[index], [field]: value };
+      setFormData({ ...formData, items: updatedItems });
+  };
+
+  const removeFormItem = (index) => {
+      const updatedItems = formData.items.filter((_, i) => i !== index);
+      setFormData({ ...formData, items: updatedItems });
   };
 
   const deleteWishlist = async (id) => {
@@ -109,7 +140,6 @@ const WishlistCard = ({ refreshTrigger }) => {
         await api.patch(`/wishlist/${wishlist._id}/items/${item._id}`, { isBought: true });
 
         // 2. Create actual transaction
-        // We need to guess some fields or use defaults
         const transactionPayload = {
             description: item.description,
             amount: Math.round(item.estimatedPrice * 100), // convert to cents
@@ -119,12 +149,11 @@ const WishlistCard = ({ refreshTrigger }) => {
             paymentMethod: 'DEBIT',
             installments: 1,
             status: 'COMPLETED',
-            needsReview: true // Flag for review so user can adjust category/method later
+            needsReview: true // Flag for review
         };
 
         const res = await api.post('/transactions', transactionPayload);
 
-        // Refresh everything
         fetchWishlists();
         if (onRefresh) onRefresh();
         if (handleGamification && res.data.gamification) handleGamification(res.data.gamification);
@@ -134,6 +163,9 @@ const WishlistCard = ({ refreshTrigger }) => {
         alert("Error al procesar la compra");
     }
   };
+
+  // Calculate dynamic total for modal
+  const modalTotal = formData.items.reduce((sum, item) => sum + (parseFloat(item.estimatedPrice) || 0), 0);
 
   return (
     <div className="bento-card relative overflow-hidden flex flex-col h-full min-h-[400px]">
@@ -145,7 +177,7 @@ const WishlistCard = ({ refreshTrigger }) => {
           <p className="text-textMuted text-xs">Metas de compra y proyectos</p>
         </div>
         <button
-            onClick={() => setShowModal(true)}
+            onClick={openCreateModal}
             className="p-2 bg-primary/20 hover:bg-primary/30 text-primary rounded-xl transition-colors"
         >
             <Plus size={20} />
@@ -198,6 +230,25 @@ const WishlistCard = ({ refreshTrigger }) => {
                         {/* Expanded Details */}
                         {expandedId === w._id && (
                             <div className="bg-black/20 p-3 border-t border-white/5 space-y-2">
+                                {/* Action Bar */}
+                                <div className="flex justify-between items-center mb-2 pb-2 border-b border-white/5">
+                                    <span className="text-xs text-textMuted uppercase font-bold tracking-wider">Items</span>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); openEditModal(w); }}
+                                            className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                                        >
+                                            <Edit2 size={12} /> Editar
+                                        </button>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); deleteWishlist(w._id); }}
+                                            className="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1"
+                                        >
+                                            <Trash2 size={12} /> Eliminar
+                                        </button>
+                                    </div>
+                                </div>
+
                                 {w.items.map((item, idx) => (
                                     <div key={idx} className={`flex justify-between items-center text-sm p-2 rounded-lg ${item.isBought ? 'opacity-50 line-through' : 'hover:bg-white/5'}`}>
                                         <div className="flex flex-col min-w-0 flex-1">
@@ -225,14 +276,6 @@ const WishlistCard = ({ refreshTrigger }) => {
                                         )}
                                     </div>
                                 ))}
-                                <div className="pt-2 flex justify-end">
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); deleteWishlist(w._id); }}
-                                        className="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1"
-                                    >
-                                        <Trash2 size={12} /> Eliminar Lista
-                                    </button>
-                                </div>
                             </div>
                         )}
                     </div>
@@ -241,17 +284,17 @@ const WishlistCard = ({ refreshTrigger }) => {
         )}
       </div>
 
-      {/* Modal de Creación */}
+      {/* Modal de Creación / Edición */}
       {showModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
              <div className="bg-surface border border-purple-500/30 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                 <div className="p-4 border-b border-border bg-surfaceHighlight/20 flex justify-between items-center">
-                    <h3 className="text-lg font-bold text-white">Nuevo Deseo / Proyecto</h3>
-                    <button onClick={() => setShowModal(false)} className="text-textMuted hover:text-white"><X size={20} /></button>
+                    <h3 className="text-lg font-bold text-white">{isEditing ? 'Editar Proyecto' : 'Nuevo Deseo / Proyecto'}</h3>
+                    <button onClick={() => setShowModal(false)} className="text-textMuted hover:text-white"><XIcon size={20} /></button>
                 </div>
 
                 <div className="p-4 overflow-y-auto custom-scrollbar">
-                    <form onSubmit={handleCreate} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="block text-xs text-textMuted mb-1">Título</label>
                             <input
@@ -264,83 +307,102 @@ const WishlistCard = ({ refreshTrigger }) => {
                             />
                         </div>
 
-                        <div className="flex gap-2">
-                             <button
-                                type="button"
-                                onClick={() => setFormData({...formData, type: 'ITEM'})}
-                                className={`flex-1 py-2 rounded-xl text-sm font-bold border ${formData.type === 'ITEM' ? 'bg-pink-500/20 border-pink-500/50 text-pink-400' : 'border-transparent bg-surfaceHighlight text-textMuted'}`}
-                             >
-                                Item Único
-                             </button>
-                             <button
-                                type="button"
-                                onClick={() => setFormData({...formData, type: 'PROJECT'})}
-                                className={`flex-1 py-2 rounded-xl text-sm font-bold border ${formData.type === 'PROJECT' ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' : 'border-transparent bg-surfaceHighlight text-textMuted'}`}
-                             >
-                                Proyecto
-                             </button>
-                        </div>
+                        {!isEditing && (
+                             <div className="flex gap-2">
+                                 <button
+                                    type="button"
+                                    onClick={() => setFormData({...formData, type: 'ITEM'})}
+                                    className={`flex-1 py-2 rounded-xl text-sm font-bold border ${formData.type === 'ITEM' ? 'bg-pink-500/20 border-pink-500/50 text-pink-400' : 'border-transparent bg-surfaceHighlight text-textMuted'}`}
+                                 >
+                                    Item Único
+                                 </button>
+                                 <button
+                                    type="button"
+                                    onClick={() => setFormData({...formData, type: 'PROJECT'})}
+                                    className={`flex-1 py-2 rounded-xl text-sm font-bold border ${formData.type === 'PROJECT' ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' : 'border-transparent bg-surfaceHighlight text-textMuted'}`}
+                                 >
+                                    Proyecto
+                                 </button>
+                            </div>
+                        )}
 
-                        {/* Add Items Section */}
+                        {/* Edit / Add Items Section */}
                         <div className="bg-black/20 p-3 rounded-xl border border-white/5">
-                            <h4 className="text-xs font-bold text-textMuted mb-2 uppercase">
-                                {formData.type === 'PROJECT' ? 'Items del Proyecto' : 'Detalles del Item'}
-                            </h4>
+                            <div className="flex justify-between items-center mb-2">
+                                <h4 className="text-xs font-bold text-textMuted uppercase">
+                                    {(formData.type === 'PROJECT' || isEditing) ? 'Lista de Items' : 'Detalles del Item'}
+                                </h4>
+                                <span className="text-xs text-emerald-400 font-mono">Total: ${modalTotal.toLocaleString()}</span>
+                            </div>
 
-                            {/* List of added items (for PROJECT) */}
+                            {/* List of existing items (Edit Mode or Project Mode) */}
                             {formData.items.length > 0 && (
-                                <div className="space-y-2 mb-3">
+                                <div className="space-y-2 mb-3 max-h-[200px] overflow-y-auto custom-scrollbar">
                                     {formData.items.map((it, idx) => (
-                                        <div key={idx} className="flex justify-between text-sm bg-surfaceHighlight/30 p-2 rounded">
-                                            <span className="truncate">{it.description}</span>
-                                            <span className="font-mono">${it.estimatedPrice}</span>
+                                        <div key={idx} className="flex gap-2 items-center bg-surfaceHighlight/30 p-2 rounded group">
+                                            <input
+                                                type="text"
+                                                value={it.description}
+                                                onChange={(e) => updateFormItem(idx, 'description', e.target.value)}
+                                                className="bg-transparent text-sm text-white w-full focus:outline-none border-b border-transparent focus:border-purple-500"
+                                            />
+                                            <input
+                                                type="number"
+                                                value={it.estimatedPrice}
+                                                onChange={(e) => updateFormItem(idx, 'estimatedPrice', parseFloat(e.target.value) || 0)}
+                                                className="bg-transparent text-sm font-mono text-emerald-400 w-20 text-right focus:outline-none border-b border-transparent focus:border-emerald-500"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => removeFormItem(idx)}
+                                                className="text-textMuted hover:text-rose-400"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
                                         </div>
                                     ))}
                                 </div>
                             )}
 
                             {/* Input fields for new item */}
-                            {(formData.type === 'PROJECT' || formData.items.length === 0) && (
-                                <div className="space-y-2">
+                            <div className="space-y-2 pt-2 border-t border-white/5">
+                                <p className="text-xs text-textMuted">Agregar nuevo item:</p>
+                                <input
+                                    type="text"
+                                    placeholder="Descripción"
+                                    value={newItem.description}
+                                    onChange={e => setNewItem({...newItem, description: e.target.value})}
+                                    className="input-pro text-sm"
+                                />
+                                <div className="flex gap-2">
                                     <input
-                                        type="text"
-                                        placeholder="Descripción Item"
-                                        value={newItem.description}
-                                        onChange={e => setNewItem({...newItem, description: e.target.value})}
-                                        className="input-pro text-sm"
+                                        type="number"
+                                        placeholder="Precio"
+                                        value={newItem.estimatedPrice}
+                                        onChange={e => setNewItem({...newItem, estimatedPrice: e.target.value})}
+                                        className="input-pro text-sm flex-1"
                                     />
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="number"
-                                            placeholder="Precio Est."
-                                            value={newItem.estimatedPrice}
-                                            onChange={e => setNewItem({...newItem, estimatedPrice: e.target.value})}
-                                            className="input-pro text-sm flex-1"
-                                        />
-                                         <input
-                                            type="text"
-                                            placeholder="Link (opc)"
-                                            value={newItem.link}
-                                            onChange={e => setNewItem({...newItem, link: e.target.value})}
-                                            className="input-pro text-sm flex-1"
-                                        />
-                                    </div>
-                                    {formData.type === 'PROJECT' && (
-                                        <button
-                                            type="button"
-                                            onClick={addItemToForm}
-                                            className="w-full py-2 bg-surfaceHighlight hover:bg-white/10 text-xs rounded-lg transition-colors"
-                                        >
-                                            + Agregar a la lista
-                                        </button>
-                                    )}
+                                     <input
+                                        type="text"
+                                        placeholder="Link (opc)"
+                                        value={newItem.link}
+                                        onChange={e => setNewItem({...newItem, link: e.target.value})}
+                                        className="input-pro text-sm flex-1"
+                                    />
                                 </div>
-                            )}
+                                <button
+                                    type="button"
+                                    onClick={addItemToForm}
+                                    className="w-full py-2 bg-surfaceHighlight hover:bg-white/10 text-xs rounded-lg transition-colors flex items-center justify-center gap-1"
+                                >
+                                    <Plus size={14} /> Agregar a la lista
+                                </button>
+                            </div>
                         </div>
 
                         <div className="pt-2">
-                            <button type="submit" disabled={isCreating} className="btn-primary w-full disabled:opacity-50">
-                                {isCreating ? 'Creando...' : `Crear ${formData.type === 'PROJECT' ? 'Proyecto' : 'Deseo'}`}
+                            <button type="submit" disabled={isSubmitting} className="btn-primary w-full disabled:opacity-50">
+                                {isSubmitting ? 'Guardando...' : (isEditing ? 'Guardar Cambios' : 'Crear Proyecto')}
                             </button>
                         </div>
                     </form>
@@ -351,10 +413,5 @@ const WishlistCard = ({ refreshTrigger }) => {
     </div>
   );
 };
-
-// Helper icon
-const X = ({ size }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-);
 
 export default WishlistCard;

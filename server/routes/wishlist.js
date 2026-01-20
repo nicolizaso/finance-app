@@ -43,26 +43,29 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   const userId = getUserId(req);
   try {
-    const updatedWishlist = await Wishlist.findOneAndUpdate(
-      { _id: req.params.id, userId },
-      req.body,
-      { new: true } // Returns the updated document
-    );
+    // We use findOne to get the document, modify it, and save it.
+    // This ensures that the pre('save') hook runs to recalculate totalEstimated.
+    // findOneAndUpdate with { new: true } does NOT trigger pre('save') middleware.
 
-    // Trigger save to run pre-save hook (for totalEstimated calculation)
-    if (updatedWishlist) {
-        // findOneAndUpdate bypasses pre('save') middleware, so we might need to manually recalc if items changed
-        // Or we can retrieve and save.
-        // Let's retrieve and save to be safe and clean.
-        const doc = await Wishlist.findById(req.params.id);
-        doc.set(req.body);
-        await doc.save();
-        return res.json({ success: true, data: doc });
+    const wishlist = await Wishlist.findOne({ _id: req.params.id, userId });
+
+    if (!wishlist) {
+        return res.status(404).json({ success: false, error: 'Wishlist not found' });
     }
 
-    if (!updatedWishlist) return res.status(404).json({ success: false, error: 'Wishlist not found' });
-    res.json({ success: true, data: updatedWishlist });
+    // Explicitly update fields
+    if (req.body.title) wishlist.title = req.body.title;
+    if (req.body.items) wishlist.items = req.body.items;
+
+    // We do NOT update type usually, but if needed:
+    if (req.body.type) wishlist.type = req.body.type;
+
+    const savedWishlist = await wishlist.save();
+
+    res.json({ success: true, data: savedWishlist });
+
   } catch (err) {
+    console.error("Error updating wishlist:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -92,9 +95,6 @@ router.patch('/:id/items/:itemId', async (req, res) => {
         if (!item) return res.status(404).json({ success: false, error: 'Item not found' });
 
         if (isBought !== undefined) item.isBought = isBought;
-
-        // If all items are bought, maybe ask user to complete project?
-        // For now just save.
 
         await wishlist.save();
         res.json({ success: true, data: wishlist });
