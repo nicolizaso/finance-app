@@ -19,19 +19,21 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
   useEffect(() => {
     if (initialData && initialData.isShared) {
         setEnabled(true);
+
+        // Check if sharedWith is a populated object (Fix for Bug #2)
+        if (typeof initialData.sharedWith === 'object' && initialData.sharedWith !== null && initialData.sharedWith._id) {
+             setSelectedUser({
+                 _id: initialData.sharedWith._id,
+                 username: initialData.sharedWith.name || initialData.sharedWith.username || 'Usuario'
+             });
+        }
         // Si es un ID (ObjectId de mongo tiene 24 chars)
-        if (initialData.sharedWith && initialData.sharedWith.length === 24) {
-             // Simulamos usuario seleccionado (No tenemos el nombre, mostraremos el ID o buscaremos si es necesario)
-             // Para simplificar, asumiremos que si viene de editar, el backend NO devuelve el username poblado.
-             // Podemos hacer un fetch rápido o mostrar "Usuario ID".
-             // O mejor, si el usuario original guarda el nombre... no lo guarda.
-             // Mostraremos "Usuario Asociado" si no podemos resolver.
-             // PERO: para MVP, mostramos el ID o string.
+        else if (typeof initialData.sharedWith === 'string' && initialData.sharedWith.length === 24) {
              setSelectedUser({ _id: initialData.sharedWith, username: 'Usuario (ID)' });
         } else {
-             // Es custom name
+             // Es custom name o 'PARTNER'
              setSelectedUser({ _id: null, username: 'Otro' });
-             setCustomName(initialData.sharedWith);
+             setCustomName(typeof initialData.sharedWith === 'string' ? initialData.sharedWith : '');
         }
 
         // Calcular porcentaje basado en amount vs otherShare
