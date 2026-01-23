@@ -125,8 +125,16 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
     // Inyectar datos compartidos si existen
     if (sharedData && sharedData.isShared) {
         payload = { ...payload, ...sharedData };
-        // FIX: Ensure 'amount' stored in DB is the Total Amount, not just the share.
-        // We do NOT overwrite payload.amount here anymore.
+
+        // CONSTRUCT SPLITS FOR NEW BACKEND LOGIC
+        // sharedData has myShare and otherShare in cents.
+        const splits = [
+             { userId: 'CREATOR', amount: sharedData.myShare },
+             { userId: sharedData.sharedWith, amount: sharedData.otherShare }
+        ];
+
+        payload.splits = splits;
+        payload.totalAmount = Math.round(finalAmount * 100); // Total in cents
     }
 
     try {
