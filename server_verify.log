@@ -1,0 +1,10 @@
+
+> server@1.0.0 start
+> node index.js
+
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+No MONGO_URI found, using Memory Server
+Servidor corriendo en el puerto 5000
+MongoDB Conectado
+✅ Usuario TestUser (PIN: 1234) creado automáticamente.
+✅ Usuario MobileUser (PIN: 1234) creado automáticamente.

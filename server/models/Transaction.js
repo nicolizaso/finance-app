@@ -33,6 +33,11 @@ const TransactionSchema = new mongoose.Schema({
     myShare: { type: Number }, // Mi parte del gasto (SIN DEFAULT para distinguir Legacy vs New)
     myPercentage: { type: Number, default: 100 }, // Porcentaje que paga el usuario
 
+    // New Shared Logic
+    sharedTransactionId: { type: String },
+    paidBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    totalAmount: { type: Number },
+
     // --- CARGA RÁPIDA ---
     needsReview: { type: Boolean, default: false }
 });
