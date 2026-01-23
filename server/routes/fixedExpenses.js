@@ -16,10 +16,15 @@ router.post('/', async (req, res) => {
             ...expenseData,
             userId,
             isShared: isShared || false,
-            sharedWith: isShared ? sharedWith : '',
+            sharedWith: (isShared && sharedWith) ? sharedWith : null,
             sharedStatus: isShared ? 'OWNER' : 'NONE',
             amount: isShared ? myShare : expenseData.amount,
             otherShare: isShared ? otherShare : 0,
+
+            // New Fields for Display
+            myShare: isShared ? myShare : expenseData.amount, // Save explicitly
+            totalAmount: expenseData.totalAmount || expenseData.amount, // Save Total
+
             isSubscription: expenseData.isSubscription || false,
             lastAmount: expenseData.amount || 0
         };
@@ -35,6 +40,12 @@ router.post('/', async (req, res) => {
                 sharedWith: userId,
                 sharedStatus: 'PARTNER',
                 amount: otherShare,
+
+                // Cross-Assign Shares
+                myShare: otherShare, // Their share is what I call otherShare
+                otherShare: myShare, // Their otherShare is my share
+                totalAmount: expenseData.totalAmount || expenseData.amount,
+
                 title: `${expenseData.title} (Compartido)`
             };
             await FixedExpense.create(otherRuleData);
@@ -52,7 +63,10 @@ router.get('/', async (req, res) => {
         const userId = req.headers['x-user-id'];
         if (!userId) return res.json({ success: true, data: [] });
         
-        const fixed = await FixedExpense.find({ userId }).sort({ dayOfMonth: 1 });
+        const fixed = await FixedExpense.find({ userId })
+            .sort({ dayOfMonth: 1 })
+            .populate('sharedWith', 'name email');
+
         res.status(200).json({ success: true, data: fixed });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Error server' });
@@ -97,6 +111,13 @@ router.put('/:id', async (req, res) => {
                 category: updatedRule.category,
                 date: newDueDate,
                 isFixed: true,
+
+                // Sync Shared Info
+                isShared: updatedRule.isShared,
+                sharedWith: updatedRule.sharedWith,
+                myShare: updatedRule.myShare,
+                totalAmount: updatedRule.totalAmount,
+
                 // Actualizamos campos de pago
                 paymentMethod: updatedRule.paymentMethod,
                 paymentLink: updatedRule.paymentLink,
@@ -175,6 +196,13 @@ router.post('/generate', async (req, res) => {
                     date: dueDate,
                     status: 'PENDING',
                     isFixed: true,
+
+                    // Shared Fields
+                    isShared: expense.isShared,
+                    sharedWith: expense.sharedWith,
+                    myShare: expense.myShare,
+                    totalAmount: expense.totalAmount,
+
                     // Copiamos datos de pago
                     paymentMethod: expense.paymentMethod,
                     paymentLink: expense.paymentLink,
