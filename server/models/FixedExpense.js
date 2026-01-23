@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const FixedExpenseSchema = new mongoose.Schema({
-    userId: { type: String, default: 'user_default_123' },
+    userId: { type: String, default: 'user_default_123', index: true },
     title: { type: String, required: true },
     category: { type: String, required: true },
     amount: { type: Number, default: 0 }, 
