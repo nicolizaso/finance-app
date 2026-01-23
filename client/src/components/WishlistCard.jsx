@@ -203,7 +203,7 @@ const WishlistCard = ({ refreshTrigger }) => {
 
     return (
         <>
-            <div className="bento-card col-span-1 md:col-span-2 relative overflow-hidden group">
+            <div className="bento-card relative overflow-hidden group flex flex-col h-full flex-1">
                 {/* Header */}
                 <div className="flex justify-between items-start mb-4 relative z-10">
                     <div className="flex items-center gap-3">
@@ -224,7 +224,7 @@ const WishlistCard = ({ refreshTrigger }) => {
                 </div>
 
                 {/* Content */}
-                <div className="space-y-3 relative z-10 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                <div className="space-y-3 relative z-10 flex-1 overflow-y-auto custom-scrollbar pr-2">
                     {loading ? (
                         <p className="text-textMuted text-sm">Cargando deseos...</p>
                     ) : wishlists.length === 0 ? (
