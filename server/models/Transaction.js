@@ -42,4 +42,6 @@ const TransactionSchema = new mongoose.Schema({
     needsReview: { type: Boolean, default: false }
 });
 
+TransactionSchema.index({ userId: 1, date: -1 });
+
 module.exports = mongoose.models.Transaction || mongoose.model('Transaction', TransactionSchema);
