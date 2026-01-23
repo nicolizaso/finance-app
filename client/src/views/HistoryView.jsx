@@ -2,7 +2,7 @@ import TransactionList from '../components/TransactionList';
 import TransactionForm from '../components/TransactionForm';
 import { useOutletContext, useLocation } from 'react-router-dom';
 import { Search, Plus, X, Filter } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 const HistoryView = () => {
     const {
@@ -30,7 +30,7 @@ const HistoryView = () => {
     }, [location]);
 
     // Lógica de Filtrado Unificada (Búsqueda + Pendientes)
-    const filteredTransactions = transactions.filter(t => {
+    const filteredTransactions = useMemo(() => transactions.filter(t => {
         // 1. Filtro de Pendientes (si está activo)
         if (showPendingOnly && !t.needsReview) return false;
 
@@ -41,7 +41,7 @@ const HistoryView = () => {
             t.category.toLowerCase().includes(searchLower) ||
             (t.tags && t.tags.some(tag => tag.toLowerCase().includes(searchLower)))
         );
-    });
+    }), [transactions, showPendingOnly, searchTerm]);
 
     // Handlers
     const handleTransactionClick = (t) => {

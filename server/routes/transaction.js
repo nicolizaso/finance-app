@@ -91,7 +91,7 @@ router.post('/', async (req, res) => {
             const paidBy = userId; // El creador paga
             const totalAmount = req.body.totalAmount || txData.amount; // Ensure totalAmount is passed or fallback
 
-            const promises = splits.map(async (split) => {
+            const transactionDocs = splits.map((split) => {
                 // Determinar el userId para esta transacción
                 let targetUserId = split.userId;
 
@@ -108,7 +108,7 @@ router.post('/', async (req, res) => {
                 // Si no es un ID válido (e.g. "Otro") y no es el creador, no podemos crear Transaction.
                 if (!isValidId && targetUserId !== userId) return null;
 
-                const transactionData = {
+                return {
                     ...txData,
                     userId: targetUserId,
                     amount: split.amount, // SU parte (No el total)
@@ -124,12 +124,9 @@ router.post('/', async (req, res) => {
                     otherShare: 0,
                     sharedWith: targetUserId === userId ? 'PARTNER' : userId,
                 };
+            }).filter(doc => doc !== null);
 
-                return Transaction.create(transactionData);
-            });
-
-            const results = await Promise.all(promises);
-            createdTransactions = results.filter(r => r !== null);
+            createdTransactions = await Transaction.insertMany(transactionDocs);
 
         } else {
             // --- LÓGICA ESTÁNDAR / LEGACY (Sin splits array) ---
