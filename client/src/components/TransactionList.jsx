@@ -126,7 +126,7 @@ const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode, on
                 </span>
                 
                 {t.isShared && (
-                    <span className="text-[10px] text-textMuted/70 font-mono">
+                    <span className="text-[10px] text-primary/80 bg-primary/10 px-1.5 py-0.5 rounded font-mono mt-1">
                         Tu parte: ${isPrivacyMode ? '***' : formatMoney(getEffectiveAmount(t))}
                     </span>
                 )}

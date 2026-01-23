@@ -1,12 +1,9 @@
 
-> client@0.0.0 dev
+> finanzapp-client@0.1.0 dev
 > vite
 
 
-  ROLLDOWN-VITE v7.2.5  ready in 260 ms
+  VITE v6.4.1  ready in 376 ms
 
   ➜  Local:   http://localhost:5173/
   ➜  Network: use --host to expose
-5:08:06 AM [vite] (client) hmr update /src/index.css, /src/components/FixedExpensesCard.jsx, /src/components/BalanceCard.jsx, /src/components/TransactionList.jsx
-5:10:35 AM [vite] (client) hmr update /src/index.css, /src/components/TransactionForm.jsx
-5:10:41 AM [vite] (client) hmr update /src/index.css, /src/components/FixedExpenseForm.jsx
