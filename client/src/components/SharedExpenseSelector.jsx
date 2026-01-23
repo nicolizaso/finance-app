@@ -88,7 +88,8 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
         isShared: true,
         sharedWith: finalSharedWith, // ID o Nombre
         myShare: myShare * 100, // Centavos
-        otherShare: otherShare * 100 // Centavos
+        otherShare: otherShare * 100, // Centavos
+        myPercentage: myPercentage // Store percentage for future edits/calcs
     });
 
   }, [enabled, selectedUser, customName, myPercentage, total]);
