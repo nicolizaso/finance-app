@@ -19,14 +19,13 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
   useEffect(() => {
     if (initialData && initialData.isShared) {
         setEnabled(true);
-        // Si es un ID (ObjectId de mongo tiene 24 chars)
-        if (initialData.sharedWith && initialData.sharedWith.length === 24) {
-             // Simulamos usuario seleccionado (No tenemos el nombre, mostraremos el ID o buscaremos si es necesario)
-             // Para simplificar, asumiremos que si viene de editar, el backend NO devuelve el username poblado.
-             // Podemos hacer un fetch rápido o mostrar "Usuario ID".
-             // O mejor, si el usuario original guarda el nombre... no lo guarda.
-             // Mostraremos "Usuario Asociado" si no podemos resolver.
-             // PERO: para MVP, mostramos el ID o string.
+        // Check if populated object or ID string
+        if (initialData.sharedWith && typeof initialData.sharedWith === 'object' && initialData.sharedWith._id) {
+             setSelectedUser({
+                _id: initialData.sharedWith._id,
+                username: initialData.sharedWith.name || initialData.sharedWith.username || 'Usuario'
+             });
+        } else if (initialData.sharedWith && initialData.sharedWith.length === 24) {
              setSelectedUser({ _id: initialData.sharedWith, username: 'Usuario (ID)' });
         } else {
              // Es custom name

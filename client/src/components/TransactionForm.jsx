@@ -58,6 +58,14 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
                  amountToShow = initialData.amount;
              }
          }
+
+         // FIX: Initialize sharedData state on edit
+         setSharedData({
+            isShared: true,
+            myShare: initialData.myShare,
+            otherShare: initialData.otherShare,
+            sharedWith: initialData.sharedWith?._id || initialData.sharedWith,
+         });
       }
 
       setFormData({
@@ -129,6 +137,10 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
     // Inyectar datos compartidos si existen
     if (sharedData && sharedData.isShared) {
         payload = { ...payload, ...sharedData };
+
+        // FIX: Ensure persistence
+        payload.isShared = true;
+        payload.sharedWith = sharedData.sharedWith?._id || sharedData.sharedWith;
 
         // CONSTRUCT SPLITS FOR NEW BACKEND LOGIC
         // sharedData has myShare and otherShare in cents.
