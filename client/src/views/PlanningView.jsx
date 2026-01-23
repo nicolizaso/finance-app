@@ -6,10 +6,10 @@ const PlanningView = () => {
     const { transactions, onRefresh, isPrivacyMode } = useOutletContext();
 
     return (
-        <div className="space-y-6 pb-24 md:pb-6">
+        <div className="flex flex-col h-[calc(100vh-100px)] space-y-4 md:pb-6">
             <h3 className="text-xl font-bold text-white font-heading">Planificación</h3>
             {/* Top Row: Wishlist & Subscriptions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex-1 min-h-0 flex flex-col md:grid md:grid-cols-2 gap-6">
                 <WishlistCard refreshTrigger={transactions} />
                 <SubscriptionWidget />
             </div>
