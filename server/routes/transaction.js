@@ -12,7 +12,8 @@ router.get('/', async (req, res) => {
 
         const transactions = await Transaction.find({ userId })
             .sort({ date: -1 })
-            .populate('paidBy', 'name'); // Populate payer info
+            .populate('paidBy', 'name') // Populate payer info
+            .populate('sharedWith', 'name email');
         res.json({ success: true, data: transactions });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -28,7 +29,8 @@ router.get('/shared', async (req, res) => {
 
         const transactions = await Transaction.find({ userId, isShared: true })
             .sort({ date: -1 })
-            .populate('paidBy', 'name');
+            .populate('paidBy', 'name')
+            .populate('sharedWith', 'name email');
 
         res.json({ success: true, data: transactions });
     } catch (error) {
