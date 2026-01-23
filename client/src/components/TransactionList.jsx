@@ -126,9 +126,24 @@ const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode, on
                 </span>
                 
                 {t.isShared && (
-                    <span className="text-[10px] text-textMuted/70 font-mono">
-                        Tu parte: ${isPrivacyMode ? '***' : formatMoney(getEffectiveAmount(t))}
-                    </span>
+                    <div className="flex flex-col items-end mt-1">
+                        {t.totalAmount ? (
+                             <>
+                                {t.paidBy && (
+                                     <span className="text-[10px] text-textMuted/80 mb-0.5">
+                                        Pagado por: <strong className="text-white">{t.paidBy.name || 'Otro'}</strong>
+                                     </span>
+                                )}
+                                <span className="text-[10px] text-primary/80 bg-primary/10 px-1.5 py-0.5 rounded font-mono">
+                                    Total: ${isPrivacyMode ? '***' : formatMoney(t.totalAmount)}
+                                </span>
+                             </>
+                        ) : (
+                             <span className="text-[10px] text-primary/80 bg-primary/10 px-1.5 py-0.5 rounded font-mono">
+                                Tu parte: ${isPrivacyMode ? '***' : formatMoney(getEffectiveAmount(t))}
+                            </span>
+                        )}
+                    </div>
                 )}
 
                 <button 

@@ -3,13 +3,33 @@ const router = express.Router();
 const Transaction = require('../models/Transaction');
 const { calculateCreditProjection } = require('../utils/creditProjection');
 const { checkAchievements } = require('../utils/gamification');
+const { randomUUID } = require('crypto');
 
 router.get('/', async (req, res) => {
     try {
         const userId = req.headers['x-user-id']; // <--- LEEMOS EL HEADER
         if (!userId) return res.json({ success: true, data: [] });
 
-        const transactions = await Transaction.find({ userId }).sort({ date: -1 });
+        const transactions = await Transaction.find({ userId })
+            .sort({ date: -1 })
+            .populate('paidBy', 'name'); // Populate payer info
+        res.json({ success: true, data: transactions });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// @desc    Obtener gastos compartidos del usuario
+// @route   GET /api/transactions/shared
+router.get('/shared', async (req, res) => {
+    try {
+        const userId = req.headers['x-user-id'];
+        if (!userId) return res.json({ success: true, data: [] });
+
+        const transactions = await Transaction.find({ userId, isShared: true })
+            .sort({ date: -1 })
+            .populate('paidBy', 'name');
+
         res.json({ success: true, data: transactions });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -59,50 +79,69 @@ router.post('/', async (req, res) => {
         const userId = req.headers['x-user-id']; 
         if (!userId) return res.status(400).json({ success: false, error: 'Usuario no identificado' });
 
-        // Extraer campos especiales de compartido
-        const { isShared, sharedWith, myShare, otherShare, ...txData } = req.body;
+        // Extraer campos
+        const { isShared, splits, ...txData } = req.body;
 
-        // 1. Crear MI transacción
-        // NEW LOGIC: 'amount' siempre es el Total.
-        // Guardamos 'myShare' explícitamente.
-        const myTransactionData = {
-            ...txData,
-            userId,
-            isShared: isShared || false,
-            sharedWith: isShared ? sharedWith : '',
-            sharedStatus: isShared ? 'OWNER' : 'NONE',
-            amount: txData.amount, // Siempre Total
-            otherShare: isShared ? otherShare : 0,
-            myShare: isShared ? myShare : 0
-        };
+        let createdTransactions = [];
+        let gamificationResult = null;
 
-        const transaction = await Transaction.create(myTransactionData);
+        if (isShared && splits && Array.isArray(splits) && splits.length > 0) {
+            // --- NUEVA LÓGICA DE COMPARTIDOS (Refactorizada) ---
+            const sharedTransactionId = randomUUID();
+            const paidBy = userId; // El creador paga
+            const totalAmount = req.body.totalAmount || txData.amount; // Ensure totalAmount is passed or fallback
 
-        // 2. Si es compartido con un usuario real de la BDD, le creamos su parte
-        if (isShared && sharedWith && sharedWith.length === 24) { // Simple check for ObjectId length
-             // Intentamos crear la transaccion espejo
-             // Para el PARTNER:
-             // - amount: Total
-             // - myShare: lo que ERA 'otherShare' para mí (su parte)
-             // - otherShare: lo que ERA 'myShare' para mí (mi parte)
-             const otherTransactionData = {
-                ...txData,
-                userId: sharedWith, // ID del otro usuario
-                isShared: true,
-                sharedWith: userId, // Compartido CONMIGO (el creador)
-                sharedStatus: 'PARTNER',
-                amount: txData.amount, // Total
-                description: `${txData.description} (Compartido)`,
-                myShare: otherShare, // Su parte
-                otherShare: myShare // La parte del creador
-             };
-             await Transaction.create(otherTransactionData);
+            const promises = splits.map(async (split) => {
+                // Determinar el userId para esta transacción
+                let targetUserId = split.userId;
+
+                // Si es el creador, usamos el ID real
+                if (targetUserId === 'CREATOR') {
+                    targetUserId = userId;
+                }
+
+                // Si es un string (nombre "Otro") y no es un ID válido (24 chars),
+                // NO creamos transacción (no se puede asignar a un User en DB),
+                // SALVO que sea el creador.
+                const isValidId = targetUserId && targetUserId.length === 24;
+
+                // Si no es un ID válido (e.g. "Otro") y no es el creador, no podemos crear Transaction.
+                if (!isValidId && targetUserId !== userId) return null;
+
+                const transactionData = {
+                    ...txData,
+                    userId: targetUserId,
+                    amount: split.amount, // SU parte (No el total)
+                    type: 'EXPENSE',
+                    category: txData.category,
+                    isShared: true,
+                    sharedTransactionId,
+                    paidBy,
+                    totalAmount,
+                    // Fix frontend calculation issue:
+                    myPercentage: 100,
+                    myShare: split.amount,
+                    otherShare: 0,
+                    sharedWith: targetUserId === userId ? 'PARTNER' : userId,
+                };
+
+                return Transaction.create(transactionData);
+            });
+
+            const results = await Promise.all(promises);
+            createdTransactions = results.filter(r => r !== null);
+
+        } else {
+            // --- LÓGICA ESTÁNDAR / LEGACY (Sin splits array) ---
+            // If just normal transaction:
+            const transaction = await Transaction.create({ ...txData, userId });
+            createdTransactions = [transaction];
         }
 
-        // Gamification Check
-        const gamificationResult = await checkAchievements(userId, 'ADD_TRANSACTION');
+        // Gamification Check (only once)
+        gamificationResult = await checkAchievements(userId, 'ADD_TRANSACTION');
 
-        res.status(201).json({ success: true, data: transaction, gamification: gamificationResult });
+        res.status(201).json({ success: true, data: createdTransactions[0], gamification: gamificationResult });
     } catch (error) {
         res.status(400).json({ success: false, error: error.message });
     }

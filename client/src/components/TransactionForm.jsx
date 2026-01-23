@@ -43,16 +43,20 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
       // Reconstruir monto total si es compartido
       let amountToShow = initialData.amount;
       if (initialData.isShared) {
-         // Check if legacy: myShare is undefined/null (not present in DB)
-         // In new logic, myShare is explicitly stored.
-         const isLegacy = initialData.myShare === undefined || initialData.myShare === null;
-         
-         if (isLegacy) {
-             // Legacy: stored amount was the share
-             amountToShow = initialData.amount + (initialData.otherShare || 0);
+         if (initialData.totalAmount) {
+             amountToShow = initialData.totalAmount;
          } else {
-             // New data: stored amount is already Total
-             amountToShow = initialData.amount;
+             // Check if legacy: myShare is undefined/null (not present in DB)
+             // In new logic, myShare is explicitly stored.
+             const isLegacy = initialData.myShare === undefined || initialData.myShare === null;
+
+             if (isLegacy) {
+                 // Legacy: stored amount was the share
+                 amountToShow = initialData.amount + (initialData.otherShare || 0);
+             } else {
+                 // New data: stored amount is already Total
+                 amountToShow = initialData.amount;
+             }
          }
       }
 
@@ -125,8 +129,17 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
     // Inyectar datos compartidos si existen
     if (sharedData && sharedData.isShared) {
         payload = { ...payload, ...sharedData };
-        // FIX: Ensure 'amount' stored in DB is the Total Amount, not just the share.
-        // We do NOT overwrite payload.amount here anymore.
+
+        // CONSTRUCT SPLITS FOR NEW BACKEND LOGIC
+        // sharedData has myShare and otherShare in cents.
+        const splits = [
+             { userId: 'CREATOR', amount: sharedData.myShare },
+             { userId: sharedData.sharedWith, amount: sharedData.otherShare }
+        ];
+
+        payload.splits = splits;
+        payload.totalAmount = Math.round(finalAmount * 100); // Total in cents
+        payload.amount = sharedData.myShare; // CRITICAL: Save ONLY my portion as the main amount
     }
 
     try {
