@@ -1,21 +1,77 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import api from '../api/axios';
-import { Calendar, Plus, PartyPopper, Check, X, Wallet, AlertCircle, ExternalLink, CheckCircle2, Copy, CreditCard, Banknote, Users } from 'lucide-react';
+import { Calendar, Plus, PartyPopper, Check, X, Wallet, AlertCircle, ExternalLink, CheckCircle2, Copy, CreditCard, Banknote, Users, ChevronLeft, ChevronRight, Edit2 } from 'lucide-react';
 import { getEffectiveAmount } from '../utils/financeHelpers';
 import { useToast } from '../context/ToastContext'; // Importación necesaria
+import TransactionForm from './TransactionForm';
 
-const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMode }) => {
+const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenConfig, isPrivacyMode }) => {
   const { addToast } = useToast();
   const [payingTransaction, setPayingTransaction] = useState(null);
+  const [editingTransaction, setEditingTransaction] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [filterMode, setFilterMode] = useState('ALL');
 
-  // Lógica principal de filtrado y ordenamiento
+  // Month Navigation State
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [localTransactions, setLocalTransactions] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Fetch transactions for the selected month
+  const fetchMonthTransactions = async () => {
+    setLoading(true);
+    try {
+        const month = selectedDate.getMonth();
+        const year = selectedDate.getFullYear();
+
+        // Unified endpoint: Generates if needed and returns all transactions
+        const res = await api.get('/fixed-expenses/monthly-view', {
+            params: { month, year }
+        });
+
+        if (res.data.success) {
+            setLocalTransactions(res.data.data);
+        }
+    } catch (error) {
+        console.error("Error fetching fixed expenses:", error);
+        addToast("Error al cargar gastos fijos", "error");
+    } finally {
+        setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMonthTransactions();
+  }, [selectedDate, propTransactions]); // Re-fetch on date change or global refresh
+
+  const handlePrevMonth = () => {
+    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1));
+  };
+
+  const formatMonthYear = (date) => {
+    return date.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+  };
+
+  // Lógica principal de filtrado y ordenamiento (USING LOCAL TRANSACTIONS)
   const { pending, paid, totalDebt, totalPaid } = useMemo(() => {
     // 1. Filtrar transacciones relevantes (Fixed o Pending Expense)
-    let allFixed = transactions.filter(t =>
-      t.type === 'EXPENSE' && (t.isFixed === true || t.status === 'PENDING')
-    );
+    // Note: API already filters by isFixed=true and date range, but we keep safety checks
+
+    const selectedMonth = selectedDate.getMonth();
+    const selectedYear = selectedDate.getFullYear();
+
+    let allFixed = localTransactions.filter(t => {
+      const tDate = new Date(t.date);
+      // Must match Expense Type AND (Fixed OR Pending) AND correct Month/Year
+      return t.type === 'EXPENSE'
+        && (t.isFixed === true || t.status === 'PENDING')
+        && tDate.getMonth() === selectedMonth
+        && tDate.getFullYear() === selectedYear;
+    });
 
     // 2. Aplicar filtro de modo (Personal / Shared)
     if (filterMode === 'PERSONAL') {
@@ -37,7 +93,7 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
     const totalPaid = paid.reduce((acc, t) => acc + getEffectiveAmount(t), 0);
 
     return { pending, paid, totalDebt, totalPaid };
-  }, [transactions, filterMode]);
+  }, [localTransactions, filterMode, selectedDate]);
 
   const formatMoney = (amount) => Math.round(amount / 100).toLocaleString('es-AR');
   const getSafeLink = (url) => (!url ? null : (url.startsWith('http') ? url : `https://${url}`));
@@ -148,10 +204,28 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
       <div className="bento-card h-full flex flex-col w-full relative min-h-[350px]">
         {/* Header con Resumen Doble */}
         <div className="flex justify-between items-start mb-2 border-b border-border pb-3 shrink-0">
-          <div>
-            <h3 className="text-white font-bold font-heading text-lg flex items-center gap-2">
-              <Calendar size={20} className="text-primary" /> Gastos del Mes
-            </h3>
+          <div className="w-full">
+            <div className="flex items-center justify-between w-full mb-2">
+                <h3 className="text-white font-bold font-heading text-lg flex items-center gap-2">
+                    <Calendar size={20} className="text-primary" /> Gastos Fijos
+                </h3>
+
+                {/* Month Navigation */}
+                <div className="flex items-center bg-surfaceHighlight/50 rounded-lg p-1 gap-2">
+                    <button onClick={handlePrevMonth} className="p-1 hover:text-white text-textMuted transition-colors"><ChevronLeft size={16} /></button>
+                    <span className="text-xs font-bold text-white capitalize min-w-[100px] text-center">{formatMonthYear(selectedDate)}</span>
+                    <button onClick={handleNextMonth} className="p-1 hover:text-white text-textMuted transition-colors"><ChevronRight size={16} /></button>
+                </div>
+
+                <button
+                    onClick={onOpenConfig}
+                    className="w-8 h-8 rounded-full bg-surfaceHighlight border border-border flex items-center justify-center text-textMuted hover:text-white hover:bg-primary hover:border-primary transition-all shadow-lg"
+                    title="Configurar Reglas"
+                >
+                    <Plus size={18} />
+                </button>
+            </div>
+
             <div className="flex gap-4 mt-1">
                 <p className="text-textMuted text-xs">
                   Por pagar: <span className={`text-rose-400 font-mono font-bold ${isPrivacyMode ? 'blur-sm' : ''}`}>${isPrivacyMode ? '***' : formatMoney(totalDebt)}</span>
@@ -163,14 +237,6 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
                 )}
             </div>
           </div>
-          
-          <button 
-            onClick={onOpenConfig}
-            className="w-8 h-8 rounded-full bg-surfaceHighlight border border-border flex items-center justify-center text-textMuted hover:text-white hover:bg-primary hover:border-primary transition-all shadow-lg"
-            title="Agregar Gasto Fijo"
-          >
-            <Plus size={18} />
-          </button>
         </div>
 
         {/* TABS DE FILTRO */}
@@ -217,6 +283,13 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
                       <p className="text-white font-medium text-sm truncate" title={t.description}>
                         {t.description}
                       </p>
+                      <button
+                         onClick={() => setEditingTransaction(t)}
+                         className="text-textMuted hover:text-orange-400 opacity-0 group-hover:opacity-100 transition-all p-1"
+                         title="Editar instancia"
+                      >
+                         <Edit2 size={12} />
+                      </button>
                   </div>
                   <div className="flex items-center gap-1 text-textMuted text-[10px]">
                      <AlertCircle size={10} />
@@ -249,7 +322,7 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
 
           {/* SECCIÓN PAGADOS */}
           {paid.map(t => (
-            <div key={t._id} className="flex justify-between items-center bg-surfaceHighlight/10 p-3 rounded-xl border border-emerald-500/10 opacity-70 hover:opacity-100 transition-all shrink-0">
+            <div key={t._id} className="flex justify-between items-center bg-surfaceHighlight/10 p-3 rounded-xl border border-emerald-500/10 opacity-70 hover:opacity-100 transition-all group shrink-0">
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
                    <CheckCircle2 size={14} />
@@ -261,6 +334,13 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
                       <p className="text-textMuted font-medium text-sm truncate line-through decoration-emerald-500/50 decoration-2">
                         {t.description}
                       </p>
+                      <button
+                         onClick={() => setEditingTransaction(t)}
+                         className="text-textMuted hover:text-emerald-500 opacity-0 group-hover:opacity-100 transition-all p-1"
+                         title="Editar instancia"
+                      >
+                         <Edit2 size={12} />
+                      </button>
                   </div>
                   <p className="text-emerald-500/80 text-[10px] font-bold tracking-wide">PAGADO</p>
                 </div>
@@ -312,6 +392,23 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
             </form>
           </div>
         </div>
+      )}
+
+      {/* MODAL EDITAR TRANSACCIÓN */}
+      {editingTransaction && (
+         <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+             <div className="w-full max-w-lg h-auto max-h-[90vh] overflow-y-auto">
+                 <TransactionForm
+                    initialData={editingTransaction}
+                    onTransactionAdded={() => {
+                        fetchMonthTransactions();
+                        onRefresh(); // Refresh parent balance
+                        setEditingTransaction(null);
+                    }}
+                    onCancelEdit={() => setEditingTransaction(null)}
+                 />
+             </div>
+         </div>
       )}
     </>
   );

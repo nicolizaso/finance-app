@@ -3,43 +3,8 @@
 > vite
 
 
-  VITE v6.4.1  ready in 356 ms
+  VITE v6.4.1  ready in 373 ms
 
   ➜  Local:   http://localhost:5173/
   ➜  Network: use --host to expose
-5:52:18 AM [vite] http proxy error: /api/transactions/projection
-Error: connect ECONNREFUSED 127.0.0.1:5000
-    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
-5:52:18 AM [vite] http proxy error: /api/transactions/projection
-Error: connect ECONNREFUSED 127.0.0.1:5000
-    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
-5:52:18 AM [vite] http proxy error: /api/transactions/projection
-Error: connect ECONNREFUSED 127.0.0.1:5000
-    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
-5:52:18 AM [vite] http proxy error: /api/transactions/projection
-Error: connect ECONNREFUSED 127.0.0.1:5000
-    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
-5:53:08 AM [vite] http proxy error: /api/transactions/projection
-Error: connect ECONNREFUSED 127.0.0.1:5000
-    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
-5:53:08 AM [vite] http proxy error: /api/transactions/projection
-Error: connect ECONNREFUSED 127.0.0.1:5000
-    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
-5:53:08 AM [vite] http proxy error: /api/transactions/projection
-Error: connect ECONNREFUSED 127.0.0.1:5000
-    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
-5:53:08 AM [vite] http proxy error: /api/transactions/projection
-Error: connect ECONNREFUSED 127.0.0.1:5000
-    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
-5:54:04 AM [vite] http proxy error: /api/transactions/projection
-Error: connect ECONNREFUSED 127.0.0.1:5000
-    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
-5:54:04 AM [vite] http proxy error: /api/transactions/projection
-Error: connect ECONNREFUSED 127.0.0.1:5000
-    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
-5:54:04 AM [vite] http proxy error: /api/transactions/projection
-Error: connect ECONNREFUSED 127.0.0.1:5000
-    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
-5:54:04 AM [vite] http proxy error: /api/transactions/projection
-Error: connect ECONNREFUSED 127.0.0.1:5000
-    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+2:13:11 AM [vite] (client) hmr update /src/components/FixedExpensesCard.jsx, /src/index.css
