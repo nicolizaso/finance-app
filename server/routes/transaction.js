@@ -10,7 +10,24 @@ router.get('/', async (req, res) => {
         const userId = req.headers['x-user-id']; // <--- LEEMOS EL HEADER
         if (!userId) return res.json({ success: true, data: [] });
 
-        const transactions = await Transaction.find({ userId })
+        let query = { userId };
+
+        // Support for Fixed Expenses Filtering
+        if (req.query.isFixed === 'true') {
+            query.isFixed = true;
+
+            // Optional Date Filtering (Month/Year)
+            if (req.query.month !== undefined && req.query.year !== undefined) {
+                const month = parseInt(req.query.month);
+                const year = parseInt(req.query.year);
+                const startOfMonth = new Date(year, month, 1);
+                const endOfMonth = new Date(year, month + 1, 0);
+
+                query.date = { $gte: startOfMonth, $lte: endOfMonth };
+            }
+        }
+
+        const transactions = await Transaction.find(query)
             .sort({ date: -1 })
             .populate('paidBy', 'name') // Populate payer info
             .populate('sharedWith', 'name email');

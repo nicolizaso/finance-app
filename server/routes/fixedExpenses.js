@@ -168,15 +168,17 @@ router.post('/generate', async (req, res) => {
         const fixedExpenses = await FixedExpense.find({ userId });
         
         const today = new Date();
-        const currentMonth = today.getMonth();
-        const currentYear = today.getFullYear();
+        // Support for custom month generation
+        const reqMonth = (req.body && req.body.month !== undefined) ? parseInt(req.body.month) : today.getMonth();
+        const reqYear = (req.body && req.body.year !== undefined) ? parseInt(req.body.year) : today.getFullYear();
         
         let createdCount = 0;
 
         for (const expense of fixedExpenses) {
-            const dueDate = new Date(currentYear, currentMonth, expense.dayOfMonth);
-            const startOfMonth = new Date(currentYear, currentMonth, 1);
-            const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
+            // Calculate specific dates based on request
+            const dueDate = new Date(reqYear, reqMonth, expense.dayOfMonth);
+            const startOfMonth = new Date(reqYear, reqMonth, 1);
+            const endOfMonth = new Date(reqYear, reqMonth + 1, 0);
 
             // 2. Verificamos si ya existe la transacción para ESTE usuario este mes
             const exists = await Transaction.findOne({
