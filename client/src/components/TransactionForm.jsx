@@ -146,6 +146,10 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
             sharedWith: cleanSharedWith
         };
 
+        // FIX: Ensure persistence
+        payload.isShared = true;
+        payload.sharedWith = sharedData.sharedWith?._id || sharedData.sharedWith;
+
         // CONSTRUCT SPLITS FOR NEW BACKEND LOGIC
         // sharedData has myShare and otherShare in cents.
         const splits = [
