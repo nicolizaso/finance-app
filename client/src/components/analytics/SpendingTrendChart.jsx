@@ -1,6 +1,4 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { useMemo } from 'react';
-import { getSpendingTrend } from '../../utils/analyticsHelpers';
 
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -18,9 +16,7 @@ const CustomTooltip = ({ active, payload, label }) => {
     return null;
 };
 
-const SpendingTrendChart = ({ transactions }) => {
-    const data = useMemo(() => getSpendingTrend(transactions), [transactions]);
-
+const SpendingTrendChart = ({ data }) => {
     return (
         <div className="bento-card h-[300px] flex flex-col">
             <h3 className="text-lg font-bold text-white mb-4 pl-2">Tendencia de Gasto (Acumulado)</h3>

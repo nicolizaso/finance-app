@@ -24,8 +24,12 @@ function App() {
   const [isPrivacyMode, setIsPrivacyMode] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
 
-  // Datos
+  // Datos separados para optimización
   const [transactions, setTransactions] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [fixedExpenses, setFixedExpenses] = useState([]);
+  const [pagination, setPagination] = useState({ page: 1, limit: 50, hasMore: true });
+
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Estados para Moneda
@@ -84,6 +88,8 @@ function App() {
       setCurrentUser(null);
       setIsLocked(true);
       setTransactions([]); // Limpiar datos en memoria
+      setStats(null);
+      setFixedExpenses([]);
   };
 
   const fetchUserProfile = async () => {
@@ -113,16 +119,48 @@ function App() {
       }
   };
 
-  // Carga de datos (Solo si está desbloqueado)
-  const fetchTransactions = async () => {
+  // Carga de datos optimizada (Parallel fetching)
+  const fetchData = async () => {
     try {
-      const res = await api.get('/transactions');
-      setTransactions(res.data.data);
-    } catch (error) { console.error(error); }
+      const [statsRes, fixedRes, txRes] = await Promise.all([
+          api.get('/transactions/stats'),
+          api.get('/transactions/fixed'),
+          api.get('/transactions?page=1&limit=50')
+      ]);
+
+      setStats(statsRes.data.data);
+      setFixedExpenses(fixedRes.data.data);
+
+      setTransactions(txRes.data.data);
+      setPagination({
+          page: 1,
+          limit: 50,
+          hasMore: txRes.data.pagination.page < txRes.data.pagination.pages
+      });
+
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    }
+  };
+
+  const loadMoreTransactions = async () => {
+      if (!pagination.hasMore) return;
+
+      try {
+          const nextPage = pagination.page + 1;
+          const res = await api.get(`/transactions?page=${nextPage}&limit=${pagination.limit}`);
+
+          setTransactions(prev => [...prev, ...res.data.data]);
+          setPagination({
+              ...pagination,
+              page: nextPage,
+              hasMore: res.data.pagination.page < res.data.pagination.pages
+          });
+      } catch (error) { console.error("Error loading more:", error); }
   };
 
   useEffect(() => { 
-      if (!isLocked && currentUser) fetchTransactions(); 
+      if (!isLocked && currentUser) fetchData();
   }, [refreshKey, isLocked, currentUser]);
 
   const handleRefresh = () => setRefreshKey(prev => prev + 1);
@@ -169,6 +207,10 @@ function App() {
                     setIsLocked={setIsLocked}
                     childrenContext={{
                         transactions,
+                        stats,
+                        fixedExpenses,
+                        loadMoreTransactions,
+                        pagination,
                         onRefresh: handleRefresh,
                         isPrivacyMode,
                         currentUser,

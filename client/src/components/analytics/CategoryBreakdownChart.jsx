@@ -1,6 +1,5 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useMemo, useState } from 'react';
-import { getCategoryBreakdown } from '../../utils/analyticsHelpers';
 
 const COLORS = [
     '#7c3aed', // Primary (Violet)
@@ -29,13 +28,18 @@ const CustomTooltip = ({ active, payload, totalSpent }) => {
     return null;
 };
 
-const CategoryBreakdownChart = ({ transactions, period }) => {
-    const data = useMemo(() => getCategoryBreakdown(transactions, period), [transactions, period]);
+const CategoryBreakdownChart = ({ data, period }) => {
+    // Select data based on period
+    const chartData = useMemo(() => {
+        if (!data) return [];
+        return data[period] || [];
+    }, [data, period]);
+
     const [activeIndex, setActiveIndex] = useState(null);
 
-    const totalSpent = useMemo(() => data.reduce((acc, curr) => acc + curr.value, 0), [data]);
+    const totalSpent = useMemo(() => chartData.reduce((acc, curr) => acc + curr.value, 0), [chartData]);
 
-    const activeItem = activeIndex !== null ? data[activeIndex] : null;
+    const activeItem = activeIndex !== null ? chartData[activeIndex] : null;
 
     const onPieEnter = (_, index) => {
         setActiveIndex(index);
@@ -51,7 +55,7 @@ const CategoryBreakdownChart = ({ transactions, period }) => {
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
-                            data={data}
+                            data={chartData}
                             cx="50%"
                             cy="50%"
                             innerRadius={60}
@@ -62,7 +66,7 @@ const CategoryBreakdownChart = ({ transactions, period }) => {
                             onClick={onPieEnter}
                             stroke="none"
                         >
-                            {data.map((entry, index) => (
+                            {chartData.map((entry, index) => (
                                 <Cell
                                     key={`cell-${index}`}
                                     fill={COLORS[index % COLORS.length]}
@@ -96,7 +100,7 @@ const CategoryBreakdownChart = ({ transactions, period }) => {
 
             {/* Legend / List below */}
              <div className="mt-4 px-2 max-h-[80px] overflow-y-auto custom-scrollbar flex flex-wrap gap-2 justify-center">
-                {data.map((entry, index) => (
+                {chartData.map((entry, index) => (
                     <div
                         key={index}
                         className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-full border border-border cursor-pointer transition-colors ${activeIndex === index ? 'bg-white/10' : 'bg-transparent'}`}

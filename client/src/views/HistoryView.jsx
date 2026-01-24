@@ -7,6 +7,8 @@ import { useState, useEffect, useMemo } from 'react';
 const HistoryView = () => {
     const {
         transactions,
+        loadMoreTransactions,
+        pagination,
         onRefresh,
         isPrivacyMode,
         exchangeRates,
@@ -117,6 +119,17 @@ const HistoryView = () => {
                     isPrivacyMode={isPrivacyMode}
                     onTransactionClick={handleTransactionClick}
                 />
+
+                {pagination && pagination.hasMore && (
+                    <div className="p-4 flex justify-center">
+                        <button
+                            onClick={loadMoreTransactions}
+                            className="bg-surfaceHighlight hover:bg-surface border border-white/10 text-textMuted hover:text-white px-4 py-2 rounded-xl text-sm transition-all shadow-sm active:scale-95"
+                        >
+                            Cargar más movimientos
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Detailed Transaction Form Modal */}

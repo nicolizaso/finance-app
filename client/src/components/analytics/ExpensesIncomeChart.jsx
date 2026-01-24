@@ -1,6 +1,4 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { useMemo } from 'react';
-import { getExpensesVsIncomeLast6Months } from '../../utils/analyticsHelpers';
 
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -19,9 +17,7 @@ const CustomTooltip = ({ active, payload, label }) => {
     return null;
 };
 
-const ExpensesIncomeChart = ({ transactions }) => {
-    const data = useMemo(() => getExpensesVsIncomeLast6Months(transactions), [transactions]);
-
+const ExpensesIncomeChart = ({ data }) => {
     return (
         <div className="bento-card h-[400px] flex flex-col">
             <h3 className="text-lg font-bold text-white mb-4 pl-2">Ingresos vs Gastos (6 Meses)</h3>

@@ -7,7 +7,7 @@ import DashboardFilter from '../components/analytics/DashboardFilter';
 import { LayoutDashboard } from 'lucide-react';
 
 const StatsView = () => {
-    const { transactions } = useOutletContext();
+    const { stats } = useOutletContext();
     const [breakdownPeriod, setBreakdownPeriod] = useState('thisMonth');
 
     return (
@@ -25,15 +25,15 @@ const StatsView = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <div className="lg:col-span-7">
-                    <ExpensesIncomeChart transactions={transactions} />
+                    <ExpensesIncomeChart data={stats ? stats.last6Months : []} />
                 </div>
                 <div className="lg:col-span-5">
-                    <CategoryBreakdownChart transactions={transactions} period={breakdownPeriod} />
+                    <CategoryBreakdownChart data={stats ? stats.categoryBreakdown : null} period={breakdownPeriod} />
                 </div>
             </div>
 
             <div className="grid grid-cols-1">
-                <SpendingTrendChart transactions={transactions} />
+                <SpendingTrendChart data={stats ? stats.spendingTrend : []} />
             </div>
         </div>
     );

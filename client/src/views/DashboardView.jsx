@@ -2,12 +2,12 @@ import BalanceCard from '../components/BalanceCard';
 import FixedExpensesCard from '../components/FixedExpensesCard';
 import CreditCardWidget from '../components/CreditCardWidget';
 import { useOutletContext } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import api from '../api/axios';
 
 const DashboardView = () => {
     const {
         transactions,
+        stats,
+        fixedExpenses,
         onRefresh,
         isPrivacyMode,
         onOpenFixedExpense
@@ -17,7 +17,7 @@ const DashboardView = () => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 pb-24 md:pb-6">
             {/* Balance Card - Full Width on Mobile, 8/12 on Desktop */}
             <div className="md:col-span-8">
-                <BalanceCard transactions={transactions} isPrivacyMode={isPrivacyMode} />
+                <BalanceCard stats={stats ? stats.balance : null} isPrivacyMode={isPrivacyMode} />
             </div>
 
             {/* Quick Chart (Credit Card Widget) - 4/12 */}
@@ -28,7 +28,7 @@ const DashboardView = () => {
             {/* Fixed Expenses - Full Width */}
             <div className="md:col-span-12">
                 <FixedExpensesCard
-                    transactions={transactions}
+                    transactions={fixedExpenses}
                     onRefresh={onRefresh}
                     isPrivacyMode={isPrivacyMode}
                     onOpenConfig={onOpenFixedExpense}

@@ -1,24 +1,17 @@
 import { useMemo } from 'react';
-import { getEffectiveAmount } from '../utils/financeHelpers';
 
-const BalanceCard = ({ transactions, isPrivacyMode }) => {
-  const stats = useMemo(() => {
-    const completedTransactions = transactions.filter(t => t.status === 'COMPLETED');
-    const amounts = completedTransactions.map(t => ({ amount: getEffectiveAmount(t), type: t.type }));
-    
-    const income = amounts.filter(i => i.type === 'INCOME').reduce((acc, i) => acc + i.amount, 0);
-    const expense = amounts.filter(i => i.type === 'EXPENSE').reduce((acc, i) => acc + i.amount, 0);
-    const total = income - expense;
+const BalanceCard = ({ stats, isPrivacyMode }) => {
+  // Función auxiliar para formatear: de centavos a entero con puntos
+  const format = (val) => Math.round(val / 100).toLocaleString('es-AR');
 
-    // Función auxiliar para formatear: de centavos a entero con puntos
-    const format = (val) => Math.round(val / 100).toLocaleString('es-AR');
-
-    return {
-      income: format(income),
-      expense: format(expense),
-      total: format(total)
-    };
-  }, [transactions]);
+  const displayStats = useMemo(() => {
+      if (!stats) return { income: '0', expense: '0', total: '0' };
+      return {
+          income: format(stats.income),
+          expense: format(stats.expense),
+          total: format(stats.total)
+      };
+  }, [stats]);
 
   return (
     <div className="bento-card h-full flex flex-col justify-between group">
@@ -29,7 +22,7 @@ const BalanceCard = ({ transactions, isPrivacyMode }) => {
         <div className="flex items-baseline gap-1">
           <span className="text-3xl sm:text-5xl font-bold text-white tracking-tight">$</span>
           <span className={`text-4xl sm:text-6xl font-bold text-white tracking-tight ${isPrivacyMode ? 'blur-sm' : ''}`}>
-             {isPrivacyMode ? '*****' : stats.total}
+             {isPrivacyMode ? '*****' : displayStats.total}
           </span>
         </div>
       </div>
@@ -41,7 +34,7 @@ const BalanceCard = ({ transactions, isPrivacyMode }) => {
             <span className="text-xs text-textMuted font-bold">Ingresos</span>
           </div>
           <p className={`text-lg font-bold text-emerald-400 ${isPrivacyMode ? 'blur-sm' : ''}`}>
-            +${isPrivacyMode ? '***' : stats.income}
+            +${isPrivacyMode ? '***' : displayStats.income}
           </p>
         </div>
 
@@ -51,7 +44,7 @@ const BalanceCard = ({ transactions, isPrivacyMode }) => {
             <span className="text-xs text-textMuted font-bold">Gastos</span>
           </div>
           <p className={`text-lg font-bold text-rose-500 ${isPrivacyMode ? 'blur-sm' : ''}`}>
-            -${isPrivacyMode ? '***' : stats.expense}
+            -${isPrivacyMode ? '***' : displayStats.expense}
           </p>
         </div>
       </div>
