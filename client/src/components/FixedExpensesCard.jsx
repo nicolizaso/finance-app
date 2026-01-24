@@ -24,12 +24,9 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
         const month = selectedDate.getMonth();
         const year = selectedDate.getFullYear();
 
-        // 1. Ensure instances exist
-        await api.post('/fixed-expenses/generate', { month, year });
-
-        // 2. Fetch actual transactions
-        const res = await api.get('/transactions', {
-            params: { isFixed: true, month, year }
+        // Unified endpoint: Generates if needed and returns all transactions
+        const res = await api.get('/fixed-expenses/monthly-view', {
+            params: { month, year }
         });
 
         if (res.data.success) {
