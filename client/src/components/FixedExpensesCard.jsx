@@ -63,9 +63,18 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
   const { pending, paid, totalDebt, totalPaid } = useMemo(() => {
     // 1. Filtrar transacciones relevantes (Fixed o Pending Expense)
     // Note: API already filters by isFixed=true and date range, but we keep safety checks
-    let allFixed = localTransactions.filter(t =>
-      t.type === 'EXPENSE' && (t.isFixed === true || t.status === 'PENDING')
-    );
+
+    const selectedMonth = selectedDate.getMonth();
+    const selectedYear = selectedDate.getFullYear();
+
+    let allFixed = localTransactions.filter(t => {
+      const tDate = new Date(t.date);
+      // Must match Expense Type AND (Fixed OR Pending) AND correct Month/Year
+      return t.type === 'EXPENSE'
+        && (t.isFixed === true || t.status === 'PENDING')
+        && tDate.getMonth() === selectedMonth
+        && tDate.getFullYear() === selectedYear;
+    });
 
     // 2. Aplicar filtro de modo (Personal / Shared)
     if (filterMode === 'PERSONAL') {
@@ -87,7 +96,7 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
     const totalPaid = paid.reduce((acc, t) => acc + getEffectiveAmount(t), 0);
 
     return { pending, paid, totalDebt, totalPaid };
-  }, [localTransactions, filterMode]);
+  }, [localTransactions, filterMode, selectedDate]);
 
   const formatMoney = (amount) => Math.round(amount / 100).toLocaleString('es-AR');
   const getSafeLink = (url) => (!url ? null : (url.startsWith('http') ? url : `https://${url}`));

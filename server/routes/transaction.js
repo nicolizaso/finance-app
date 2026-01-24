@@ -13,18 +13,18 @@ router.get('/', async (req, res) => {
         let query = { userId };
 
         // Support for Fixed Expenses Filtering
-        if (req.query.isFixed === 'true') {
+        if (req.query.isFixed === 'true' || req.query.isFixed === true) {
             query.isFixed = true;
+        }
 
-            // Optional Date Filtering (Month/Year)
-            if (req.query.month !== undefined && req.query.year !== undefined) {
-                const month = parseInt(req.query.month);
-                const year = parseInt(req.query.year);
-                const startOfMonth = new Date(year, month, 1);
-                const endOfMonth = new Date(year, month + 1, 0);
+        // Optional Date Filtering (Month/Year)
+        if (req.query.month !== undefined && req.query.year !== undefined) {
+            const month = parseInt(req.query.month);
+            const year = parseInt(req.query.year);
+            const startOfMonth = new Date(year, month, 1);
+            const endOfMonth = new Date(year, month + 1, 0);
 
-                query.date = { $gte: startOfMonth, $lte: endOfMonth };
-            }
+            query.date = { $gte: startOfMonth, $lte: endOfMonth };
         }
 
         const transactions = await Transaction.find(query)
