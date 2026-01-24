@@ -2,7 +2,7 @@
 > server@1.0.0 start
 > node index.js
 
-[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔄 add secrets lifecycle management: https://dotenvx.com/ops
 No MONGO_URI found, using Memory Server
 Servidor corriendo en el puerto 5000
 MongoDB Conectado

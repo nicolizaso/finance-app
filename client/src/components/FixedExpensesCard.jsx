@@ -227,7 +227,7 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
 
               <div className="flex flex-col items-end ml-3">
                   <span className={`font-mono text-white font-bold text-sm whitespace-nowrap bg-surface/50 px-2 py-0.5 rounded-lg border border-white/5 ${isPrivacyMode ? 'blur-sm' : ''}`}>
-                    ${isPrivacyMode ? '***' : formatMoney(t.amount)}
+                    ${isPrivacyMode ? '***' : formatMoney(t.isShared ? (t.totalAmount || t.amount) : t.amount)}
                   </span>
 
                   {/* Mostrar Mi Parte si es compartido */}
@@ -265,9 +265,16 @@ const FixedExpensesCard = ({ transactions, onRefresh, onOpenConfig, isPrivacyMod
                   <p className="text-emerald-500/80 text-[10px] font-bold tracking-wide">PAGADO</p>
                 </div>
               </div>
-              <span className={`font-mono text-emerald-500 font-bold text-sm whitespace-nowrap ml-3 ${isPrivacyMode ? 'blur-sm' : ''}`}>
-                ${isPrivacyMode ? '***' : formatMoney(t.amount)}
-              </span>
+              <div className="flex flex-col items-end ml-3">
+                  <span className={`font-mono text-emerald-500 font-bold text-sm whitespace-nowrap ${isPrivacyMode ? 'blur-sm' : ''}`}>
+                    ${isPrivacyMode ? '***' : formatMoney(t.isShared ? (t.totalAmount || t.amount) : t.amount)}
+                  </span>
+                  {t.isShared && (
+                      <span className={`text-[9px] text-emerald-500/60 font-mono mt-0.5 ${isPrivacyMode ? 'blur-sm' : ''}`}>
+                          (Tu parte: ${isPrivacyMode ? '***' : formatMoney(getEffectiveAmount(t))})
+                      </span>
+                  )}
+              </div>
             </div>
           ))}
         </div>

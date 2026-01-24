@@ -19,18 +19,21 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
   useEffect(() => {
     if (initialData && initialData.isShared) {
         setEnabled(true);
-        // Check if populated object or ID string
-        if (initialData.sharedWith && typeof initialData.sharedWith === 'object' && initialData.sharedWith._id) {
+
+        // Check if sharedWith is a populated object (Fix for Bug #2)
+        if (typeof initialData.sharedWith === 'object' && initialData.sharedWith !== null && initialData.sharedWith._id) {
              setSelectedUser({
-                _id: initialData.sharedWith._id,
-                username: initialData.sharedWith.name || initialData.sharedWith.username || 'Usuario'
+                 _id: initialData.sharedWith._id,
+                 username: initialData.sharedWith.name || initialData.sharedWith.username || 'Usuario'
              });
-        } else if (initialData.sharedWith && initialData.sharedWith.length === 24) {
+        }
+        // Si es un ID (ObjectId de mongo tiene 24 chars)
+        else if (typeof initialData.sharedWith === 'string' && initialData.sharedWith.length === 24) {
              setSelectedUser({ _id: initialData.sharedWith, username: 'Usuario (ID)' });
         } else {
-             // Es custom name
+             // Es custom name o 'PARTNER'
              setSelectedUser({ _id: null, username: 'Otro' });
-             setCustomName(initialData.sharedWith);
+             setCustomName(typeof initialData.sharedWith === 'string' ? initialData.sharedWith : '');
         }
 
         // Calcular porcentaje basado en amount vs otherShare

@@ -59,11 +59,11 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
              }
          }
 
-         // FIX: Initialize sharedData state on edit
+         // Initialize sharedData state to ensure correct updates even without interaction
          setSharedData({
             isShared: true,
-            myShare: initialData.myShare,
-            otherShare: initialData.otherShare,
+            myShare: initialData.myShare || initialData.amount, // Fallback to amount if myShare missing
+            otherShare: initialData.otherShare || (initialData.totalAmount ? initialData.totalAmount - initialData.amount : 0),
             sharedWith: initialData.sharedWith?._id || initialData.sharedWith,
          });
       }
@@ -136,7 +136,15 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
 
     // Inyectar datos compartidos si existen
     if (sharedData && sharedData.isShared) {
-        payload = { ...payload, ...sharedData };
+        // Ensure critical fields are set
+        const cleanSharedWith = sharedData.sharedWith?._id || sharedData.sharedWith;
+
+        payload = {
+            ...payload,
+            ...sharedData,
+            isShared: true,
+            sharedWith: cleanSharedWith
+        };
 
         // FIX: Ensure persistence
         payload.isShared = true;
@@ -146,7 +154,7 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
         // sharedData has myShare and otherShare in cents.
         const splits = [
              { userId: 'CREATOR', amount: sharedData.myShare },
-             { userId: sharedData.sharedWith, amount: sharedData.otherShare }
+             { userId: cleanSharedWith, amount: sharedData.otherShare }
         ];
 
         payload.splits = splits;

@@ -24,9 +24,13 @@ const FixedExpenseSchema = new mongoose.Schema({
 
     // --- GASTOS COMPARTIDOS ---
     isShared: { type: Boolean, default: false },
-    sharedWith: { type: String, default: '' },
+    sharedWith: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     sharedStatus: { type: String, default: 'NONE' },
-    otherShare: { type: Number, default: 0 }
+    otherShare: { type: Number, default: 0 },
+
+    // Support fields for Shared Logic
+    myShare: { type: Number }, // La parte que paga el usuario
+    totalAmount: { type: Number } // El monto total de la factura
 });
 
 module.exports = mongoose.models.FixedExpense || mongoose.model('FixedExpense', FixedExpenseSchema);

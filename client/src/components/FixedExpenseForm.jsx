@@ -39,22 +39,33 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
 
   const handleEdit = (item) => {
     setEditingId(item._id);
-    // Reconstruir monto total si es compartido (soportando Legacy vs New)
-    let totalAmount = item.amount / 100;
+
+    // Reconstruir monto para mostrar (Total vs Amount)
+    let amountToShow = item.amount / 100; // Por defecto
 
     if (item.isShared) {
-         // Legacy check: myShare is undefined/null
-         const isLegacy = item.myShare === undefined || item.myShare === null;
-         if (isLegacy) {
-             // Legacy: stored amount was the share
-             totalAmount = (item.amount + (item.otherShare || 0)) / 100;
-         }
-         // Else: amount is already Total
+         // Si es compartido, preferimos totalAmount. Si no existe, usamos amount (legacy fallback)
+         const rawTotal = item.totalAmount || item.amount;
+         amountToShow = rawTotal / 100;
+
+         // Inicializar Shared Data correctamente
+         const initialShared = {
+             isShared: true,
+             myShare: item.myShare, // La parte explícita
+             otherShare: item.otherShare,
+             sharedWith: item.sharedWith?._id || item.sharedWith, // Manejar objeto o string
+             amount: rawTotal // Para que el selector calcule porcentajes sobre el total
+         };
+         setSharedData(initialShared);
+         setInitialSharedData(item);
+    } else {
+         setSharedData(null);
+         setInitialSharedData(null);
     }
 
     setFormData({
       title: item.title,
-      amount: totalAmount.toString(),
+      amount: amountToShow.toString(),
       dayOfMonth: item.dayOfMonth,
       category: item.category,
       paymentMethod: item.paymentMethod || 'ONLINE',
@@ -64,9 +75,7 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
       autoDebitCard: item.autoDebitCard || '',
       isSubscription: item.isSubscription || false
     });
-    // Pasamos los datos crudos para que el selector se inicialice
-    setInitialSharedData(item);
-    setSharedData(item); // Inicializamos el estado actual también
+
     setView('form');
   };
 
@@ -93,12 +102,32 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    let payload = { ...formData, amount: parseFloat(formData.amount) * 100 };
+
+    const rawAmount = parseFloat(formData.amount) * 100;
+    let payload = { ...formData };
 
     if (sharedData && sharedData.isShared) {
-        // Al guardar compartido, el amount principal es el TOTAL
-        // No sobreescribimos amount con myShare
-        payload = { ...payload, ...sharedData };
+        // SCENARIO 1: GASTO COMPARTIDO
+        payload = {
+            ...payload,
+            ...sharedData, // Incluye myShare, sharedWith, etc.
+            amount: sharedData.myShare, // Lo que YO pago (para balance)
+            totalAmount: rawAmount, // El total de la factura
+            isShared: true,
+            sharedWith: sharedData.sharedWith // Asegurar ID
+        };
+    } else {
+        // SCENARIO 2: GASTO PERSONAL
+        payload = {
+            ...payload,
+            amount: rawAmount,
+            totalAmount: rawAmount,
+            myShare: rawAmount,
+            otherShare: 0,
+            isShared: false,
+            sharedWith: null,
+            sharedStatus: 'NONE'
+        };
     }
 
     try {
