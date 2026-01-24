@@ -224,4 +224,80 @@ router.post('/generate', async (req, res) => {
     }
 });
 
+// 6. VISTA MENSUAL UNIFICADA (On-Demand Generation)
+router.get('/monthly-view', async (req, res) => {
+    try {
+        const userId = req.headers['x-user-id'];
+        if (!userId) return res.status(400).json({ success: false, error: 'Usuario no identificado' });
+
+        const today = new Date();
+        const reqMonth = req.query.month !== undefined ? parseInt(req.query.month) : today.getMonth();
+        const reqYear = req.query.year !== undefined ? parseInt(req.query.year) : today.getFullYear();
+
+        // 1. Obtener reglas activas
+        const fixedExpenses = await FixedExpense.find({ userId });
+
+        // 2. Definir rango de fechas
+        const startOfMonth = new Date(reqYear, reqMonth, 1);
+        const endOfMonth = new Date(reqYear, reqMonth + 1, 0);
+
+        // 3. Obtener transacciones existentes (isFixed: true)
+        let transactions = await Transaction.find({
+            userId,
+            isFixed: true,
+            date: { $gte: startOfMonth, $lte: endOfMonth }
+        });
+
+        // 4. Gap Fill: Rellenar huecos
+        // Usamos un Set para búsqueda rápida por descripción
+        const transactionMap = new Set(transactions.map(t => t.description));
+        const newTransactions = [];
+
+        for (const expense of fixedExpenses) {
+            if (!transactionMap.has(expense.title)) {
+                // Crear transacción faltante
+                const dueDate = new Date(reqYear, reqMonth, expense.dayOfMonth);
+
+                const newTx = await Transaction.create({
+                    userId,
+                    description: expense.title,
+                    amount: expense.amount,
+                    type: 'EXPENSE',
+                    category: expense.category,
+                    date: dueDate,
+                    status: 'PENDING',
+                    isFixed: true,
+
+                    // Shared Fields
+                    isShared: expense.isShared,
+                    sharedWith: expense.sharedWith,
+                    myShare: expense.myShare,
+                    totalAmount: expense.totalAmount,
+
+                    // Payment Fields
+                    paymentMethod: expense.paymentMethod,
+                    paymentLink: expense.paymentLink,
+                    cbuAlias: expense.cbuAlias,
+                    currency: expense.currency,
+                    autoDebitCard: expense.autoDebitCard
+                });
+
+                newTransactions.push(newTx);
+                transactionMap.add(expense.title);
+            }
+        }
+
+        // Combinar y devolver
+        const finalTransactions = [...transactions, ...newTransactions];
+        // Ordenar por fecha
+        finalTransactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        res.status(200).json({ success: true, data: finalTransactions });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, error: 'Error obteniendo vista mensual' });
+    }
+});
+
 module.exports = router;
