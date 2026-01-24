@@ -171,23 +171,23 @@ router.post('/generate', async (req, res) => {
         const currentMonth = today.getMonth();
         const currentYear = today.getFullYear();
         
-        let createdCount = 0;
+        // Optimization: Fetch all existing transactions for this month once
+        const startOfMonth = new Date(currentYear, currentMonth, 1);
+        const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
+
+        const existingTransactions = await Transaction.find({
+            userId,
+            date: { $gte: startOfMonth, $lte: endOfMonth }
+        }).select('description');
+
+        const existingDescriptions = new Set(existingTransactions.map(t => t.description));
+        const newTransactions = [];
 
         for (const expense of fixedExpenses) {
-            const dueDate = new Date(currentYear, currentMonth, expense.dayOfMonth);
-            const startOfMonth = new Date(currentYear, currentMonth, 1);
-            const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
+            if (!existingDescriptions.has(expense.title)) {
+                const dueDate = new Date(currentYear, currentMonth, expense.dayOfMonth);
 
-            // 2. Verificamos si ya existe la transacción para ESTE usuario este mes
-            const exists = await Transaction.findOne({
-                userId,
-                description: expense.title, 
-                date: { $gte: startOfMonth, $lte: endOfMonth }
-            });
-
-            if (!exists) {
-                // 3. Creamos la transacción asociada al usuario
-                await Transaction.create({
+                newTransactions.push({
                     userId,
                     description: expense.title,
                     amount: expense.amount,
@@ -210,9 +210,14 @@ router.post('/generate', async (req, res) => {
                     currency: expense.currency,
                     autoDebitCard: expense.autoDebitCard
                 });
-                createdCount++;
             }
         }
+
+        if (newTransactions.length > 0) {
+            await Transaction.insertMany(newTransactions);
+        }
+
+        const createdCount = newTransactions.length;
 
         res.status(200).json({ success: true, message: `Generados ${createdCount}` });
 
