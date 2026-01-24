@@ -41,23 +41,11 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
   useEffect(() => {
     if (initialData) {
       // Reconstruir monto total si es compartido
+      // PRIORITY: Load totalAmount if it exists (Shared), otherwise amount (Personal)
       let amountToShow = initialData.amount;
-      if (initialData.isShared) {
-         if (initialData.totalAmount) {
-             amountToShow = initialData.totalAmount;
-         } else {
-             // Check if legacy: myShare is undefined/null (not present in DB)
-             // In new logic, myShare is explicitly stored.
-             const isLegacy = initialData.myShare === undefined || initialData.myShare === null;
 
-             if (isLegacy) {
-                 // Legacy: stored amount was the share
-                 amountToShow = initialData.amount + (initialData.otherShare || 0);
-             } else {
-                 // New data: stored amount is already Total
-                 amountToShow = initialData.amount;
-             }
-         }
+      if (initialData.isShared) {
+         amountToShow = initialData.totalAmount || initialData.amount;
 
          // Initialize sharedData state to ensure correct updates even without interaction
          setSharedData({

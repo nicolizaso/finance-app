@@ -1,5 +1,10 @@
 
-> server@1.0.0 dev
-> nodemon index.js
+> server@1.0.0 start
+> node index.js
 
-sh: 1: nodemon: not found
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+No MONGO_URI found, using Memory Server
+Servidor corriendo en el puerto 5000
+MongoDB Conectado
+✅ Usuario TestUser (PIN: 1234) creado automáticamente.
+✅ Usuario MobileUser (PIN: 1234) creado automáticamente.
