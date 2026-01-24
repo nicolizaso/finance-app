@@ -31,12 +31,12 @@ export default defineConfig({
         orientation: 'portrait',
         icons: [
           {
-            src: 'logo.png', // Usamos tu logo para todos los tamaños por ahora
+            src: 'pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'logo.png', // Lo ideal a futuro es tener versiones resizeadas, pero esto funciona
+            src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png'
           }
