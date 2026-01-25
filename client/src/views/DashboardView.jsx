@@ -10,7 +10,8 @@ const DashboardView = () => {
         transactions,
         onRefresh,
         isPrivacyMode,
-        onOpenFixedExpense
+        onOpenFixedExpense,
+        currentUser
     } = useOutletContext();
 
     return (
@@ -32,6 +33,7 @@ const DashboardView = () => {
                     onRefresh={onRefresh}
                     isPrivacyMode={isPrivacyMode}
                     onOpenConfig={onOpenFixedExpense}
+                    currentUser={currentUser}
                 />
             </div>
         </div>

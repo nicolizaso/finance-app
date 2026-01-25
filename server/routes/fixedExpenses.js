@@ -287,10 +287,13 @@ router.get('/monthly-view', async (req, res) => {
 
         // 5. Fetch ALL Expenses for the month (Unified View)
         let allTransactions = await Transaction.find({
-            userId,
+            $or: [
+                { userId: userId },
+                { sharedWith: userId }
+            ],
             type: 'EXPENSE',
             date: { $gte: startOfMonth, $lte: endOfMonth }
-        });
+        }).populate('userId', 'name email');
 
         // 6. Credit Card Logic (Injection)
         let prevMonth = reqMonth - 1;
