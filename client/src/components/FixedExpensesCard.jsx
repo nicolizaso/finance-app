@@ -306,7 +306,7 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
                   {/* Mostrar Mi Parte si es compartido */}
                   {t.isShared && (
                       <span className={`text-[9px] text-textMuted font-mono mt-0.5 ${isPrivacyMode ? 'blur-sm' : ''}`}>
-                          (Tu parte: ${isPrivacyMode ? '***' : formatMoney(getEffectiveAmount(t))})
+                          (Tu parte: ${isPrivacyMode ? '***' : formatMoney(t.myShare || t.amount)})
                       </span>
                   )}
               </div>
@@ -351,7 +351,7 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
                   </span>
                   {t.isShared && (
                       <span className={`text-[9px] text-emerald-500/60 font-mono mt-0.5 ${isPrivacyMode ? 'blur-sm' : ''}`}>
-                          (Tu parte: ${isPrivacyMode ? '***' : formatMoney(getEffectiveAmount(t))})
+                          (Tu parte: ${isPrivacyMode ? '***' : formatMoney(t.myShare || t.amount)})
                       </span>
                   )}
               </div>

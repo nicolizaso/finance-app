@@ -11,6 +11,11 @@
 export const getEffectiveAmount = (transaction) => {
   if (!transaction || !transaction.amount) return 0;
 
+  // FIX: For shared fixed expenses, amount is ALREADY the user's share.
+  if (transaction.isShared && transaction.isFixed) {
+      return transaction.amount;
+  }
+
   // Caso Prioritario: Porcentaje explícito
   if (transaction.isShared && transaction.myPercentage !== undefined && transaction.myPercentage !== null) {
       // El total (transaction.amount) * porcentaje / 100
