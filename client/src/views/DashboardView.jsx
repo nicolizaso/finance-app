@@ -15,7 +15,7 @@ const DashboardView = () => {
     } = useOutletContext();
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 pb-24 md:pb-6">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:pb-6">
             {/* Balance Card - Full Width on Mobile, 8/12 on Desktop */}
             <div className="md:col-span-8">
                 <BalanceCard transactions={transactions} isPrivacyMode={isPrivacyMode} />
