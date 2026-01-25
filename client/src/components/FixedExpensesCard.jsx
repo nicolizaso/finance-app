@@ -200,7 +200,7 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
 
   return (
     <>
-      <div className="bento-card h-full flex flex-col w-full relative min-h-[350px]">
+      <div className="bento-card h-[calc(100vh-100px)] flex flex-col w-full relative">
         {/* Header con Resumen Doble */}
         <div className="flex justify-between items-start mb-2 border-b border-border pb-3 shrink-0">
           <div className="w-full">
@@ -256,7 +256,7 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
         </div>
 
         {/* LISTA UNIFICADA */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3 max-h-[250px]">
+        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3">
           {pending.length === 0 && paid.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full min-h-[150px] text-center opacity-60">
               <PartyPopper size={32} className="text-textMuted mb-2" />
@@ -300,7 +300,7 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
                   </div>
                   <div className="flex items-center gap-1 text-textMuted text-[10px]">
                      <AlertCircle size={10} />
-                     <span>Vence: {new Date(t.date).getDate()}/{new Date().getMonth()+1}</span>
+                     <span>Vence: {new Date(t.date).getUTCDate()}/{selectedDate.getMonth() + 1}</span>
                   </div>
                 </div>
               </div>
