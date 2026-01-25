@@ -66,9 +66,8 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
 
     let allFixed = localTransactions.filter(t => {
       const tDate = new Date(t.date);
-      // Must match Expense Type AND (Fixed OR Pending) AND correct Month/Year
+      // Must match Expense Type AND correct Month/Year (Unified View)
       return t.type === 'EXPENSE'
-        && (t.isFixed === true || t.status === 'PENDING')
         && tDate.getMonth() === selectedMonth
         && tDate.getFullYear() === selectedYear;
     });
@@ -85,7 +84,7 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
       .sort((a, b) => new Date(a.date) - new Date(b.date));
 
     const paid = allFixed
-      .filter(t => t.status === 'COMPLETED' && t.isFixed === true) 
+      .filter(t => t.status === 'COMPLETED')
       .sort((a, b) => new Date(b.date) - new Date(a.date)); 
 
     // Sumar solo la parte del usuario (usando helper para soportar legacy/new)
@@ -207,7 +206,7 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
           <div className="w-full">
             <div className="flex items-center justify-between w-full mb-2">
                 <h3 className="text-white font-bold font-heading text-lg flex items-center gap-2">
-                    <Calendar size={20} className="text-primary" /> Gastos Fijos
+                    <Calendar size={20} className="text-primary" /> Presupuesto Mensual
                 </h3>
 
                 {/* Month Navigation */}
@@ -269,13 +268,19 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
           {pending.map(t => (
             <div key={t._id} className="flex justify-between items-center bg-surfaceHighlight/30 p-3 rounded-xl border border-transparent hover:border-primary/30 transition-all group shrink-0">
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <button 
-                  onClick={() => openPayModal(t)}
-                  className="w-6 h-6 rounded-full border-2 border-textMuted/50 hover:border-primary hover:bg-primary/20 flex items-center justify-center transition-all shrink-0 text-white"
-                  title="Pagar ahora"
-                >
-                  <Check size={12} className="opacity-0 group-hover:opacity-100" />
-                </button>
+                {!t.isVirtual ? (
+                  <button
+                    onClick={() => openPayModal(t)}
+                    className="w-6 h-6 rounded-full border-2 border-textMuted/50 hover:border-primary hover:bg-primary/20 flex items-center justify-center transition-all shrink-0 text-white"
+                    title="Pagar ahora"
+                  >
+                    <Check size={12} className="opacity-0 group-hover:opacity-100" />
+                  </button>
+                ) : (
+                  <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                    <CreditCard size={14} className="text-textMuted" />
+                  </div>
+                )}
                 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1">
@@ -283,13 +288,15 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
                       <p className="text-white font-medium text-sm truncate" title={t.description}>
                         {t.description}
                       </p>
-                      <button
-                         onClick={() => setEditingTransaction(t)}
-                         className="text-textMuted hover:text-orange-400 opacity-0 group-hover:opacity-100 transition-all p-1"
-                         title="Editar instancia"
-                      >
-                         <Edit2 size={12} />
-                      </button>
+                      {!t.isVirtual && (
+                        <button
+                           onClick={() => setEditingTransaction(t)}
+                           className="text-textMuted hover:text-orange-400 opacity-0 group-hover:opacity-100 transition-all p-1"
+                           title="Editar instancia"
+                        >
+                           <Edit2 size={12} />
+                        </button>
+                      )}
                   </div>
                   <div className="flex items-center gap-1 text-textMuted text-[10px]">
                      <AlertCircle size={10} />
