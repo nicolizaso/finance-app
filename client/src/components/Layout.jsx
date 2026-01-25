@@ -48,7 +48,7 @@ const Layout = ({
       <div className="md:hidden fixed top-0 left-0 w-full z-40 bg-void/90 backdrop-blur-md border-b border-white/5 px-4 py-3 flex justify-between items-center">
         <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
-               <Leaf size={20} />
+               <img src="/logo.png" alt="Eco" className="w-5 h-5 object-contain" />
             </div>
             <span className="font-heading font-bold text-lg text-white tracking-wide">Eco</span>
         </div>
