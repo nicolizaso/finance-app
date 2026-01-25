@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
-const COLORS = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#6366F1'];
+const COLORS = ['#10B981', '#34D399', '#6EE7B7', '#059669', '#047857', '#065F46', '#A7F3D0'];
 
 const ExpenseChart = ({ transactions, isPrivacyMode }) => {
 
@@ -56,13 +56,13 @@ const ExpenseChart = ({ transactions, isPrivacyMode }) => {
               <Tooltip 
                 formatter={(value) => `$${Math.round(value).toLocaleString('es-AR')}`}
                 contentStyle={{ 
-                  backgroundColor: '#1A1626', 
-                  border: '1px solid #2E2442', 
+                  backgroundColor: '#18181b',
+                  border: '1px solid #064e3b',
                   borderRadius: '12px', 
                   color: '#fff',
                   boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
                 }}
-                itemStyle={{ color: '#E9D5FF' }} 
+                itemStyle={{ color: '#ecfdf5' }}
               />
             )}
             <Legend 

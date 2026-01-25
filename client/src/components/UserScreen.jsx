@@ -20,11 +20,11 @@ const UserScreen = ({ onUserSubmit }) => {
       <div className="text-center mb-12">
         <div className="relative inline-block mb-6">
             <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full"></div>
-            <img src="/logo.png" alt="Logo" className="w-28 h-28 relative z-10 rounded-full border-4 border-surface shadow-2xl" />
+            <img src="/logo.svg" alt="Logo" className="w-28 h-28 relative z-10 rounded-full border-4 border-surface shadow-2xl p-6 bg-void" />
         </div>
         
         <h1 className="text-4xl font-extrabold text-white tracking-tighter mb-2">
-            Finanz<span className="text-primary">App</span>
+            Eco
         </h1>
         <p className="text-textMuted text-sm">Identifícate para continuar</p>
       </div>

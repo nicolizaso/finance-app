@@ -6,7 +6,7 @@ export const generateReport = (currentUser, transactions) => {
   const currentDate = new Date();
 
   // -- STYLES --
-  const primaryColor = [124, 58, 237]; // Deep Violet (#7c3aed)
+  const primaryColor = [16, 185, 129]; // Emerald Green (#10b981)
   const textColor = [40, 40, 40];
 
   // -- HEADER --
@@ -14,7 +14,7 @@ export const generateReport = (currentUser, transactions) => {
   doc.setFontSize(22);
   doc.setTextColor(...primaryColor);
   doc.setFont('helvetica', 'bold');
-  doc.text('FinanzApp', 14, 20);
+  doc.text('Eco', 14, 20);
 
   // Subheader info
   doc.setFontSize(10);
@@ -125,5 +125,5 @@ export const generateReport = (currentUser, transactions) => {
       doc.text(`Página ${i} de ${pageCount}`, 196, 285, { align: 'right' });
   }
 
-  doc.save(`Reporte_FinanzApp_${currentMonth + 1}_${currentYear}.pdf`);
+  doc.save(`Reporte_Eco_${currentMonth + 1}_${currentYear}.pdf`);
 };

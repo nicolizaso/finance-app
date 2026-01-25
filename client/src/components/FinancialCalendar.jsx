@@ -189,7 +189,7 @@ const FinancialCalendar = ({ transactions, fixedExpenses, onRefresh, isPrivacyMo
                         {items.slice(0, 3).map((item, idx) => {
                              let barColor = 'bg-gray-500';
                              if (item.isPaid) barColor = 'bg-emerald-500';
-                             else if (item.type === 'INSTALLMENT') barColor = 'bg-blue-400';
+                             else if (item.type === 'INSTALLMENT') barColor = 'bg-emerald-400';
                              else if (new Date(currentDate.getFullYear(), currentDate.getMonth(), day) < new Date()) barColor = 'bg-rose-500';
 
                              return (
@@ -258,13 +258,13 @@ const FinancialCalendar = ({ transactions, fixedExpenses, onRefresh, isPrivacyMo
                                     <div key={idx} className="bg-surfaceHighlight/30 p-3 rounded-xl border border-white/5 flex flex-col gap-2">
                                         <div className="flex justify-between items-start">
                                             <div className="flex items-start gap-3 min-w-0">
-                                                <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${item.isPaid ? 'bg-emerald-500' : isOverdue ? 'bg-rose-500' : 'bg-blue-400'}`} />
+                                                <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${item.isPaid ? 'bg-emerald-500' : isOverdue ? 'bg-rose-500' : 'bg-emerald-400'}`} />
                                                 <div className="min-w-0">
                                                     <p className="text-white font-medium truncate">
                                                         {item.data.description || item.data.title}
                                                     </p>
                                                     {item.type === 'INSTALLMENT' && (
-                                                        <p className="text-[10px] text-blue-300 flex items-center gap-1">
+                                                        <p className="text-[10px] text-emerald-300 flex items-center gap-1">
                                                             <CreditCard size={10} />
                                                             Cuota {item.installmentIndex}/{item.data.installments}
                                                         </p>

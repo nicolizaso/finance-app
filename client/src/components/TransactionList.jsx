@@ -56,7 +56,7 @@ const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode, on
                     : t.type === 'INCOME'
                         ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                         : t.paymentMethod === 'CREDIT'
-                            ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                            ? 'bg-primary/10 text-primary border border-primary/20'
                             : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                 }`}>
                   {t.needsReview ? <AlertCircle size={18} /> :

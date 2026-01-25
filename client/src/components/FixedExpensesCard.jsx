@@ -204,7 +204,7 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
     // 4. DEBITO
     if (paymentMethod === 'DEBIT' && autoDebitCard) {
         return (
-            <div className="flex items-center gap-2 justify-center mb-4 p-2 rounded-xl bg-surfaceHighlight/50 border border-blue-500/30 text-blue-300">
+            <div className="flex items-center gap-2 justify-center mb-4 p-2 rounded-xl bg-surfaceHighlight/50 border border-primary/30 text-primary">
                 <CreditCard size={18} />
                 <span className="text-sm">Débito en: <b>{autoDebitCard}</b></span>
             </div>
@@ -303,9 +303,9 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
                 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1">
-                      {t.isShared && <Users size={14} className="text-blue-400 shrink-0" title="Gasto Compartido" />}
+                      {t.isShared && <Users size={14} className="text-emerald-400 shrink-0" title="Gasto Compartido" />}
                       {!isOwner && (
-                          <span className="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded border border-blue-500/30 truncate max-w-[100px]">
+                          <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/30 truncate max-w-[100px]">
                             De: {t.userId?.name?.split(' ')[0] || 'Otro'}
                           </span>
                       )}
@@ -365,9 +365,9 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
                 
                 <div className="min-w-0">
                   <div className="flex items-center gap-1">
-                      {t.isShared && <Users size={14} className="text-blue-400 shrink-0" title="Gasto Compartido" />}
+                      {t.isShared && <Users size={14} className="text-emerald-400 shrink-0" title="Gasto Compartido" />}
                       {!isOwner && (
-                          <span className="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded border border-blue-500/30 truncate max-w-[100px]">
+                          <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/30 truncate max-w-[100px]">
                             De: {t.userId?.name?.split(' ')[0] || 'Otro'}
                           </span>
                       )}
