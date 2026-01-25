@@ -45,7 +45,7 @@ const ToastItem = ({ message, type, onClose }) => {
         success: <CheckCircle size={20} className="text-emerald-400" />,
         error: <AlertCircle size={20} className="text-rose-400" />,
         warning: <AlertTriangle size={20} className="text-amber-400" />,
-        info: <Info size={20} className="text-blue-400" />,
+        info: <Info size={20} className="text-primary" />,
     };
 
     const baseStyles = "pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border backdrop-blur-md shadow-lg min-w-[300px] max-w-sm";
@@ -54,7 +54,7 @@ const ToastItem = ({ message, type, onClose }) => {
         success: 'border-emerald-500/50 bg-emerald-500/10 shadow-[0_0_15px_rgba(16,185,129,0.2)]',
         error: 'border-rose-500/50 bg-rose-500/10 shadow-[0_0_15px_rgba(244,63,94,0.2)]',
         warning: 'border-amber-500/50 bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.2)]',
-        info: 'border-blue-500/50 bg-blue-500/10 shadow-[0_0_15px_rgba(59,130,246,0.2)]',
+        info: 'border-primary/50 bg-primary/10 shadow-[0_0_15px_rgba(16,185,129,0.2)]',
     };
 
     return (

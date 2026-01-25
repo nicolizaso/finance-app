@@ -64,9 +64,9 @@ const PinScreen = ({ username, onLoginSuccess, onBack }) => { // <--- Nuevas pro
 
       <div className="mb-10 text-center">
         <img 
-          src="/logo.png" 
+          src="/logo.svg"
           alt="Logo" 
-          className="w-20 h-20 mx-auto mb-6 rounded-full border-2 border-primary/20 object-contain shadow-glow bg-void" 
+          className="w-20 h-20 mx-auto mb-6 rounded-full border-2 border-primary/20 object-contain shadow-glow bg-void p-4"
         />
         <h2 className="text-2xl font-bold text-white mb-1 capitalize">Hola, {username}</h2>
         <p className="text-textMuted text-xs uppercase tracking-widest">

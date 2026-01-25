@@ -7,33 +7,33 @@ export default {
   theme: {
     extend: {
       colors: {
-        // FONDO: Un violeta tan oscuro que parece negro, para contraste infinito.
-        void: '#06030c',
+        // FONDO: Neutral Dark
+        void: '#0a0a0a',
         
-        // TARJETAS: Violeta profundo, ligeramente desaturado para no cansar la vista.
-        surface: '#110a1f',
+        // TARJETAS: Zinc-900
+        surface: '#18181b',
         
-        // INTERACCIÓN: Un tono más claro para inputs y hovers.
-        surfaceHighlight: '#1d1233',
+        // INTERACCIÓN: Zinc-800
+        surfaceHighlight: '#27272a',
         
-        // BORDES: Sutiles, para separar sin líneas duras.
-        border: '#2e1a4f',
+        // BORDES: Emerald-900
+        border: '#064e3b',
         
-        // ACCIÓN: El color principal vibrante.
-        primary: '#7c3aed', // Violet-600
-        primaryHover: '#6d28d9', // Violet-700
+        // ACCIÓN: Emerald-500
+        primary: '#10b981',
+        primaryHover: '#34d399',
         
         // TEXTOS & BRILLOS
-        neon: '#d8b4fe', // Violet-300
-        textMain: '#f3e8ff', // Violet-100
-        textMuted: '#a78bfa', // Violet-400
+        neon: '#6ee7b7', // Emerald-300
+        textMain: '#ecfdf5', // Emerald-50
+        textMuted: '#9ca3af', // Gray-400
       },
       fontFamily: {
         heading: ['Outfit', 'sans-serif'],
         body: ['Inter', 'sans-serif'],
       },
       boxShadow: {
-        'glow': '0 0 20px -5px rgba(124, 58, 237, 0.3)',
+        'glow': '0 0 20px -5px rgba(16, 185, 129, 0.3)',
         'card': '0 8px 30px rgba(0, 0, 0, 0.5)',
       },
       animation: {
