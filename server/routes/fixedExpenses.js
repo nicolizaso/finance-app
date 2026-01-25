@@ -241,8 +241,8 @@ router.get('/monthly-view', async (req, res) => {
         const startOfMonth = new Date(reqYear, reqMonth, 1);
         const endOfMonth = new Date(reqYear, reqMonth + 1, 0);
 
-        // 3. Obtener transacciones existentes (isFixed: true)
-        let transactions = await Transaction.find({
+        // 3. Obtener transacciones FIXED existentes (para el Gap Fill)
+        let existingFixed = await Transaction.find({
             userId,
             isFixed: true,
             date: { $gte: startOfMonth, $lte: endOfMonth }
@@ -250,15 +250,14 @@ router.get('/monthly-view', async (req, res) => {
 
         // 4. Gap Fill: Rellenar huecos
         // Usamos un Set para búsqueda rápida por descripción
-        const transactionMap = new Set(transactions.map(t => t.description));
-        const newTransactions = [];
+        const transactionMap = new Set(existingFixed.map(t => t.description));
 
         for (const expense of fixedExpenses) {
             if (!transactionMap.has(expense.title)) {
                 // Crear transacción faltante
                 const dueDate = new Date(reqYear, reqMonth, expense.dayOfMonth);
 
-                const newTx = await Transaction.create({
+                await Transaction.create({
                     userId,
                     description: expense.title,
                     amount: expense.amount,
@@ -282,13 +281,71 @@ router.get('/monthly-view', async (req, res) => {
                     autoDebitCard: expense.autoDebitCard
                 });
 
-                newTransactions.push(newTx);
                 transactionMap.add(expense.title);
             }
         }
 
-        // Combinar y devolver
-        const finalTransactions = [...transactions, ...newTransactions];
+        // 5. Fetch ALL Expenses for the month (Unified View)
+        let allTransactions = await Transaction.find({
+            $or: [
+                { userId: userId },
+                { sharedWith: userId }
+            ],
+            type: 'EXPENSE',
+            date: { $gte: startOfMonth, $lte: endOfMonth }
+        }).populate('userId', 'name email');
+
+        // 6. Credit Card Logic (Injection)
+        let prevMonth = reqMonth - 1;
+        let prevYear = reqYear;
+        if (prevMonth < 0) {
+            prevMonth = 11;
+            prevYear = reqYear - 1;
+        }
+
+        const startOfPrevMonth = new Date(prevYear, prevMonth, 1);
+        const endOfPrevMonth = new Date(prevYear, prevMonth + 1, 0);
+
+        // Sum previous month credit card usage
+        const creditCardTransactions = await Transaction.aggregate([
+            {
+                $match: {
+                    userId: userId,
+                    type: 'EXPENSE',
+                    paymentMethod: 'CREDIT',
+                    date: { $gte: startOfPrevMonth, $lte: endOfPrevMonth }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: "$amount" }
+                }
+            }
+        ]);
+
+        const ccTotal = creditCardTransactions.length > 0 ? creditCardTransactions[0].total : 0;
+
+        // Convert documents to plain objects to allow injection
+        let finalTransactions = allTransactions.map(t => t.toObject ? t.toObject() : t);
+
+        if (ccTotal > 0) {
+            const ccBill = {
+                _id: 'cc-summary-virtual',
+                description: 'Tarjeta de Crédito (Resumen)',
+                amount: ccTotal,
+                date: new Date(reqYear, reqMonth, 1), // 1st of current month
+                category: 'Financiero',
+                isFixed: true, // Visually styled as fixed
+                isVirtual: true,
+                isPaid: false,
+                type: 'EXPENSE',
+                status: 'PENDING',
+                paymentMethod: 'ONLINE' // Default to avoid errors
+            };
+            finalTransactions.push(ccBill);
+        }
+
         // Ordenar por fecha
         finalTransactions.sort((a, b) => new Date(a.date) - new Date(b.date));
 

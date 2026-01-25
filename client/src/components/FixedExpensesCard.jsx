@@ -5,7 +5,7 @@ import { getEffectiveAmount } from '../utils/financeHelpers';
 import { useToast } from '../context/ToastContext'; // Importación necesaria
 import TransactionForm from './TransactionForm';
 
-const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenConfig, isPrivacyMode }) => {
+const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenConfig, isPrivacyMode, currentUser }) => {
   const { addToast } = useToast();
   const [payingTransaction, setPayingTransaction] = useState(null);
   const [editingTransaction, setEditingTransaction] = useState(null);
@@ -66,9 +66,8 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
 
     let allFixed = localTransactions.filter(t => {
       const tDate = new Date(t.date);
-      // Must match Expense Type AND (Fixed OR Pending) AND correct Month/Year
+      // Must match Expense Type AND correct Month/Year (Unified View)
       return t.type === 'EXPENSE'
-        && (t.isFixed === true || t.status === 'PENDING')
         && tDate.getMonth() === selectedMonth
         && tDate.getFullYear() === selectedYear;
     });
@@ -85,7 +84,7 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
       .sort((a, b) => new Date(a.date) - new Date(b.date));
 
     const paid = allFixed
-      .filter(t => t.status === 'COMPLETED' && t.isFixed === true) 
+      .filter(t => t.status === 'COMPLETED')
       .sort((a, b) => new Date(b.date) - new Date(a.date)); 
 
     // Sumar solo la parte del usuario (usando helper para soportar legacy/new)
@@ -104,10 +103,26 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
     addToast("¡Copiado al portapapeles!", "success");
   };
 
+  const getTransactionDisplayData = (t) => {
+      const tUserId = t.userId;
+      const currentUserId = currentUser?._id;
+      // Handle populated object or string ID safely
+      const tUserIdString = (tUserId && typeof tUserId === 'object') ? tUserId._id : tUserId;
+      const isOwner = tUserIdString === currentUserId;
+
+      let amountToDisplay = t.amount;
+      if (!isOwner) {
+          // If not owner, try otherShare first, then deduce from total, else 0 (fallback)
+          amountToDisplay = t.otherShare || (t.totalAmount ? (t.totalAmount - t.amount) : 0);
+      }
+
+      return { isOwner, amountToDisplay };
+  };
+
   // --- MODAL HANDLERS ---
-  const openPayModal = (t) => {
+  const openPayModal = (t, amountToPay) => {
     setPayingTransaction(t);
-    setPaymentAmount(formatMoney(t.amount));
+    setPaymentAmount(formatMoney(amountToPay || t.amount));
   };
 
   const handleAmountChange = (e) => {
@@ -201,13 +216,13 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
 
   return (
     <>
-      <div className="bento-card h-full flex flex-col w-full relative min-h-[350px]">
+      <div className="bento-card h-[calc(100vh-100px)] flex flex-col w-full relative">
         {/* Header con Resumen Doble */}
         <div className="flex justify-between items-start mb-2 border-b border-border pb-3 shrink-0">
           <div className="w-full">
             <div className="flex items-center justify-between w-full mb-2">
                 <h3 className="text-white font-bold font-heading text-lg flex items-center gap-2">
-                    <Calendar size={20} className="text-primary" /> Gastos Fijos
+                    <Calendar size={20} className="text-primary" /> Presupuesto Mensual
                 </h3>
 
                 {/* Month Navigation */}
@@ -257,7 +272,7 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
         </div>
 
         {/* LISTA UNIFICADA */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3 max-h-[250px]">
+        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3">
           {pending.length === 0 && paid.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full min-h-[150px] text-center opacity-60">
               <PartyPopper size={32} className="text-textMuted mb-2" />
@@ -266,52 +281,69 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
           )}
 
           {/* SECCIÓN PENDIENTES */}
-          {pending.map(t => (
+          {pending.map(t => {
+            const { isOwner, amountToDisplay } = getTransactionDisplayData(t);
+
+            return (
             <div key={t._id} className="flex justify-between items-center bg-surfaceHighlight/30 p-3 rounded-xl border border-transparent hover:border-primary/30 transition-all group shrink-0">
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <button 
-                  onClick={() => openPayModal(t)}
-                  className="w-6 h-6 rounded-full border-2 border-textMuted/50 hover:border-primary hover:bg-primary/20 flex items-center justify-center transition-all shrink-0 text-white"
-                  title="Pagar ahora"
-                >
-                  <Check size={12} className="opacity-0 group-hover:opacity-100" />
-                </button>
+                {!t.isVirtual ? (
+                  <button
+                    onClick={() => openPayModal(t, amountToDisplay)}
+                    className="w-6 h-6 rounded-full border-2 border-textMuted/50 hover:border-primary hover:bg-primary/20 flex items-center justify-center transition-all shrink-0 text-white"
+                    title="Pagar ahora"
+                  >
+                    <Check size={12} className="opacity-0 group-hover:opacity-100" />
+                  </button>
+                ) : (
+                  <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                    <CreditCard size={14} className="text-textMuted" />
+                  </div>
+                )}
                 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1">
                       {t.isShared && <Users size={14} className="text-blue-400 shrink-0" title="Gasto Compartido" />}
+                      {!isOwner && (
+                          <span className="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded border border-blue-500/30 truncate max-w-[100px]">
+                            De: {t.userId?.name?.split(' ')[0] || 'Otro'}
+                          </span>
+                      )}
                       <p className="text-white font-medium text-sm truncate" title={t.description}>
                         {t.description}
                       </p>
-                      <button
-                         onClick={() => setEditingTransaction(t)}
-                         className="text-textMuted hover:text-orange-400 opacity-0 group-hover:opacity-100 transition-all p-1"
-                         title="Editar instancia"
-                      >
-                         <Edit2 size={12} />
-                      </button>
+                      {!t.isVirtual && isOwner && (
+                        <button
+                           onClick={() => setEditingTransaction(t)}
+                           className="text-textMuted hover:text-orange-400 opacity-0 group-hover:opacity-100 transition-all p-1"
+                           title="Editar instancia"
+                        >
+                           <Edit2 size={12} />
+                        </button>
+                      )}
                   </div>
                   <div className="flex items-center gap-1 text-textMuted text-[10px]">
                      <AlertCircle size={10} />
-                     <span>Vence: {new Date(t.date).getDate()}/{new Date().getMonth()+1}</span>
+                     <span>Vence: {new Date(t.date).getUTCDate()}/{selectedDate.getMonth() + 1}</span>
                   </div>
                 </div>
               </div>
 
               <div className="flex flex-col items-end ml-3">
                   <span className={`font-mono text-white font-bold text-sm whitespace-nowrap bg-surface/50 px-2 py-0.5 rounded-lg border border-white/5 ${isPrivacyMode ? 'blur-sm' : ''}`}>
-                    ${isPrivacyMode ? '***' : formatMoney(t.isShared ? (t.totalAmount || t.amount) : t.amount)}
+                    ${isPrivacyMode ? '***' : formatMoney(amountToDisplay)}
                   </span>
 
-                  {/* Mostrar Mi Parte si es compartido */}
+                  {/* Mostrar Total si es compartido */}
                   {t.isShared && (
                       <span className={`text-[9px] text-textMuted font-mono mt-0.5 ${isPrivacyMode ? 'blur-sm' : ''}`}>
-                          (Tu parte: ${isPrivacyMode ? '***' : formatMoney(t.myShare || t.amount)})
+                          (Total: ${isPrivacyMode ? '***' : formatMoney(t.totalAmount || t.amount)})
                       </span>
                   )}
               </div>
             </div>
-          ))}
+            );
+          })}
 
           {pending.length > 0 && paid.length > 0 && (
              <div className="relative py-2 flex items-center justify-center">
@@ -321,7 +353,10 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
           )}
 
           {/* SECCIÓN PAGADOS */}
-          {paid.map(t => (
+          {paid.map(t => {
+             const { isOwner, amountToDisplay } = getTransactionDisplayData(t);
+
+            return (
             <div key={t._id} className="flex justify-between items-center bg-surfaceHighlight/10 p-3 rounded-xl border border-emerald-500/10 opacity-70 hover:opacity-100 transition-all group shrink-0">
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
@@ -331,32 +366,40 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
                 <div className="min-w-0">
                   <div className="flex items-center gap-1">
                       {t.isShared && <Users size={14} className="text-blue-400 shrink-0" title="Gasto Compartido" />}
+                      {!isOwner && (
+                          <span className="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded border border-blue-500/30 truncate max-w-[100px]">
+                            De: {t.userId?.name?.split(' ')[0] || 'Otro'}
+                          </span>
+                      )}
                       <p className="text-textMuted font-medium text-sm truncate line-through decoration-emerald-500/50 decoration-2">
                         {t.description}
                       </p>
-                      <button
-                         onClick={() => setEditingTransaction(t)}
-                         className="text-textMuted hover:text-emerald-500 opacity-0 group-hover:opacity-100 transition-all p-1"
-                         title="Editar instancia"
-                      >
-                         <Edit2 size={12} />
-                      </button>
+                      {isOwner && (
+                        <button
+                           onClick={() => setEditingTransaction(t)}
+                           className="text-textMuted hover:text-emerald-500 opacity-0 group-hover:opacity-100 transition-all p-1"
+                           title="Editar instancia"
+                        >
+                           <Edit2 size={12} />
+                        </button>
+                      )}
                   </div>
                   <p className="text-emerald-500/80 text-[10px] font-bold tracking-wide">PAGADO</p>
                 </div>
               </div>
               <div className="flex flex-col items-end ml-3">
                   <span className={`font-mono text-emerald-500 font-bold text-sm whitespace-nowrap ${isPrivacyMode ? 'blur-sm' : ''}`}>
-                    ${isPrivacyMode ? '***' : formatMoney(t.isShared ? (t.totalAmount || t.amount) : t.amount)}
+                    ${isPrivacyMode ? '***' : formatMoney(amountToDisplay)}
                   </span>
                   {t.isShared && (
                       <span className={`text-[9px] text-emerald-500/60 font-mono mt-0.5 ${isPrivacyMode ? 'blur-sm' : ''}`}>
-                          (Tu parte: ${isPrivacyMode ? '***' : formatMoney(t.myShare || t.amount)})
+                          (Total: ${isPrivacyMode ? '***' : formatMoney(t.totalAmount || t.amount)})
                       </span>
                   )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
