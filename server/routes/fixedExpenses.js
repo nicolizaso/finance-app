@@ -174,22 +174,27 @@ router.post('/generate', async (req, res) => {
         
         let createdCount = 0;
 
+        // 2. Optimization: Batch check for existing transactions
+        const startOfMonth = new Date(reqYear, reqMonth, 1);
+        const endOfMonth = new Date(reqYear, reqMonth + 1, 0);
+
+        const expenseTitles = fixedExpenses.map(e => e.title);
+        const existingTransactions = await Transaction.find({
+            userId,
+            description: { $in: expenseTitles },
+            date: { $gte: startOfMonth, $lte: endOfMonth }
+        }).select('description');
+
+        const existingTitles = new Set(existingTransactions.map(t => t.description));
+        const processedTitlesInBatch = new Set();
+        const transactionsToCreate = [];
+
         for (const expense of fixedExpenses) {
-            // Calculate specific dates based on request
-            const dueDate = new Date(reqYear, reqMonth, expense.dayOfMonth);
-            const startOfMonth = new Date(reqYear, reqMonth, 1);
-            const endOfMonth = new Date(reqYear, reqMonth + 1, 0);
+            // Check against DB and current batch to prevent duplicates
+            if (!existingTitles.has(expense.title) && !processedTitlesInBatch.has(expense.title)) {
+                const dueDate = new Date(reqYear, reqMonth, expense.dayOfMonth);
 
-            // 2. Verificamos si ya existe la transacción para ESTE usuario este mes
-            const exists = await Transaction.findOne({
-                userId,
-                description: expense.title, 
-                date: { $gte: startOfMonth, $lte: endOfMonth }
-            });
-
-            if (!exists) {
-                // 3. Creamos la transacción asociada al usuario
-                await Transaction.create({
+                transactionsToCreate.push({
                     userId,
                     description: expense.title,
                     amount: expense.amount,
@@ -212,8 +217,14 @@ router.post('/generate', async (req, res) => {
                     currency: expense.currency,
                     autoDebitCard: expense.autoDebitCard
                 });
-                createdCount++;
+
+                processedTitlesInBatch.add(expense.title);
             }
+        }
+
+        if (transactionsToCreate.length > 0) {
+            await Transaction.insertMany(transactionsToCreate);
+            createdCount = transactionsToCreate.length;
         }
 
         res.status(200).json({ success: true, message: `Generados ${createdCount}` });
