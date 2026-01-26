@@ -69,11 +69,11 @@ const HistoryView = () => {
             {/* Header: Search Bar & Actions */}
             <div className="mb-4 flex gap-2">
                 <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-textMuted" size={18} />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
                     <input
                         type="text"
                         placeholder="Buscar movimientos..."
-                        className="w-full bg-surface border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder-textMuted focus:border-primary focus:outline-none transition-colors"
+                        className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-white placeholder-slate-400 focus:border-indigo-500 focus:outline-none transition-colors"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -82,7 +82,7 @@ const HistoryView = () => {
                 {/* Botón Filtro Pendientes (Nuevo) */}
                 <button
                     onClick={togglePendingFilter}
-                    className={`w-12 rounded-xl flex items-center justify-center transition-all ${showPendingOnly ? 'bg-amber-500/20 text-amber-500 border border-amber-500/50' : 'bg-surface border border-white/10 text-textMuted hover:text-white'}`}
+                    className={`w-12 rounded-xl flex items-center justify-center transition-all ${showPendingOnly ? 'bg-amber-500/20 text-amber-500 border border-amber-500/50' : 'bg-slate-800 border border-slate-700 text-slate-400 hover:text-white'}`}
                     title="Ver solo pendientes de revisión"
                 >
                     <Filter size={20} className={showPendingOnly ? "animate-pulse" : ""} />
@@ -91,7 +91,7 @@ const HistoryView = () => {
                 {/* Botón Nuevo Movimiento */}
                 <button
                     onClick={handleCreateNew}
-                    className="bg-primary hover:bg-primaryHover text-white w-12 rounded-xl flex items-center justify-center shadow-glow transition-all active:scale-95"
+                    className="bg-indigo-500 hover:bg-indigo-600 text-white w-12 rounded-xl flex items-center justify-center shadow-glow transition-all active:scale-95"
                     title="Nuevo Movimiento Detallado"
                 >
                     <Plus size={24} />
@@ -110,7 +110,7 @@ const HistoryView = () => {
             )}
 
             {/* List */}
-            <div className="flex-1 min-h-0 bento-card p-0 border-primary/10 bg-surface/50">
+            <div className="flex-1 min-h-0 bento-card p-0 border-indigo-500/10 bg-slate-800/50">
                  <TransactionList
                     transactions={filteredTransactions}
                     onTransactionUpdated={onRefresh}
@@ -121,14 +121,14 @@ const HistoryView = () => {
 
             {/* Detailed Transaction Form Modal */}
             {isFormOpen && (
-                <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+                <div className="fixed inset-0 z-[60] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
                     {/* Wrapper con dimensiones */}
                     <div className="w-full max-w-md h-[85vh] relative flex flex-col bg-transparent">
 
                         {/* Botón Cerrar Flotante */}
                         <button
                             onClick={handleCloseForm}
-                            className="absolute top-4 right-4 z-20 text-textMuted hover:text-white bg-surface/50 rounded-full p-1"
+                            className="absolute top-4 right-4 z-20 text-slate-400 hover:text-white bg-slate-800/50 rounded-full p-1"
                         >
                             <X size={20} />
                         </button>

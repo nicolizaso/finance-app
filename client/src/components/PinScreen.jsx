@@ -1,12 +1,10 @@
 import { useState } from 'react';
-import api from '../api/axios'; // Importamos la api
+import api from '../api/axios';
 
-const PinScreen = ({ username, onLoginSuccess, onBack }) => { // <--- Nuevas props
+const PinScreen = ({ username, onLoginSuccess, onBack }) => {
   const [pin, setPin] = useState(['', '', '', '']);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  // ... (useEffects viejos borrados, ya no usamos localStorage para validar PIN localmente)
 
   const handlePress = async (num) => {
     if (loading) return;
@@ -18,24 +16,20 @@ const PinScreen = ({ username, onLoginSuccess, onBack }) => { // <--- Nuevas pro
     setPin(newPin);
     setError(false);
 
-    // Si completó el PIN
     if (nextIndex === 3) {
       const enteredPin = newPin.join('');
       setLoading(true);
       
       try {
-        // VALIDAR CON BACKEND
         const res = await api.post('/users/login', { username, pin: enteredPin });
         
         if (res.data.success) {
-            // Guardamos usuario completo en localStorage
             localStorage.setItem('finanzapp_user', JSON.stringify(res.data.user));
             onLoginSuccess(res.data.user);
         }
       } catch (err) {
         console.error(err);
         setError(true);
-        // Vibrar si es móvil
         if (navigator.vibrate) navigator.vibrate(200);
         setTimeout(() => {
             setPin(['', '', '', '']);
@@ -56,9 +50,9 @@ const PinScreen = ({ username, onLoginSuccess, onBack }) => { // <--- Nuevas pro
   };
 
   return (
-    <div className="fixed inset-0 bg-void z-50 flex flex-col items-center justify-center p-4 animate-fade-in">
+    <div className="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center p-4 animate-fade-in">
       {/* Botón Volver */}
-      <button onClick={onBack} className="absolute top-6 left-6 text-textMuted hover:text-white">
+      <button onClick={onBack} className="absolute top-6 left-6 text-slate-400 hover:text-white">
         ← Cambiar usuario
       </button>
 
@@ -66,10 +60,10 @@ const PinScreen = ({ username, onLoginSuccess, onBack }) => { // <--- Nuevas pro
         <img 
           src="/logo.png"
           alt="Logo" 
-          className="w-20 h-20 mx-auto mb-6 rounded-full border-2 border-primary/20 object-contain shadow-glow bg-void p-4"
+          className="w-20 h-20 mx-auto mb-6 rounded-full border-2 border-indigo-500/20 object-contain shadow-glow bg-slate-900 p-4"
         />
         <h2 className="text-2xl font-bold text-white mb-1 capitalize">Hola, {username}</h2>
-        <p className="text-textMuted text-xs uppercase tracking-widest">
+        <p className="text-slate-400 text-xs uppercase tracking-widest">
            {loading ? 'Verificando...' : 'Ingresa tu PIN'}
         </p>
       </div>
@@ -78,7 +72,7 @@ const PinScreen = ({ username, onLoginSuccess, onBack }) => { // <--- Nuevas pro
       <div className={`flex gap-4 mb-12 ${error ? 'animate-shake' : ''}`}>
         {pin.map((p, i) => (
           <div key={i} className={`w-4 h-4 rounded-full border-2 transition-all duration-300 ${
-            p !== '' ? 'bg-primary border-primary shadow-glow' : 'border-border bg-transparent'
+            p !== '' ? 'bg-indigo-500 border-indigo-500 shadow-glow' : 'border-slate-700 bg-transparent'
           }`} />
         ))}
       </div>
@@ -89,13 +83,13 @@ const PinScreen = ({ username, onLoginSuccess, onBack }) => { // <--- Nuevas pro
           <button
             key={num}
             onClick={() => handlePress(num)}
-            className="w-20 h-20 rounded-full bg-surface border border-border text-2xl font-bold text-white hover:bg-surfaceHighlight hover:border-primary/50 transition-all active:scale-95"
+            className="w-20 h-20 rounded-full bg-slate-800 border border-slate-700 text-2xl font-bold text-white hover:bg-slate-700 hover:border-indigo-500/50 transition-all active:scale-95 shadow-lg"
           >
             {num}
           </button>
         ))}
         <div className="w-20 h-20"></div>
-        <button onClick={() => handlePress(0)} className="w-20 h-20 rounded-full bg-surface border border-border text-2xl font-bold text-white hover:bg-surfaceHighlight transition-all active:scale-95">0</button>
+        <button onClick={() => handlePress(0)} className="w-20 h-20 rounded-full bg-slate-800 border border-slate-700 text-2xl font-bold text-white hover:bg-slate-700 transition-all active:scale-95 shadow-lg">0</button>
         <button onClick={handleDelete} className="w-20 h-20 rounded-full flex items-center justify-center text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors">⌫</button>
       </div>
     </div>

@@ -13,21 +13,18 @@ const WishlistCard = ({ refreshTrigger }) => {
     const [loading, setLoading] = useState(true);
     const [expandedId, setExpandedId] = useState(null);
 
-    // Modal states
     const [showModal, setShowModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-    const [editingId, setEditingId] = useState(null); // Unificado: usaremos editingId en lugar de editId
+    const [editingId, setEditingId] = useState(null);
 
     const [formData, setFormData] = useState({
         title: '',
-        type: 'ITEM', // PROJECT or ITEM
+        type: 'ITEM',
         items: []
     });
     const [newItem, setNewItem] = useState({ description: '', estimatedCost: '', link: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Access context for transaction creation
-    // Manejo seguro del contexto en caso de que useOutletContext sea null (aunque no debería)
     const contextData = useOutletContext();
     const onRefresh = contextData?.onRefresh || (() => {});
     const handleGamification = contextData?.handleGamification || (() => {});
@@ -47,7 +44,6 @@ const WishlistCard = ({ refreshTrigger }) => {
         fetchWishlists();
     }, [refreshTrigger]);
 
-    // Handlers
     const handleOpenCreate = () => {
         setIsEditing(false);
         setEditingId(null);
@@ -60,28 +56,25 @@ const WishlistCard = ({ refreshTrigger }) => {
         setIsEditing(true);
         setEditingId(wishlist._id);
         
-        // Si es un item simple, lo convertimos al formato del form
         if (wishlist.type === 'ITEM' && wishlist.items.length > 0) {
             const itemData = wishlist.items[0];
             setFormData({
                 title: wishlist.title,
                 type: 'ITEM',
-                items: [] // No usamos el array items en modo ITEM simple para visualización, solo title/price
+                items: []
             });
-            // Pre-llenamos el newItem para simular el campo simple
             setNewItem({
-                description: itemData.description || wishlist.title, // Fallback
+                description: itemData.description || wishlist.title,
                 estimatedCost: itemData.estimatedPrice || itemData.estimatedCost || '',
                 link: itemData.link || ''
             });
         } else {
-            // Es un proyecto
             setFormData({
                 title: wishlist.title,
                 type: 'PROJECT',
                 items: wishlist.items.map(i => ({
                     description: i.description,
-                    estimatedCost: i.estimatedPrice || i.estimatedCost, // Normalizamos nombres
+                    estimatedCost: i.estimatedPrice || i.estimatedCost,
                     link: i.link,
                     isBought: i.isBought,
                     _id: i._id
@@ -121,7 +114,6 @@ const WishlistCard = ({ refreshTrigger }) => {
         e.preventDefault();
         setIsSubmitting(true);
 
-        // Preparamos el payload
         let payload = {
             title: formData.title,
             type: formData.type,
@@ -129,14 +121,12 @@ const WishlistCard = ({ refreshTrigger }) => {
         };
 
         if (formData.type === 'ITEM') {
-            // Si es item simple, creamos un array con un solo elemento
             payload.items = [{
-                description: formData.title, // El título suele ser la descripción
+                description: formData.title,
                 estimatedPrice: parseFloat(newItem.estimatedCost) || 0,
                 link: newItem.link
             }];
         } else {
-            // Si es proyecto, mandamos el array acumulado
             payload.items = formData.items.map(i => ({
                 description: i.description,
                 estimatedPrice: parseFloat(i.estimatedCost) || 0,
@@ -164,36 +154,21 @@ const WishlistCard = ({ refreshTrigger }) => {
         }
     };
 
-    // Función para marcar como comprado (Logica "Make it Real")
     const handleBuyItem = async (wishlistId, itemId, itemData) => {
         if (!window.confirm(`¿Ya compraste "${itemData.description}"? Esto creará un gasto real.`)) return;
 
         try {
-            // 1. Crear la transacción real
             await api.post('/transactions', {
                 description: itemData.description,
                 amount: itemData.estimatedPrice || itemData.estimatedCost,
-                category: 'Compras', // O podrías preguntar/inferir
+                category: 'Compras',
                 type: 'EXPENSE',
                 date: new Date(),
-                paymentMethod: 'DEBIT' // Default
+                paymentMethod: 'DEBIT'
             });
 
-            // 2. Marcar el item como comprado en la wishlist
-            // Necesitamos saber si es un sub-item de un proyecto o un item único
-            // Nota: Esta lógica depende de tu backend. Si tienes un endpoint especifico para "marcar comprado", úsalo.
-            // Si no, hacemos un update completo. Aquí asumo un endpoint patch o similar, o refrescamos.
-            // Simplificación: Volvemos a hacer fetch por ahora o asumimos éxito.
-            
-            // Opción B: Update local y PUT al backend (más complejo sin endpoint dedicado).
-            // Para mantenerlo simple con Jules, asumiremos que editar el estado isBought requiere editar todo el objeto
-            // O idealmente tu backend tiene PATCH /wishlist/:id/item/:itemId/buy
-            
-            // Por ahora solo feedback visual y refresh (la parte de backend del "check" la omito si no está implementada)
             alert("Gasto creado en Actividad. ¡Felicidades!");
-            onRefresh(); // Refresca balance
-            
-            // TODO: Implementar la persistencia del estado "isBought" si no existe endpoint dedicado
+            onRefresh();
             
         } catch (error) {
             console.error(error);
@@ -203,7 +178,7 @@ const WishlistCard = ({ refreshTrigger }) => {
 
     return (
         <>
-            <div className="bento-card relative overflow-hidden group flex flex-col h-full flex-1">
+            <div className="bento-card relative overflow-hidden group flex flex-col h-full flex-1 bg-slate-800 border-slate-700">
                 {/* Header */}
                 <div className="flex justify-between items-start mb-4 relative z-10">
                     <div className="flex items-center gap-3">
@@ -212,7 +187,7 @@ const WishlistCard = ({ refreshTrigger }) => {
                         </div>
                         <div>
                             <h3 className="text-lg font-bold text-white font-heading leading-tight">Wishlist & Planes</h3>
-                            <p className="text-xs text-textMuted">Proyectos y cosas por comprar</p>
+                            <p className="text-xs text-slate-400">Proyectos y cosas por comprar</p>
                         </div>
                     </div>
                     <button 
@@ -226,14 +201,14 @@ const WishlistCard = ({ refreshTrigger }) => {
                 {/* Content */}
                 <div className="space-y-3 relative z-10 flex-1 overflow-y-auto custom-scrollbar pr-2">
                     {loading ? (
-                        <p className="text-textMuted text-sm">Cargando deseos...</p>
+                        <p className="text-slate-400 text-sm">Cargando deseos...</p>
                     ) : wishlists.length === 0 ? (
-                        <div className="text-center py-4 border border-dashed border-white/10 rounded-xl">
-                            <p className="text-textMuted text-sm">Tu lista de deseos está vacía.</p>
+                        <div className="text-center py-4 border border-dashed border-slate-600 rounded-xl">
+                            <p className="text-slate-400 text-sm">Tu lista de deseos está vacía.</p>
                         </div>
                     ) : (
                         wishlists.map((w) => (
-                            <div key={w._id} className="bg-surfaceHighlight/30 border border-white/5 rounded-xl p-3 hover:border-white/10 transition-colors">
+                            <div key={w._id} className="bg-slate-700/30 border border-slate-700/50 rounded-xl p-3 hover:border-indigo-500/30 transition-colors">
                                 <div className="flex justify-between items-center">
                                     <div 
                                         className="flex items-center gap-3 flex-1 cursor-pointer"
@@ -244,13 +219,13 @@ const WishlistCard = ({ refreshTrigger }) => {
                                                 <LayoutList size={16} />
                                             </div>
                                         ) : (
-                                            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                                            <div className="w-8 h-8 rounded-lg bg-teal-500/20 flex items-center justify-center text-teal-400">
                                                 <ShoppingBag size={16} />
                                             </div>
                                         )}
                                         <div>
                                             <h4 className="font-bold text-white text-sm">{w.title}</h4>
-                                            <p className="text-xs text-textMuted">
+                                            <p className="text-xs text-slate-400">
                                                 {w.type === 'PROJECT' 
                                                     ? `${w.items.filter(i => i.isBought).length}/${w.items.length} items` 
                                                     : `$${w.totalEstimated?.toLocaleString() || 0}`
@@ -260,14 +235,14 @@ const WishlistCard = ({ refreshTrigger }) => {
                                     </div>
 
                                     <div className="flex items-center gap-2">
-                                        <button onClick={() => handleOpenEdit(w)} className="p-1.5 text-textMuted hover:text-primary transition-colors">
+                                        <button onClick={() => handleOpenEdit(w)} className="p-1.5 text-slate-400 hover:text-indigo-400 transition-colors">
                                             <Edit2 size={16} />
                                         </button>
-                                        <button onClick={() => handleDelete(w._id)} className="p-1.5 text-textMuted hover:text-rose-500 transition-colors">
+                                        <button onClick={() => handleDelete(w._id)} className="p-1.5 text-slate-400 hover:text-rose-500 transition-colors">
                                             <Trash2 size={16} />
                                         </button>
                                         {w.type === 'PROJECT' && (
-                                            <button onClick={() => setExpandedId(expandedId === w._id ? null : w._id)} className="text-textMuted">
+                                            <button onClick={() => setExpandedId(expandedId === w._id ? null : w._id)} className="text-slate-400">
                                                 {expandedId === w._id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                                             </button>
                                         )}
@@ -276,31 +251,31 @@ const WishlistCard = ({ refreshTrigger }) => {
 
                                 {/* Expanded Project View */}
                                 {w.type === 'PROJECT' && expandedId === w._id && (
-                                    <div className="mt-3 pl-4 border-l-2 border-white/5 space-y-2">
+                                    <div className="mt-3 pl-4 border-l-2 border-slate-600 space-y-2">
                                         {w.items.map((item, idx) => (
                                             <div key={idx} className="flex justify-between items-center text-sm group/item">
                                                 <div className="flex items-center gap-2">
                                                     <button 
                                                         onClick={() => !item.isBought && handleBuyItem(w._id, item._id, item)}
-                                                        className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${item.isBought ? 'bg-emerald-500 border-emerald-500' : 'border-textMuted hover:border-primary'}`}
+                                                        className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${item.isBought ? 'bg-teal-500 border-teal-500' : 'border-slate-400 hover:border-indigo-400'}`}
                                                     >
                                                         {item.isBought && <CheckCircle2 size={10} className="text-white" />}
                                                     </button>
-                                                    <span className={item.isBought ? 'text-textMuted line-through' : 'text-textMain'}>
+                                                    <span className={item.isBought ? 'text-slate-400 line-through' : 'text-slate-200'}>
                                                         {item.description}
                                                     </span>
                                                     {item.link && (
-                                                        <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primaryHover">
+                                                        <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300">
                                                             <ExternalLink size={12} />
                                                         </a>
                                                     )}
                                                 </div>
-                                                <span className="font-mono text-xs text-textMuted">${item.estimatedPrice?.toLocaleString()}</span>
+                                                <span className="font-mono text-xs text-slate-400">${item.estimatedPrice?.toLocaleString()}</span>
                                             </div>
                                         ))}
-                                        <div className="pt-2 mt-2 border-t border-white/5 flex justify-between items-center">
-                                            <span className="text-xs font-bold text-textMuted uppercase">Total Estimado</span>
-                                            <span className="text-sm font-mono font-bold text-emerald-400">${w.totalEstimated?.toLocaleString()}</span>
+                                        <div className="pt-2 mt-2 border-t border-slate-600 flex justify-between items-center">
+                                            <span className="text-xs font-bold text-slate-400 uppercase">Total Estimado</span>
+                                            <span className="text-sm font-mono font-bold text-teal-400">${w.totalEstimated?.toLocaleString()}</span>
                                         </div>
                                     </div>
                                 )}
@@ -312,21 +287,21 @@ const WishlistCard = ({ refreshTrigger }) => {
 
             {/* Modal de Creación / Edición */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowModal(false)}>
-                    <div className="w-full max-w-lg bg-surface border border-white/10 rounded-2xl p-6 shadow-2xl animate-scale-in" onClick={e => e.stopPropagation()}>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowModal(false)}>
+                    <div className="w-full max-w-lg bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl animate-scale-in" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-xl font-bold text-white font-heading">
                                 {isEditing ? 'Editar Wishlist' : 'Nuevo Deseo o Proyecto'}
                             </h3>
-                            <button onClick={() => setShowModal(false)}><X className="text-textMuted hover:text-white" /></button>
+                            <button onClick={() => setShowModal(false)}><X className="text-slate-400 hover:text-white" /></button>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="label">Título</label>
+                                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 block">Título</label>
                                 <input 
                                     type="text" 
-                                    className="input-pro w-full" 
+                                    className="input-pro w-full bg-slate-900 border-slate-700 focus:border-indigo-500"
                                     value={formData.title} 
                                     onChange={e => setFormData({...formData, title: e.target.value})}
                                     placeholder="Ej: Setup Gamer, Vacaciones..." 
@@ -335,14 +310,14 @@ const WishlistCard = ({ refreshTrigger }) => {
                             </div>
 
                             <div className="flex gap-4">
-                                <label className={`flex-1 p-3 rounded-xl border cursor-pointer transition-all ${formData.type === 'ITEM' ? 'bg-primary/20 border-primary text-white' : 'bg-surfaceHighlight/20 border-transparent text-textMuted'}`}>
+                                <label className={`flex-1 p-3 rounded-xl border cursor-pointer transition-all ${formData.type === 'ITEM' ? 'bg-indigo-500/20 border-indigo-500 text-white' : 'bg-slate-700/20 border-transparent text-slate-400'}`}>
                                     <input type="radio" className="hidden" name="type" value="ITEM" checked={formData.type === 'ITEM'} onChange={() => setFormData({...formData, type: 'ITEM'})} />
                                     <div className="flex flex-col items-center gap-1">
                                         <Gift size={20} />
                                         <span className="text-sm font-bold">Ítem Único</span>
                                     </div>
                                 </label>
-                                <label className={`flex-1 p-3 rounded-xl border cursor-pointer transition-all ${formData.type === 'PROJECT' ? 'bg-primary/20 border-primary text-white' : 'bg-surfaceHighlight/20 border-transparent text-textMuted'}`}>
+                                <label className={`flex-1 p-3 rounded-xl border cursor-pointer transition-all ${formData.type === 'PROJECT' ? 'bg-indigo-500/20 border-indigo-500 text-white' : 'bg-slate-700/20 border-transparent text-slate-400'}`}>
                                     <input type="radio" className="hidden" name="type" value="PROJECT" checked={formData.type === 'PROJECT'} onChange={() => setFormData({...formData, type: 'PROJECT'})} />
                                     <div className="flex flex-col items-center gap-1">
                                         <LayoutList size={20} />
@@ -355,12 +330,12 @@ const WishlistCard = ({ refreshTrigger }) => {
                             {formData.type === 'ITEM' ? (
                                 <div className="space-y-3 animate-fade-in">
                                     <div>
-                                        <label className="label">Precio Estimado</label>
+                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 block">Precio Estimado</label>
                                         <div className="relative">
-                                            <span className="absolute left-3 top-3 text-textMuted">$</span>
+                                            <span className="absolute left-3 top-3 text-slate-400">$</span>
                                             <input 
                                                 type="number" 
-                                                className="input-pro w-full pl-8" 
+                                                className="input-pro w-full pl-8 bg-slate-900 border-slate-700 focus:border-indigo-500"
                                                 value={newItem.estimatedCost} 
                                                 onChange={e => setNewItem({...newItem, estimatedCost: e.target.value})}
                                                 placeholder="0.00" 
@@ -370,19 +345,19 @@ const WishlistCard = ({ refreshTrigger }) => {
                                 </div>
                             ) : (
                                 <div className="space-y-3 animate-fade-in">
-                                    <div className="bg-black/20 p-4 rounded-xl border border-white/5">
+                                    <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
                                         <h4 className="text-sm font-bold text-white mb-2">Items del Proyecto</h4>
                                         <div className="flex gap-2 mb-3">
                                             <input 
                                                 type="text" 
-                                                className="input-pro flex-1 text-sm h-10" 
+                                                className="input-pro flex-1 text-sm h-10 bg-slate-900 border-slate-700"
                                                 placeholder="Ej: Pintura" 
                                                 value={newItem.description}
                                                 onChange={e => setNewItem({...newItem, description: e.target.value})}
                                             />
                                             <input 
                                                 type="number" 
-                                                className="input-pro w-24 text-sm h-10" 
+                                                className="input-pro w-24 text-sm h-10 bg-slate-900 border-slate-700"
                                                 placeholder="$ Costo" 
                                                 value={newItem.estimatedCost}
                                                 onChange={e => setNewItem({...newItem, estimatedCost: e.target.value})}
@@ -390,7 +365,7 @@ const WishlistCard = ({ refreshTrigger }) => {
                                             <button 
                                                 type="button" 
                                                 onClick={handleAddItemToProject}
-                                                className="bg-primary hover:bg-primaryHover text-white p-2 rounded-lg"
+                                                className="bg-indigo-500 hover:bg-indigo-600 text-white p-2 rounded-lg"
                                             >
                                                 <Plus size={20} />
                                             </button>
@@ -399,10 +374,10 @@ const WishlistCard = ({ refreshTrigger }) => {
                                         {/* Lista temporal */}
                                         <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
                                             {formData.items.map((sub, idx) => (
-                                                <div key={idx} className="flex justify-between items-center bg-surface p-2 rounded-lg text-xs">
+                                                <div key={idx} className="flex justify-between items-center bg-slate-800 p-2 rounded-lg text-xs border border-slate-700">
                                                     <span className="text-white">{sub.description}</span>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="font-mono text-emerald-400">${sub.estimatedCost || sub.estimatedPrice}</span>
+                                                        <span className="font-mono text-teal-400">${sub.estimatedCost || sub.estimatedPrice}</span>
                                                         <button type="button" onClick={() => handleRemoveSubItem(idx)} className="text-rose-400 hover:text-rose-300"><X size={14} /></button>
                                                     </div>
                                                 </div>
@@ -413,10 +388,10 @@ const WishlistCard = ({ refreshTrigger }) => {
                             )}
 
                             <div>
-                                <label className="label">Link (Opcional)</label>
+                                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 block">Link (Opcional)</label>
                                 <input 
                                     type="url" 
-                                    className="input-pro w-full bg-void" 
+                                    className="input-pro w-full bg-slate-900 border-slate-700 focus:border-indigo-500"
                                     value={newItem.link} 
                                     onChange={e => setNewItem({...newItem, link: e.target.value})} 
                                     placeholder="https://..." 

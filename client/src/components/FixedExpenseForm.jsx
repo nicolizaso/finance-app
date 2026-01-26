@@ -18,7 +18,7 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
     amount: '',
     dayOfMonth: 1,
     category: 'Casa',
-    paymentMethod: 'ONLINE', // Default
+    paymentMethod: 'ONLINE',
     paymentLink: '',
     cbuAlias: '',
     currency: 'ARS',
@@ -26,7 +26,7 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
     isSubscription: false
   });
   const [sharedData, setSharedData] = useState(null);
-  const [initialSharedData, setInitialSharedData] = useState(null); // Snapshot para editar
+  const [initialSharedData, setInitialSharedData] = useState(null);
 
   const fetchFixedExpenses = async () => {
     try {
@@ -40,21 +40,18 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
   const handleEdit = (item) => {
     setEditingId(item._id);
 
-    // Reconstruir monto para mostrar (Total vs Amount)
-    let amountToShow = item.amount / 100; // Por defecto
+    let amountToShow = item.amount / 100;
 
     if (item.isShared) {
-         // Si es compartido, preferimos totalAmount. Si no existe, usamos amount (legacy fallback)
          const rawTotal = item.totalAmount || item.amount;
          amountToShow = rawTotal / 100;
 
-         // Inicializar Shared Data correctamente
          const initialShared = {
              isShared: true,
-             myShare: item.myShare, // La parte explícita
+             myShare: item.myShare,
              otherShare: item.otherShare,
-             sharedWith: item.sharedWith?._id || item.sharedWith, // Manejar objeto o string
-             amount: rawTotal // Para que el selector calcule porcentajes sobre el total
+             sharedWith: item.sharedWith?._id || item.sharedWith,
+             amount: rawTotal
          };
          setSharedData(initialShared);
          setInitialSharedData(item);
@@ -107,17 +104,15 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
     let payload = { ...formData };
 
     if (sharedData && sharedData.isShared) {
-        // SCENARIO 1: GASTO COMPARTIDO
         payload = {
             ...payload,
-            ...sharedData, // Incluye myShare, sharedWith, etc.
-            amount: sharedData.myShare, // Lo que YO pago (para balance)
-            totalAmount: rawAmount, // El total de la factura
+            ...sharedData,
+            amount: sharedData.myShare,
+            totalAmount: rawAmount,
             isShared: true,
-            sharedWith: sharedData.sharedWith // Asegurar ID
+            sharedWith: sharedData.sharedWith
         };
     } else {
-        // SCENARIO 2: GASTO PERSONAL
         payload = {
             ...payload,
             amount: rawAmount,
@@ -156,16 +151,16 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
         <div className="flex flex-col h-full">
           <div className="flex justify-between items-center mb-6 shrink-0">
             <h3 className="text-xl font-bold text-white font-heading flex items-center gap-2">
-              <Repeat className="text-primary" size={24} /> Reglas Mensuales
+              <Repeat className="text-indigo-400" size={24} /> Reglas Mensuales
             </h3>
             <div className="flex items-center gap-2">
               <button
                 onClick={handleCreateNew}
-                className="bg-primary hover:bg-primaryHover text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
+                className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
               >
                 <Plus size={14} /> Nueva
               </button>
-              <button onClick={onClose} className="text-textMuted hover:text-white transition-colors">
+              <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
                 <X size={24} />
               </button>
             </div>
@@ -173,23 +168,23 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
 
           <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3">
             {fixedList.length === 0 ? (
-              <div className="text-center text-textMuted py-10 opacity-60">
+              <div className="text-center text-slate-400 py-10 opacity-60">
                 <p>No tienes gastos fijos configurados.</p>
               </div>
             ) : (
               fixedList.map(item => (
-                <div key={item._id} className="bg-surfaceHighlight/30 border border-border p-3 rounded-xl flex justify-between items-center group hover:border-primary/30 transition-colors">
+                <div key={item._id} className="bg-slate-700/30 border border-slate-700 p-3 rounded-xl flex justify-between items-center group hover:border-indigo-500/30 transition-colors">
                   <div className="min-w-0 flex-1 pr-2">
                     <p className="text-white font-bold text-sm truncate" title={item.title}>{item.title}</p>
-                    <p className="text-textMuted text-[10px]">
+                    <p className="text-slate-400 text-[10px]">
                       Día {item.dayOfMonth} • {item.paymentMethod}
                     </p>
                   </div>
                   <div className="flex gap-2 shrink-0">
-                    <button onClick={() => handleEdit(item)} className="p-1.5 rounded-lg bg-surface hover:text-primary transition-colors text-textMuted">
+                    <button onClick={() => handleEdit(item)} className="p-1.5 rounded-lg bg-slate-800 hover:text-indigo-400 transition-colors text-slate-400">
                       <Edit2 size={16} />
                     </button>
-                    <button onClick={() => handleDelete(item._id)} className="p-1.5 rounded-lg bg-surface hover:text-rose-500 transition-colors text-textMuted">
+                    <button onClick={() => handleDelete(item._id)} className="p-1.5 rounded-lg bg-slate-800 hover:text-rose-500 transition-colors text-slate-400">
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -204,14 +199,14 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
         <div className="h-full flex flex-col">
           <div className="flex items-center justify-between mb-6 shrink-0">
             <div className="flex items-center gap-2">
-              <button onClick={() => setView('list')} className="text-textMuted hover:text-white transition-colors">
+              <button onClick={() => setView('list')} className="text-slate-400 hover:text-white transition-colors">
                 <ArrowLeft size={24} />
               </button>
               <h3 className="text-xl font-bold text-white font-heading">
                 {editingId ? 'Editar Regla' : 'Nuevo Gasto Fijo'}
               </h3>
             </div>
-            <button onClick={onClose} className="text-textMuted hover:text-white transition-colors">
+            <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
               <X size={24} />
             </button>
           </div>
@@ -222,13 +217,13 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
               <input
                 type="text"
                 placeholder=" "
-                className="input-pro peer pt-6 pb-2"
+                className="input-pro peer pt-6 pb-2 bg-slate-900 border-slate-700 focus:border-indigo-500"
                 value={formData.title}
                 onChange={e => setFormData({...formData, title: e.target.value})}
                 required
                 autoFocus
               />
-              <label className="absolute left-4 top-4 text-textMuted/60 text-xs transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-placeholder-shown:text-textMuted/40 peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-primary pointer-events-none">
+              <label className="absolute left-4 top-4 text-slate-400/60 text-xs transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-placeholder-shown:text-slate-400/40 peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-indigo-500 pointer-events-none">
                 Nombre (ej. Internet)
               </label>
             </div>
@@ -237,11 +232,11 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
                 <input
                     type="checkbox"
                     id="isSubscription"
-                    className="w-4 h-4 rounded border-gray-600 bg-surface focus:ring-primary"
+                    className="w-4 h-4 rounded border-slate-600 bg-slate-800 focus:ring-indigo-500"
                     checked={formData.isSubscription}
                     onChange={e => setFormData({...formData, isSubscription: e.target.checked})}
                 />
-                <label htmlFor="isSubscription" className="text-sm text-textMuted cursor-pointer select-none">
+                <label htmlFor="isSubscription" className="text-sm text-slate-400 cursor-pointer select-none">
                     ¿Es una suscripción recurrente?
                 </label>
             </div>
@@ -249,7 +244,7 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
             {/* --- SELECTOR DE MEDIO DE PAGO --- */}
             <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
-                    <label className="text-xs text-textMuted font-bold uppercase tracking-wider mb-1 block">Medio de Pago</label>
+                    <label className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1 block">Medio de Pago</label>
                     <div className="grid grid-cols-4 gap-2">
                         {[
                             { id: 'ONLINE', icon: Globe, label: 'Online' },
@@ -263,8 +258,8 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
                                 onClick={() => setFormData({...formData, paymentMethod: opt.id})}
                                 className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all ${
                                     formData.paymentMethod === opt.id
-                                    ? 'bg-primary/20 border-primary text-white'
-                                    : 'bg-surfaceHighlight border-transparent text-textMuted hover:text-white'
+                                    ? 'bg-indigo-500/20 border-indigo-500 text-white'
+                                    : 'bg-slate-700 border-transparent text-slate-400 hover:text-white'
                                 }`}
                             >
                                 <opt.icon size={18} className="mb-1" />
@@ -276,16 +271,16 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
             </div>
 
             {/* --- CAMPO CONDICIONAL SEGÚN PAGO --- */}
-            <div className="bg-surfaceHighlight/30 p-3 rounded-xl border border-border">
+            <div className="bg-slate-700/30 p-3 rounded-xl border border-slate-700">
 
                 {/* 1. ONLINE: Pide Link */}
                 {formData.paymentMethod === 'ONLINE' && (
                     <div className="relative">
-                        <LinkIcon className="absolute left-3 top-3 text-textMuted/50" size={16} />
+                        <LinkIcon className="absolute left-3 top-3 text-slate-400/50" size={16} />
                         <input
                         type="text"
                         placeholder="Link de pago (ej. mercadopago.com)"
-                        className="input-pro pl-10 text-sm bg-surface"
+                        className="input-pro pl-10 text-sm bg-slate-800 border-slate-700"
                         value={formData.paymentLink}
                         onChange={e => setFormData({...formData, paymentLink: e.target.value})}
                         />
@@ -295,11 +290,11 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
                 {/* 2. TRANSFERENCIA: Pide Alias/CBU */}
                 {formData.paymentMethod === 'TRANSFER' && (
                     <div className="relative">
-                        <ArrowRightLeft className="absolute left-3 top-3 text-textMuted/50" size={16} />
+                        <ArrowRightLeft className="absolute left-3 top-3 text-slate-400/50" size={16} />
                         <input
                         type="text"
                         placeholder="Alias o CBU (ej. juan.perez.mp)"
-                        className="input-pro pl-10 text-sm bg-surface"
+                        className="input-pro pl-10 text-sm bg-slate-800 border-slate-700"
                         value={formData.cbuAlias}
                         onChange={e => setFormData({...formData, cbuAlias: e.target.value})}
                         />
@@ -316,8 +311,8 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
                                 onClick={() => setFormData({...formData, currency: cur})}
                                 className={`flex-1 py-2 rounded-lg font-bold text-sm border transition-all ${
                                     formData.currency === cur
-                                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
-                                    : 'bg-surface border-border text-textMuted'
+                                    ? 'bg-teal-500/20 border-teal-500 text-teal-400'
+                                    : 'bg-slate-800 border-slate-700 text-slate-400'
                                 }`}
                             >
                                 {cur === 'ARS' ? '$ Pesos' : 'USD Dólares'}
@@ -329,11 +324,11 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
                 {/* 4. DÉBITO: Pide Nombre Tarjeta */}
                 {formData.paymentMethod === 'DEBIT' && (
                     <div className="relative">
-                        <CreditCard className="absolute left-3 top-3 text-textMuted/50" size={16} />
+                        <CreditCard className="absolute left-3 top-3 text-slate-400/50" size={16} />
                         <input
                         type="text"
                         placeholder="Tarjeta adherida (ej. Visa Galicia)"
-                        className="input-pro pl-10 text-sm bg-surface"
+                        className="input-pro pl-10 text-sm bg-slate-800 border-slate-700"
                         value={formData.autoDebitCard}
                         onChange={e => setFormData({...formData, autoDebitCard: e.target.value})}
                         />
@@ -343,10 +338,10 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="relative">
-                <span className="absolute left-4 top-3.5 text-textMuted">$</span>
+                <span className="absolute left-4 top-3.5 text-slate-400">$</span>
                 <input
                   type="number"
-                  className="input-pro pl-8 font-mono text-lg"
+                  className="input-pro pl-8 font-mono text-lg bg-slate-900 border-slate-700 focus:border-indigo-500"
                   placeholder="0.00"
                   value={formData.amount}
                   onChange={e => setFormData({...formData, amount: e.target.value})}
@@ -358,30 +353,29 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
                 <input
                   type="number"
                   min="1" max="31"
-                  className="input-pro text-center"
+                  className="input-pro text-center bg-slate-900 border-slate-700 focus:border-indigo-500"
                   value={formData.dayOfMonth}
                   onChange={e => setFormData({...formData, dayOfMonth: e.target.value})}
                   required
                 />
-                 <label className="absolute left-0 right-0 top-1.5 text-center text-[10px] text-textMuted pointer-events-none uppercase tracking-wider font-bold">
+                 <label className="absolute left-0 right-0 top-1.5 text-center text-[10px] text-slate-400 pointer-events-none uppercase tracking-wider font-bold">
                   Día del mes
                 </label>
               </div>
             </div>
 
             <select
-              className="input-pro appearance-none cursor-pointer"
+              className="input-pro appearance-none cursor-pointer bg-slate-900 border-slate-700 focus:border-indigo-500"
               value={formData.category}
               onChange={e => setFormData({...formData, category: e.target.value})}
             >
-               {CATEGORIES.map(c => <option key={c} value={c} className="bg-surface">{c}</option>)}
+               {CATEGORIES.map(c => <option key={c} value={c} className="bg-slate-800">{c}</option>)}
             </select>
 
-            {/* SELECTOR DE COMPARTIDO */}
             <SharedExpenseSelector
                 totalAmount={formData.amount}
                 onChange={setSharedData}
-                initialData={initialSharedData} // Usamos el snapshot estable
+                initialData={initialSharedData}
             />
 
             <button
@@ -400,11 +394,11 @@ const FixedExpenseForm = ({ onClose, onSuccess }) => {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md bg-surface border border-white/10 rounded-2xl shadow-2xl p-6 animate-scale-in max-h-[90vh] overflow-y-auto custom-scrollbar"
+        className="w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-6 animate-scale-in max-h-[90vh] overflow-y-auto custom-scrollbar"
         onClick={(e) => e.stopPropagation()}
       >
         {renderContent()}

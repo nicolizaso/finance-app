@@ -7,34 +7,43 @@ export default {
   theme: {
     extend: {
       colors: {
-        // FONDO: Neutral Dark
-        void: '#022c22',
+        // Base: Slate 900
+        void: '#0f172a',
         
-        // TARJETAS: Zinc-900
-        surface: '#18181b',
+        // Cards: Slate 800
+        surface: '#1e293b',
         
-        // INTERACCIÓN: Zinc-800
-        surfaceHighlight: '#27272a',
+        // Interaction: Slate 700
+        surfaceHighlight: '#334155',
         
-        // BORDES: Emerald-900
-        border: '#064e3b',
+        // Borders: Slate 700
+        border: '#334155',
         
-        // ACCIÓN: Emerald-500
-        primary: '#10b981',
-        primaryHover: '#34d399',
+        // Primary: Indigo 500
+        primary: '#6366f1',
+        primaryHover: '#4f46e5',
         
-        // TEXTOS & BRILLOS
-        neon: '#6ee7b7', // Emerald-300
-        textMain: '#ecfdf5', // Emerald-50
-        textMuted: '#9ca3af', // Gray-400
+        // Violet Palette for Gradients
+        violet: {
+          500: '#8b5cf6',
+          600: '#7c3aed',
+        },
+
+        // Accents
+        success: '#10b981', // Emerald 500
+        error: '#f43f5e',   // Rose 500
+
+        // Text
+        textMain: '#f8fafc', // Slate 50
+        textMuted: '#94a3b8', // Slate 400
       },
       fontFamily: {
-        heading: ['Outfit', 'sans-serif'],
-        body: ['Inter', 'sans-serif'],
+        heading: ['"Plus Jakarta Sans"', 'sans-serif'],
+        body: ['"Plus Jakarta Sans"', 'sans-serif'],
       },
       boxShadow: {
-        'glow': '0 0 20px -5px rgba(16, 185, 129, 0.3)',
-        'card': '0 8px 30px rgba(0, 0, 0, 0.5)',
+        'glow': '0 0 20px -5px rgba(99, 102, 241, 0.3)', // Indigo glow
+        'card': '0 8px 30px rgba(0, 0, 0, 0.3)',
       },
       animation: {
         'fade-in': 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
