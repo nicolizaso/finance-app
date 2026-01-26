@@ -29,13 +29,13 @@ const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode, on
   // Item renderer for Virtuoso
   const itemContent = (index, t) => {
       return (
-        <div className="px-4 py-2"> {/* Wrapper for gap/padding. py-2 adds vertical spacing */}
+        <div className="px-4 py-2">
             <div 
               onClick={() => onTransactionClick && onTransactionClick(t)}
               className={`group relative p-4 rounded-2xl flex justify-between items-center transition-all duration-200 cursor-pointer overflow-hidden
                 ${t.needsReview
                     ? 'bg-orange-500/10 hover:bg-orange-500/20 border-l-4 border-orange-500'
-                    : 'bg-surfaceHighlight/30 hover:bg-surfaceHighlight border border-transparent hover:border-border'
+                    : 'bg-slate-700/30 hover:bg-slate-700 border border-transparent hover:border-slate-600'
                 }
               `}
             >
@@ -54,9 +54,9 @@ const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode, on
                     t.needsReview
                     ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
                     : t.type === 'INCOME'
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20'
                         : t.paymentMethod === 'CREDIT'
-                            ? 'bg-primary/10 text-primary border border-primary/20'
+                            ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
                             : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                 }`}>
                   {t.needsReview ? <AlertCircle size={18} /> :
@@ -72,16 +72,16 @@ const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode, on
                   </p>
                   <div className="flex flex-col gap-1 mt-1">
                     {t.isShared && (
-                         <div className="flex items-center gap-1 text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded w-fit">
+                         <div className="flex items-center gap-1 text-[10px] text-indigo-300 bg-indigo-500/10 px-1.5 py-0.5 rounded w-fit">
                             <Users size={10} />
                             <span>Compartido</span>
                          </div>
                     )}
                     <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-textMuted bg-surface px-2 py-0.5 rounded-md border border-border whitespace-nowrap">
+                        <span className="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded-md border border-slate-700 whitespace-nowrap">
                             {t.category}
                         </span>
-                        <span className="text-[10px] text-textMuted/60 whitespace-nowrap">{formatDate(t.date)}</span>
+                        <span className="text-[10px] text-slate-500 whitespace-nowrap">{formatDate(t.date)}</span>
                     </div>
                     {t.tags && t.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1">
@@ -89,7 +89,7 @@ const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode, on
                                 <span
                                     key={tag}
                                     onClick={(e) => { e.stopPropagation(); setSelectedTag(tag); }}
-                                    className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full hover:bg-primary/30 cursor-pointer whitespace-nowrap"
+                                    className="text-[10px] bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full hover:bg-indigo-500/30 cursor-pointer whitespace-nowrap"
                                 >
                                     {tag}
                                 </span>
@@ -102,7 +102,7 @@ const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode, on
 
               <div className="text-right flex flex-col items-end shrink-0 ml-2">
                 <span className={`font-mono font-bold text-sm md:text-base ${
-                    t.type === 'INCOME' ? 'text-emerald-400' : 'text-textMain'
+                    t.type === 'INCOME' ? 'text-teal-400' : 'text-slate-50'
                 } ${isPrivacyMode ? 'blur-sm' : ''}`}>
                   {t.type === 'INCOME' ? '+' : '-'}${isPrivacyMode ? '***' : formatMoney(t.amount)}
                 </span>
@@ -112,16 +112,16 @@ const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode, on
                         {t.totalAmount ? (
                              <>
                                 {t.paidBy && (
-                                     <span className="text-[10px] text-textMuted/80 mb-0.5 whitespace-nowrap">
+                                     <span className="text-[10px] text-slate-400/80 mb-0.5 whitespace-nowrap">
                                         Pagado por: <strong className="text-white">{t.paidBy.name || 'Otro'}</strong>
                                      </span>
                                 )}
-                                <span className="text-[10px] text-primary/80 bg-primary/10 px-1.5 py-0.5 rounded font-mono whitespace-nowrap">
+                                <span className="text-[10px] text-indigo-400/80 bg-indigo-500/10 px-1.5 py-0.5 rounded font-mono whitespace-nowrap">
                                     Total: ${isPrivacyMode ? '***' : formatMoney(t.totalAmount)}
                                 </span>
                              </>
                         ) : (
-                             <span className="text-[10px] text-primary/80 bg-primary/10 px-1.5 py-0.5 rounded font-mono whitespace-nowrap">
+                             <span className="text-[10px] text-indigo-400/80 bg-indigo-500/10 px-1.5 py-0.5 rounded font-mono whitespace-nowrap">
                                 Tu parte: ${isPrivacyMode ? '***' : formatMoney(getEffectiveAmount(t))}
                             </span>
                         )}
@@ -144,8 +144,8 @@ const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode, on
       <div className="h-full flex flex-col">
         {selectedTag && (
             <div className="flex items-center gap-2 mb-2 px-4 pt-2 shrink-0">
-                <span className="text-xs text-textMuted">Filtrado por:</span>
-                <span className="bg-primary/20 text-primary text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                <span className="text-xs text-slate-400">Filtrado por:</span>
+                <span className="bg-indigo-500/20 text-indigo-400 text-xs px-2 py-1 rounded-full flex items-center gap-1">
                     {selectedTag}
                     <button onClick={() => setSelectedTag(null)} className="hover:text-white"><X size={12} /></button>
                 </span>
@@ -153,7 +153,7 @@ const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode, on
         )}
 
         {historyData.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 text-textMuted opacity-50 border-2 border-dashed border-border rounded-2xl mx-4 mt-2">
+          <div className="flex flex-col items-center justify-center h-40 text-slate-500 opacity-50 border-2 border-dashed border-slate-700 rounded-2xl mx-4 mt-2">
             <FileText size={32} className="mb-2" />
             <p>Historial vacío</p>
           </div>
@@ -164,7 +164,7 @@ const TransactionList = ({ transactions, onTransactionUpdated, isPrivacyMode, on
                 itemContent={itemContent}
                 computeItemKey={(index, item) => item._id}
                 className="custom-scrollbar"
-                style={{ height: '100%' }} // Virtuoso needs height
+                style={{ height: '100%' }}
              />
           </div>
         )}

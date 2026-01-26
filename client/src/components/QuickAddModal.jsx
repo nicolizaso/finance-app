@@ -34,7 +34,6 @@ const QuickAddModal = ({ onClose, onSuccess }) => {
 
       const res = await api.post('/transactions', payload);
 
-      // Feedback táctil/visual si fuera posible (aquí solo cerramos)
       onSuccess(res.data);
       addToast('Gasto rápido guardado', 'success');
       onClose();
@@ -47,11 +46,11 @@ const QuickAddModal = ({ onClose, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-void/95 backdrop-blur-xl animate-fade-in">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl animate-fade-in">
       {/* Botón Cerrar */}
       <button
         onClick={onClose}
-        className="absolute top-6 right-6 text-textMuted hover:text-white transition-colors"
+        className="absolute top-6 right-6 text-slate-400 hover:text-white transition-colors"
       >
         <X size={32} />
       </button>
@@ -59,14 +58,14 @@ const QuickAddModal = ({ onClose, onSuccess }) => {
       <form onSubmit={handleSubmit} className="w-full max-w-md flex flex-col items-center gap-8">
 
         {/* Título o Icono */}
-        <div className="flex flex-col items-center gap-2 text-neon/80">
-            <Zap size={48} className="fill-neon/20 animate-pulse" />
+        <div className="flex flex-col items-center gap-2 text-indigo-400/80">
+            <Zap size={48} className="fill-indigo-400/20 animate-pulse" />
             <span className="font-heading font-bold tracking-wider text-sm uppercase">Lightning Mode</span>
         </div>
 
         {/* Input Gigante */}
         <div className="relative w-full">
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 text-4xl text-textMuted/50 font-mono">$</span>
+            <span className="absolute left-0 top-1/2 -translate-y-1/2 text-4xl text-slate-400/50 font-mono">$</span>
             <input
                 ref={inputRef}
                 type="text"
@@ -77,7 +76,7 @@ const QuickAddModal = ({ onClose, onSuccess }) => {
                     if (/^\d*\.?\d{0,2}$/.test(val)) setAmount(val);
                 }}
                 placeholder="0"
-                className="w-full bg-transparent border-none outline-none text-center text-7xl font-mono font-bold text-white placeholder-surfaceHighlight focus:ring-0"
+                className="w-full bg-transparent border-none outline-none text-center text-7xl font-mono font-bold text-white placeholder-slate-700 focus:ring-0"
                 autoFocus
             />
         </div>
@@ -86,12 +85,12 @@ const QuickAddModal = ({ onClose, onSuccess }) => {
         <button
             type="submit"
             disabled={loading || !amount}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-neon to-primary text-white font-bold text-xl shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100"
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-500 text-white font-bold text-xl shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100"
         >
             {loading ? 'Guardando...' : 'Guardar Rápido ⚡'}
         </button>
 
-        <p className="text-textMuted text-sm text-center">
+        <p className="text-slate-400 text-sm text-center">
             Se guardará como "Varios". Podrás editar los detalles luego.
         </p>
 

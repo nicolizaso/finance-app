@@ -3,14 +3,14 @@ import { useMemo, useState } from 'react';
 import { getCategoryBreakdown } from '../../utils/analyticsHelpers';
 
 const COLORS = [
-    '#7c3aed', // Primary (Violet)
-    '#d8b4fe', // Neon
-    '#06b6d4', // Cyan
+    '#8b5cf6', // Violet
+    '#6366f1', // Indigo
+    '#14b8a6', // Teal
     '#f43f5e', // Rose
     '#f59e0b', // Amber
-    '#10b981', // Emerald
-    '#6366f1', // Indigo
     '#ec4899', // Pink
+    '#3b82f6', // Blue
+    '#06b6d4', // Cyan
 ];
 
 const CustomTooltip = ({ active, payload, totalSpent }) => {
@@ -18,9 +18,9 @@ const CustomTooltip = ({ active, payload, totalSpent }) => {
         const { name, value } = payload[0];
         const percent = totalSpent ? ((value / totalSpent) * 100).toFixed(1) : '0.0';
         return (
-            <div className="bg-surface border border-border p-3 rounded-lg shadow-xl z-50">
+            <div className="bg-slate-800 border border-slate-700 p-3 rounded-lg shadow-xl z-50">
                 <p className="text-white font-bold mb-1">{name}</p>
-                <p className="text-neon text-sm font-mono">
+                <p className="text-indigo-400 text-sm font-mono">
                     ${value.toLocaleString()} ({percent}%)
                 </p>
             </div>
@@ -79,15 +79,15 @@ const CategoryBreakdownChart = ({ transactions, period }) => {
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     {activeItem ? (
                         <>
-                            <p className="text-textMuted text-xs font-medium uppercase tracking-wider mb-1">{activeItem.name}</p>
+                            <p className="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">{activeItem.name}</p>
                             <p className="text-white text-xl font-bold">${activeItem.value.toLocaleString()}</p>
-                            <p className="text-neon text-xs">
+                            <p className="text-indigo-400 text-xs">
                                 {totalSpent ? ((activeItem.value / totalSpent) * 100).toFixed(1) : 0}%
                             </p>
                         </>
                     ) : (
                         <>
-                            <p className="text-textMuted text-xs font-medium uppercase tracking-wider mb-1">Total</p>
+                            <p className="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">Total</p>
                             <p className="text-white text-xl font-bold">${totalSpent.toLocaleString()}</p>
                         </>
                     )}
@@ -99,11 +99,11 @@ const CategoryBreakdownChart = ({ transactions, period }) => {
                 {data.map((entry, index) => (
                     <div
                         key={index}
-                        className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-full border border-border cursor-pointer transition-colors ${activeIndex === index ? 'bg-white/10' : 'bg-transparent'}`}
+                        className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-full border border-slate-700 cursor-pointer transition-colors ${activeIndex === index ? 'bg-white/10' : 'bg-transparent'}`}
                         onClick={() => setActiveIndex(index === activeIndex ? null : index)}
                     >
                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                        <span className="text-textSecondary">{entry.name}</span>
+                        <span className="text-slate-400">{entry.name}</span>
                     </div>
                 ))}
             </div>

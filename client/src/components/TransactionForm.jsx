@@ -22,13 +22,11 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
   const [tagInput, setTagInput] = useState('');
   const [availableTags, setAvailableTags] = useState([]);
 
-  // Currency
   const [currency, setCurrency] = useState('ARS');
 
   const [sharedData, setSharedData] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Cargar tags disponibles
   useEffect(() => {
     api.get('/transactions/tags')
       .then(res => {
@@ -37,20 +35,16 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
       .catch(err => console.error("Error fetching tags", err));
   }, []);
 
-  // Cargar datos iniciales si es edición
   useEffect(() => {
     if (initialData) {
-      // Reconstruir monto total si es compartido
-      // PRIORITY: Load totalAmount if it exists (Shared), otherwise amount (Personal)
       let amountToShow = initialData.amount;
 
       if (initialData.isShared) {
          amountToShow = initialData.totalAmount || initialData.amount;
 
-         // Initialize sharedData state to ensure correct updates even without interaction
          setSharedData({
             isShared: true,
-            myShare: initialData.myShare || initialData.amount, // Fallback to amount if myShare missing
+            myShare: initialData.myShare || initialData.amount,
             otherShare: initialData.otherShare || (initialData.totalAmount ? initialData.totalAmount - initialData.amount : 0),
             sharedWith: initialData.sharedWith?._id || initialData.sharedWith,
          });
@@ -58,7 +52,7 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
 
       setFormData({
         ...initialData,
-        amount: amountToShow / 100, // Convertir de centavos a unidades
+        amount: amountToShow / 100,
         date: new Date(initialData.date).toISOString().split('T')[0],
         paymentMethod: initialData.paymentMethod || 'DEBIT',
         installments: initialData.installments || 1,
@@ -67,7 +61,6 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
         setTags(initialData.tags);
       }
     } else {
-        // Reset tags on new transaction
         setTags([]);
     }
   }, [initialData]);
@@ -108,23 +101,18 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
 
     let finalAmount = parseFloat(formData.amount);
 
-    // Convertir USD a ARS si es necesario
     if (currency === 'USD' && exchangeRates && exchangeRates[selectedCurrencyRate]) {
         const rate = exchangeRates[selectedCurrencyRate].venta;
         finalAmount = finalAmount * rate;
     }
 
-    // Convertimos a centavos (la base de datos usa centavos de ARS)
     let payload = { ...formData, tags, amount: Math.round(finalAmount * 100) };
 
-    // --- CRITICAL FIX: Ensure needsReview is false on save/edit ---
     if (initialData) {
         payload.needsReview = false;
     }
 
-    // Inyectar datos compartidos si existen
     if (sharedData && sharedData.isShared) {
-        // Ensure critical fields are set
         const cleanSharedWith = sharedData.sharedWith?._id || sharedData.sharedWith;
 
         payload = {
@@ -134,32 +122,26 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
             sharedWith: cleanSharedWith
         };
 
-        // FIX: Ensure persistence
         payload.isShared = true;
         payload.sharedWith = sharedData.sharedWith?._id || sharedData.sharedWith;
 
-        // CONSTRUCT SPLITS FOR NEW BACKEND LOGIC
-        // sharedData has myShare and otherShare in cents.
         const splits = [
              { userId: 'CREATOR', amount: sharedData.myShare },
              { userId: cleanSharedWith, amount: sharedData.otherShare }
         ];
 
         payload.splits = splits;
-        payload.totalAmount = Math.round(finalAmount * 100); // Total in cents
-        payload.amount = sharedData.myShare; // CRITICAL: Save ONLY my portion as the main amount
+        payload.totalAmount = Math.round(finalAmount * 100);
+        payload.amount = sharedData.myShare;
     }
 
     try {
       if (initialData) {
-        // Modo Edición
         const res = await api.put(`/transactions/${initialData._id}`, payload);
-        if (onCancelEdit) onCancelEdit(); // Salir del modo edición
+        if (onCancelEdit) onCancelEdit();
         if (onTransactionAdded) onTransactionAdded(res.data);
       } else {
-        // Modo Creación
         const res = await api.post('/transactions', payload);
-        // Reset del formulario (mantenemos fecha y tipo para agilizar carga masiva)
         setFormData(prev => ({ ...prev, description: '', amount: '' }));
         setTags([]);
         if (onTransactionAdded) onTransactionAdded(res.data);
@@ -174,34 +156,34 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
   };
 
   return (
-    <div className={`bg-surface border ${initialData ? 'border-orange-500/50 shadow-glow' : 'border-border'} rounded-3xl p-6 h-full shadow-card relative overflow-hidden transition-all duration-300`}>
+    <div className={`bg-slate-800 border ${initialData ? 'border-indigo-500/50 shadow-glow' : 'border-slate-700'} rounded-3xl p-6 h-full shadow-card relative overflow-hidden transition-all duration-300`}>
       
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl font-bold text-white flex items-center gap-2 font-heading">
-          {initialData ? <Edit2 className="text-orange-500" size={24} /> : <PlusCircle className="text-primary" size={24} />}
+          {initialData ? <Edit2 className="text-indigo-400" size={24} /> : <PlusCircle className="text-indigo-500" size={24} />}
           {initialData ? 'Editar / Revisar' : 'Agregar'}
         </h3>
         
         {initialData && (
-            <button onClick={onCancelEdit} className="text-textMuted hover:text-white p-1">
+            <button onClick={onCancelEdit} className="text-slate-400 hover:text-white p-1">
                 <X size={20} />
             </button>
         )}
 
         {/* Toggle Gasto/Ingreso */}
-        <div className="bg-surfaceHighlight p-1 rounded-xl flex">
+        <div className="bg-slate-700 p-1 rounded-xl flex">
             <button
               type="button"
               onClick={() => setFormData({...formData, type: 'EXPENSE'})}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${formData.type === 'EXPENSE' ? 'bg-rose-500/20 text-rose-400 shadow-sm' : 'text-textMuted hover:text-white'}`}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${formData.type === 'EXPENSE' ? 'bg-rose-500/20 text-rose-400 shadow-sm' : 'text-slate-400 hover:text-white'}`}
             >
               Gasto
             </button>
             <button
               type="button"
               onClick={() => setFormData({...formData, type: 'INCOME'})}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${formData.type === 'INCOME' ? 'bg-emerald-500/20 text-emerald-400 shadow-sm' : 'text-textMuted hover:text-white'}`}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${formData.type === 'INCOME' ? 'bg-teal-500/20 text-teal-400 shadow-sm' : 'text-slate-400 hover:text-white'}`}
             >
               Ingreso
             </button>
@@ -218,11 +200,11 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
             value={formData.description}
             onChange={handleChange}
             placeholder=" "
-            className="input-pro peer pt-6 pb-2"
+            className="input-pro peer pt-6 pb-2 bg-slate-900 border-slate-700 focus:border-indigo-500"
             required
             autoComplete="off"
           />
-          <label className="absolute left-4 top-4 text-textMuted/60 text-xs transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-placeholder-shown:text-textMuted/40 peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-primary pointer-events-none">
+          <label className="absolute left-4 top-4 text-slate-400/60 text-xs transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-placeholder-shown:text-slate-400/40 peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-indigo-500 pointer-events-none">
             Descripción (ej. Supermercado)
           </label>
         </div>
@@ -231,12 +213,12 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
         <div className="flex gap-4">
           <div className="relative w-1/2">
             <div className="flex items-center absolute left-4 top-3.5 gap-2">
-                <span className="text-textMuted">$</span>
+                <span className="text-slate-400">$</span>
                 {/* Toggle Currency */}
                 <button
                     type="button"
                     onClick={() => setCurrency(prev => prev === 'ARS' ? 'USD' : 'ARS')}
-                    className="text-xs bg-surfaceHighlight px-1.5 py-0.5 rounded text-white font-bold hover:bg-primary/50 transition-colors"
+                    className="text-xs bg-slate-700 px-1.5 py-0.5 rounded text-white font-bold hover:bg-indigo-500/50 transition-colors"
                 >
                     {currency}
                 </button>
@@ -248,12 +230,12 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
               onChange={handleChange}
               placeholder="0.00"
               step="0.01"
-              className="input-pro pl-20 font-mono text-lg"
+              className="input-pro pl-20 font-mono text-lg bg-slate-900 border-slate-700 focus:border-indigo-500"
               required
             />
             {/* Visual Feedback de Conversión */}
             {currency === 'USD' && formData.amount && exchangeRates && exchangeRates[selectedCurrencyRate] && (
-                <div className="absolute -bottom-6 left-0 text-xs text-emerald-400 font-mono">
+                <div className="absolute -bottom-6 left-0 text-xs text-teal-400 font-mono">
                     ≈ ${ (parseFloat(formData.amount) * exchangeRates[selectedCurrencyRate].venta).toLocaleString('es-AR') } ARS ({selectedCurrencyRate})
                 </div>
             )}
@@ -264,7 +246,7 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
               name="date"
               value={formData.date}
               onChange={handleChange}
-              className="input-pro text-sm"
+              className="input-pro text-sm bg-slate-900 border-slate-700 focus:border-indigo-500"
               required
             />
           </div>
@@ -278,10 +260,10 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
-                    className="input-pro appearance-none cursor-pointer"
+                    className="input-pro appearance-none cursor-pointer bg-slate-900 border-slate-700 focus:border-indigo-500"
                 >
                     {CATEGORIES.map(cat => (
-                      <option key={cat} value={cat} className="bg-surface">{cat}</option>
+                      <option key={cat} value={cat} className="bg-slate-800">{cat}</option>
                     ))}
                 </select>
             </div>
@@ -293,14 +275,14 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
                   name="paymentMethod"
                   value={formData.paymentMethod}
                   onChange={handleChange}
-                  className="input-pro appearance-none cursor-pointer"
+                  className="input-pro appearance-none cursor-pointer bg-slate-900 border-slate-700 focus:border-indigo-500"
                 >
-                  <option value="DEBIT" className="bg-surface">Débito</option>
-                  <option value="CREDIT" className="bg-surface">Crédito</option>
-                  <option value="CASH" className="bg-surface">Efectivo</option>
+                  <option value="DEBIT" className="bg-slate-800">Débito</option>
+                  <option value="CREDIT" className="bg-slate-800">Crédito</option>
+                  <option value="CASH" className="bg-slate-800">Efectivo</option>
                 </select>
               ) : (
-                 <div className="h-full flex items-center px-4 text-textMuted text-sm border border-border rounded-2xl bg-surfaceHighlight/10">
+                 <div className="h-full flex items-center px-4 text-slate-400 text-sm border border-slate-700 rounded-2xl bg-slate-700/10">
                    Ingreso
                  </div>
               )}
@@ -315,10 +297,10 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
                         name="installments"
                         value={formData.installments}
                         onChange={handleChange}
-                        className="input-pro appearance-none cursor-pointer"
+                        className="input-pro appearance-none cursor-pointer bg-slate-900 border-slate-700 focus:border-indigo-500"
                     >
                         {[1, 3, 6, 9, 12].map(num => (
-                            <option key={num} value={num} className="bg-surface">{num} cuotas</option>
+                            <option key={num} value={num} className="bg-slate-800">{num} cuotas</option>
                         ))}
                     </select>
                  </div>
@@ -327,11 +309,11 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
             )}
 
             {/* Switch Pendiente/Pagado */}
-            <label className="w-1/2 flex items-center justify-between cursor-pointer bg-surfaceHighlight border border-border p-3 rounded-xl hover:border-primary/50 transition-colors">
-                <span className="text-sm text-textMuted select-none">
+            <label className="w-1/2 flex items-center justify-between cursor-pointer bg-slate-700 border border-slate-600 p-3 rounded-xl hover:border-indigo-500/50 transition-colors">
+                <span className="text-sm text-slate-400 select-none">
                  {formData.status === 'COMPLETED' ? 'Pagado' : 'Pendiente'}
                 </span>
-                <div className={`w-10 h-5 rounded-full relative transition-colors ${formData.status === 'COMPLETED' ? 'bg-primary' : 'bg-gray-600'}`}>
+                <div className={`w-10 h-5 rounded-full relative transition-colors ${formData.status === 'COMPLETED' ? 'bg-indigo-500' : 'bg-slate-500'}`}>
                    <input type="checkbox" name="isPaid" checked={formData.status === 'COMPLETED'} onChange={handleChange} className="hidden"/>
                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-transform duration-200 ${formData.status === 'COMPLETED' ? 'left-6' : 'left-1'}`}></div>
                 </div>
@@ -351,25 +333,25 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
         <div className="relative">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
                 {tags.map(tag => (
-                    <span key={tag} className="bg-primary/20 text-primary text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                    <span key={tag} className="bg-indigo-500/20 text-indigo-400 text-xs px-2 py-1 rounded-full flex items-center gap-1">
                         {tag}
                         <button type="button" onClick={() => removeTag(tag)} className="hover:text-white"><X size={12} /></button>
                     </span>
                 ))}
             </div>
             <div className="relative group">
-                 <Tag className="absolute left-4 top-3.5 text-textMuted" size={16} />
+                 <Tag className="absolute left-4 top-3.5 text-slate-400" size={16} />
                  <input
                     type="text"
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyDown={handleTagKeyDown}
                     placeholder="Etiquetas (Presiona Enter)"
-                    className="input-pro pl-10 text-sm"
+                    className="input-pro pl-10 text-sm bg-slate-900 border-slate-700 focus:border-indigo-500"
                  />
                  {/* Autocomplete Suggestions */}
                  {tagInput && (
-                    <div className="absolute z-10 w-full bg-surface border border-border rounded-xl mt-1 shadow-xl max-h-32 overflow-y-auto">
+                    <div className="absolute z-10 w-full bg-slate-800 border border-slate-700 rounded-xl mt-1 shadow-xl max-h-32 overflow-y-auto">
                         {availableTags
                             .filter(t => t.toLowerCase().includes(tagInput.toLowerCase()) && !tags.includes(t))
                             .map(t => (
@@ -377,7 +359,7 @@ const TransactionForm = ({ onTransactionAdded, initialData, onCancelEdit, exchan
                                     key={t}
                                     type="button"
                                     onClick={() => addTag(t)}
-                                    className="w-full text-left px-4 py-2 hover:bg-surfaceHighlight text-sm text-textMuted hover:text-white"
+                                    className="w-full text-left px-4 py-2 hover:bg-slate-700 text-sm text-slate-400 hover:text-white"
                                 >
                                     {t}
                                 </button>

@@ -5,7 +5,7 @@ import { getSpendingTrend } from '../../utils/analyticsHelpers';
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-surface border border-border p-3 rounded-lg shadow-xl">
+            <div className="bg-slate-800 border border-slate-700 p-3 rounded-lg shadow-xl">
                 <p className="text-white font-bold mb-1">Día {label}</p>
                 {payload.map((entry, index) => (
                         <p key={index} className="text-sm font-mono" style={{ color: entry.color }}>
@@ -27,40 +27,40 @@ const SpendingTrendChart = ({ transactions }) => {
             <div className="flex-1 w-full min-w-0">
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#2e1a4f" vertical={false} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                         <XAxis
                             dataKey="day"
-                            stroke="#a78bfa"
-                            tick={{ fill: '#a78bfa', fontSize: 12 }}
+                            stroke="#6366f1"
+                            tick={{ fill: '#94a3b8', fontSize: 12 }}
                             tickLine={false}
                             axisLine={false}
                             interval={4}
                         />
                         <YAxis
-                            stroke="#a78bfa"
-                            tick={{ fill: '#a78bfa', fontSize: 12 }}
+                            stroke="#6366f1"
+                            tick={{ fill: '#94a3b8', fontSize: 12 }}
                             tickLine={false}
                             axisLine={false}
                             tickFormatter={(value) => `$${value / 1000}k`}
                         />
-                        <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(124, 58, 237, 0.3)', strokeWidth: 2 }} />
+                        <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(99, 102, 241, 0.3)', strokeWidth: 2 }} />
                         <Legend wrapperStyle={{ paddingTop: '10px' }} />
 
                         <Line
                             type="monotone"
                             dataKey="thisMonth"
                             name="Este Mes"
-                            stroke="#d8b4fe" // Neon
+                            stroke="#8b5cf6"
                             strokeWidth={3}
                             dot={false}
-                            activeDot={{ r: 6, fill: '#d8b4fe' }}
+                            activeDot={{ r: 6, fill: '#8b5cf6' }}
                             connectNulls={false}
                         />
                         <Line
                             type="monotone"
                             dataKey="lastMonth"
                             name="Mes Pasado"
-                            stroke="#525252" // Greyish
+                            stroke="#475569"
                             strokeWidth={2}
                             strokeDasharray="5 5"
                             dot={false}

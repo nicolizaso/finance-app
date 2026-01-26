@@ -12,23 +12,23 @@
 }
 
 @layer components {
-  /* Clase maestra para todos los contenedores */
+  /* Nebula Card */
   .bento-card {
-    @apply bg-surface border border-border rounded-3xl p-6 shadow-card transition-all duration-300 hover:border-primary/30 relative overflow-hidden;
+    @apply bg-surface border border-border rounded-2xl p-6 shadow-card transition-all duration-300 hover:border-indigo-500/30 relative overflow-hidden;
   }
 
-  /* Inputs profesionales */
+  /* Nebula Input */
   .input-pro {
-    @apply w-full bg-surfaceHighlight border border-border text-white p-3.5 rounded-xl outline-none transition-all duration-200 focus:border-primary focus:ring-1 focus:ring-primary/50 placeholder-textMuted/50;
+    @apply w-full bg-void border border-border text-white p-3.5 rounded-xl outline-none transition-all duration-200 focus:border-primary focus:ring-1 focus:ring-primary/50 placeholder-textMuted/50;
   }
 
-  /* Botones vibrantes */
+  /* Nebula Button */
   .btn-primary {
-    @apply w-full bg-gradient-to-r from-primary to-primaryHover text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:scale-[1.02] active:scale-95 transition-all duration-200 flex justify-center items-center gap-2;
+    @apply w-full bg-gradient-to-r from-primary to-violet-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:scale-[1.02] active:scale-95 transition-all duration-200 flex justify-center items-center gap-2;
   }
 }
 
-/* Scrollbar invisible pero funcional o estilizado */
+/* Styled Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -37,9 +37,9 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #064e3b;
+  background: #334155;
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #10b981;
+  background: #6366f1;
 }

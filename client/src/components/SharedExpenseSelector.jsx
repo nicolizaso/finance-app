@@ -5,40 +5,31 @@ import { Users, User, Percent, Search, ArrowRightLeft } from 'lucide-react';
 const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
   const [enabled, setEnabled] = useState(false);
   
-  // Estados para búsqueda de usuario
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null); // { _id, username } OR { _id: null, username: 'Otro' }
+  const [selectedUser, setSelectedUser] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [customName, setCustomName] = useState('');
 
-  // Estados para split
   const [myPercentage, setMyPercentage] = useState(50);
 
-  // Inicialización desde Edición
   useEffect(() => {
     if (initialData && initialData.isShared) {
         setEnabled(true);
 
-        // Check if sharedWith is a populated object (Fix for Bug #2)
         if (typeof initialData.sharedWith === 'object' && initialData.sharedWith !== null && initialData.sharedWith._id) {
              setSelectedUser({
                  _id: initialData.sharedWith._id,
                  username: initialData.sharedWith.name || initialData.sharedWith.username || 'Usuario'
              });
         }
-        // Si es un ID (ObjectId de mongo tiene 24 chars)
         else if (typeof initialData.sharedWith === 'string' && initialData.sharedWith.length === 24) {
              setSelectedUser({ _id: initialData.sharedWith, username: 'Usuario (ID)' });
         } else {
-             // Es custom name o 'PARTNER'
              setSelectedUser({ _id: null, username: 'Otro' });
              setCustomName(typeof initialData.sharedWith === 'string' ? initialData.sharedWith : '');
         }
 
-        // Calcular porcentaje basado en amount vs otherShare
-        // initialData.amount es MI parte. initialData.otherShare es SU parte.
-        // Total = amount + otherShare
         const total = initialData.amount + (initialData.otherShare || 0);
         if (total > 0) {
             setMyPercentage(Math.round((initialData.amount / total) * 100));
@@ -46,7 +37,6 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
     }
   }, [initialData]);
   
-  // Efecto para debounce de búsqueda
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
         if (searchTerm.length >= 2 && !selectedUser) {
@@ -67,36 +57,32 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm, selectedUser]);
 
-  // Calcular montos
   const total = parseFloat(totalAmount) || 0;
   const myShare = Math.round((total * myPercentage) / 100);
   const otherShare = Math.round(total - myShare);
 
-  // Notificar al padre cada vez que cambia algo relevante
   useEffect(() => {
     if (!enabled) {
-        onChange(null); // Desactivado
+        onChange(null);
         return;
     }
 
-    // Datos válidos solo si hay un usuario seleccionado (o custom name si es Otro)
     let finalSharedWith = '';
     if (selectedUser) {
         if (selectedUser._id) finalSharedWith = selectedUser._id;
-        else finalSharedWith = customName; // Si es "Otro"
+        else finalSharedWith = customName;
     }
 
     onChange({
         isShared: true,
-        sharedWith: finalSharedWith, // ID o Nombre
-        myShare: myShare * 100, // Centavos
-        otherShare: otherShare * 100, // Centavos
-        myPercentage: myPercentage // Store percentage for future edits/calcs
+        sharedWith: finalSharedWith,
+        myShare: myShare * 100,
+        otherShare: otherShare * 100,
+        myPercentage: myPercentage
     });
 
   }, [enabled, selectedUser, customName, myPercentage, total]);
 
-  // Helpers
   const handleSelectUser = (user) => {
     setSelectedUser(user);
     setSearchTerm(user.username);
@@ -111,15 +97,15 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
   };
 
   return (
-    <div className="bg-surfaceHighlight/20 border border-border p-4 rounded-xl mt-4">
+    <div className="bg-slate-700/20 border border-slate-700 p-4 rounded-xl mt-4">
       {/* 1. Checkbox Activador */}
       <label className="flex items-center gap-3 cursor-pointer select-none">
-        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${enabled ? 'bg-primary border-primary' : 'border-textMuted bg-transparent'}`}>
+        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${enabled ? 'bg-indigo-500 border-indigo-500' : 'border-slate-400 bg-transparent'}`}>
             {enabled && <Users size={12} className="text-white" />}
         </div>
         <input type="checkbox" checked={enabled} onChange={() => setEnabled(!enabled)} className="hidden" />
         <span className="text-sm font-bold text-white flex items-center gap-2">
-            <Users size={16} className="text-primary" /> ¿Gasto Compartido?
+            <Users size={16} className="text-indigo-400" /> ¿Gasto Compartido?
         </span>
       </label>
 
@@ -129,39 +115,39 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
             
             {/* A. Selector de Usuario */}
             <div className="relative z-20">
-                <label className="text-[10px] uppercase text-textMuted font-bold mb-1 block">Compartir con:</label>
+                <label className="text-[10px] uppercase text-slate-400 font-bold mb-1 block">Compartir con:</label>
                 
                 {!selectedUser ? (
                     <>
                         <div className="relative">
-                            <Search className="absolute left-3 top-3 text-textMuted" size={16} />
+                            <Search className="absolute left-3 top-3 text-slate-400" size={16} />
                             <input 
                                 type="text" 
                                 placeholder="Buscar usuario o escribir 'Otro'" 
-                                className="input-pro pl-10 text-sm"
+                                className="input-pro pl-10 text-sm bg-slate-900 border-slate-700 focus:border-indigo-500"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
-                            {isSearching && <div className="absolute right-3 top-3 text-xs text-textMuted animate-pulse">...</div>}
+                            {isSearching && <div className="absolute right-3 top-3 text-xs text-slate-400 animate-pulse">...</div>}
                         </div>
 
                         {/* Resultados */}
                         {(searchResults.length > 0 || searchTerm.length > 1) && (
-                            <div className="absolute w-full bg-surface border border-border rounded-xl mt-1 max-h-40 overflow-y-auto shadow-glow z-30">
+                            <div className="absolute w-full bg-slate-800 border border-slate-700 rounded-xl mt-1 max-h-40 overflow-y-auto shadow-glow z-30">
                                 {searchResults.map(u => (
                                     <button 
                                         type="button"
                                         key={u._id} 
                                         onClick={() => handleSelectUser(u)}
-                                        className="w-full text-left p-3 hover:bg-primary/20 hover:text-white text-textMuted text-sm border-b border-border/50 last:border-0 transition-colors"
+                                        className="w-full text-left p-3 hover:bg-slate-700 text-slate-400 text-sm border-b border-slate-700 last:border-0 transition-colors"
                                     >
-                                        <span className="font-bold">{u.username}</span> <span className="text-xs opacity-70">({u.name})</span>
+                                        <span className="font-bold text-white">{u.username}</span> <span className="text-xs opacity-70">({u.name})</span>
                                     </button>
                                 ))}
                                 <button 
                                     type="button"
                                     onClick={() => handleSelectUser({ _id: null, username: 'Otro' })}
-                                    className="w-full text-left p-3 hover:bg-primary/20 hover:text-white text-primary font-bold text-sm transition-colors"
+                                    className="w-full text-left p-3 hover:bg-slate-700 text-indigo-400 font-bold text-sm transition-colors"
                                 >
                                     Otro...
                                 </button>
@@ -171,7 +157,7 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
                 ) : (
                     <div className="flex gap-2">
                         {/* Usuario Seleccionado */}
-                        <div className="flex-1 bg-primary/20 border border-primary text-white p-2 rounded-lg flex justify-between items-center">
+                        <div className="flex-1 bg-indigo-500/20 border border-indigo-500 text-white p-2 rounded-lg flex justify-between items-center">
                             <div className="flex items-center gap-2">
                                 <User size={16} />
                                 <span className="text-sm font-bold">{selectedUser.username}</span>
@@ -184,7 +170,7 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
                             <input 
                                 type="text" 
                                 placeholder="Nombre..." 
-                                className="input-pro text-sm flex-1"
+                                className="input-pro text-sm flex-1 bg-slate-900 border-slate-700 focus:border-indigo-500"
                                 value={customName}
                                 onChange={(e) => setCustomName(e.target.value)}
                                 autoFocus
@@ -195,8 +181,8 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
             </div>
 
             {/* B. Splitter */}
-            <div className="bg-void/50 p-3 rounded-xl border border-white/5">
-                <div className="flex justify-between text-xs text-textMuted mb-2 uppercase font-bold tracking-wider">
+            <div className="bg-slate-900/50 p-3 rounded-xl border border-white/5">
+                <div className="flex justify-between text-xs text-slate-400 mb-2 uppercase font-bold tracking-wider">
                     <span>Yo pago ({myPercentage}%)</span>
                     <span>Ellos pagan ({100 - myPercentage}%)</span>
                 </div>
@@ -206,17 +192,17 @@ const SharedExpenseSelector = ({ totalAmount, onChange, initialData }) => {
                     min="0" max="100" step="5"
                     value={myPercentage}
                     onChange={(e) => setMyPercentage(parseInt(e.target.value))}
-                    className="w-full h-2 bg-surfaceHighlight rounded-lg appearance-none cursor-pointer accent-primary mb-3"
+                    className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 mb-3"
                 />
 
                 <div className="flex justify-between items-center gap-4">
-                    <div className="bg-surfaceHighlight p-2 rounded-lg flex-1 text-center border border-primary/30">
-                        <p className="text-textMuted text-[10px]">Mi parte</p>
+                    <div className="bg-slate-800 p-2 rounded-lg flex-1 text-center border border-indigo-500/30">
+                        <p className="text-slate-400 text-[10px]">Mi parte</p>
                         <p className="text-white font-mono font-bold">${myShare}</p>
                     </div>
-                    <div className="text-textMuted"><ArrowRightLeft size={14} /></div>
-                    <div className="bg-surfaceHighlight p-2 rounded-lg flex-1 text-center border border-white/5">
-                        <p className="text-textMuted text-[10px]">Su parte</p>
+                    <div className="text-slate-400"><ArrowRightLeft size={14} /></div>
+                    <div className="bg-slate-800 p-2 rounded-lg flex-1 text-center border border-white/5">
+                        <p className="text-slate-400 text-[10px]">Su parte</p>
                         <p className="text-white font-mono font-bold">${otherShare}</p>
                     </div>
                 </div>

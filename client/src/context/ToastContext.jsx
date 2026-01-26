@@ -42,19 +42,19 @@ export const ToastProvider = ({ children }) => {
 
 const ToastItem = ({ message, type, onClose }) => {
     const icons = {
-        success: <CheckCircle size={20} className="text-emerald-400" />,
+        success: <CheckCircle size={20} className="text-teal-400" />,
         error: <AlertCircle size={20} className="text-rose-400" />,
         warning: <AlertTriangle size={20} className="text-amber-400" />,
-        info: <Info size={20} className="text-primary" />,
+        info: <Info size={20} className="text-indigo-400" />,
     };
 
     const baseStyles = "pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border backdrop-blur-md shadow-lg min-w-[300px] max-w-sm";
     
     const typeStyles = {
-        success: 'border-emerald-500/50 bg-emerald-500/10 shadow-[0_0_15px_rgba(16,185,129,0.2)]',
-        error: 'border-rose-500/50 bg-rose-500/10 shadow-[0_0_15px_rgba(244,63,94,0.2)]',
-        warning: 'border-amber-500/50 bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.2)]',
-        info: 'border-primary/50 bg-primary/10 shadow-[0_0_15px_rgba(16,185,129,0.2)]',
+        success: 'border-teal-500/50 bg-slate-800 shadow-[0_0_15px_rgba(20,184,166,0.2)]',
+        error: 'border-rose-500/50 bg-slate-800 shadow-[0_0_15px_rgba(244,63,94,0.2)]',
+        warning: 'border-amber-500/50 bg-slate-800 shadow-[0_0_15px_rgba(245,158,11,0.2)]',
+        info: 'border-indigo-500/50 bg-slate-800 shadow-[0_0_15px_rgba(99,102,241,0.2)]',
     };
 
     return (
@@ -66,7 +66,7 @@ const ToastItem = ({ message, type, onClose }) => {
         >
             {icons[type]}
             <p className="text-sm font-medium text-white flex-1">{message}</p>
-            <button onClick={onClose} className="text-white/50 hover:text-white transition-colors">
+            <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
                 <X size={16} />
             </button>
         </motion.div>

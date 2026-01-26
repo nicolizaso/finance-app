@@ -5,24 +5,22 @@ import { Plus, Minus, Edit2, Trash2 } from 'lucide-react';
 export default function SavingsCard({ goal, onAddFunds, onWithdraw, onEdit, onDelete, isPrivacyMode }) {
     const { title, targetAmount, currentAmount, icon, color, deadline, currency = 'ARS' } = goal;
 
-    // Percentage for Ring
     const percentage = Math.min(100, Math.max(0, (currentAmount / targetAmount) * 100));
-    const circumference = 2 * Math.PI * 40; // radius 40
+    const circumference = 2 * Math.PI * 40;
     const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
     const IconComponent = Icons[icon] || Icons.PiggyBank;
 
-    // Format Money
     const formatMoney = (amount) => {
         if (isPrivacyMode) return '****';
         return new Intl.NumberFormat('es-AR', { style: 'currency', currency: currency, maximumFractionDigits: 0 }).format(amount);
     };
 
     return (
-        <div className="bg-surfaceHighlight/10 border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-between gap-4 w-full md:max-w-[300px] shrink-0 hover:border-white/20 transition-all group relative overflow-hidden">
+        <div className="bg-slate-700/10 border border-slate-700 rounded-2xl p-4 flex flex-col items-center justify-between gap-4 w-full md:max-w-[300px] shrink-0 hover:border-slate-600 transition-all group relative overflow-hidden">
             {/* Background Glow */}
             <div
-                className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none"
+                className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-500 pointer-events-none"
                 style={{ backgroundColor: color }}
             ></div>
 
@@ -30,21 +28,21 @@ export default function SavingsCard({ goal, onAddFunds, onWithdraw, onEdit, onDe
             <div className="w-full relative z-10 flex justify-between items-start">
                 <div className="text-left w-full pr-8">
                     <h3 className="font-bold text-white text-md truncate">{title}</h3>
-                    <p className="text-xs text-textMuted mt-1">
+                    <p className="text-xs text-slate-400 mt-1">
                         Meta: {formatMoney(targetAmount)}
                     </p>
                     {deadline && (
-                        <p className="text-[10px] text-textMuted mt-0.5">
+                        <p className="text-[10px] text-slate-500 mt-0.5">
                             {new Date(deadline).toLocaleDateString()}
                         </p>
                     )}
                 </div>
                  {/* Top Right Actions (Visible on Hover/Focus) */}
                  <div className="absolute top-0 right-0 flex flex-col gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => onEdit(goal)} className="p-1.5 text-textMuted hover:text-white bg-black/20 rounded-md">
+                    <button onClick={() => onEdit(goal)} className="p-1.5 text-slate-400 hover:text-white bg-slate-900/20 rounded-md">
                         <Edit2 size={14} />
                     </button>
-                    <button onClick={() => onDelete(goal)} className="p-1.5 text-textMuted hover:text-rose-500 bg-black/20 rounded-md">
+                    <button onClick={() => onDelete(goal)} className="p-1.5 text-slate-400 hover:text-rose-500 bg-slate-900/20 rounded-md">
                         <Trash2 size={14} />
                     </button>
                 </div>
@@ -61,7 +59,7 @@ export default function SavingsCard({ goal, onAddFunds, onWithdraw, onEdit, onDe
                         stroke="currentColor"
                         strokeWidth="8"
                         fill="transparent"
-                        className="text-white/10"
+                        className="text-slate-800"
                     />
                     <circle
                         cx="64"
@@ -80,7 +78,7 @@ export default function SavingsCard({ goal, onAddFunds, onWithdraw, onEdit, onDe
 
                 {/* Icon Center */}
                 <div
-                    className="w-16 h-16 rounded-full flex items-center justify-center bg-surface border-2 border-transparent relative"
+                    className="w-16 h-16 rounded-full flex items-center justify-center bg-slate-800 border-2 border-transparent relative"
                     style={{ borderColor: `${color}40` }}
                 >
                     <IconComponent size={32} color={color} />
@@ -93,7 +91,7 @@ export default function SavingsCard({ goal, onAddFunds, onWithdraw, onEdit, onDe
                     <span className={`text-xl font-bold text-white ${isPrivacyMode ? 'blur-sm' : ''}`}>
                          {formatMoney(currentAmount)}
                     </span>
-                    <p className="text-xs text-textMuted">Ahorrado ({Math.round(percentage)}%)</p>
+                    <p className="text-xs text-slate-400">Ahorrado ({Math.round(percentage)}%)</p>
                 </div>
 
                 <div className="flex gap-2 w-full">
@@ -106,7 +104,7 @@ export default function SavingsCard({ goal, onAddFunds, onWithdraw, onEdit, onDe
                     </button>
                     <button
                         onClick={() => onAddFunds(goal)}
-                        className="flex-1 btn-icon h-8 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-colors rounded-lg flex items-center justify-center"
+                        className="flex-1 btn-icon h-8 bg-teal-500/10 text-teal-500 hover:bg-teal-500 hover:text-white transition-colors rounded-lg flex items-center justify-center"
                         title="Agregar Fondos"
                     >
                         <Plus size={16} />
