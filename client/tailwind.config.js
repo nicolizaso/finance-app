@@ -8,7 +8,7 @@ export default {
     extend: {
       colors: {
         // FONDO: Neutral Dark
-        void: '#0a0a0a',
+        void: '#022c22',
         
         // TARJETAS: Zinc-900
         surface: '#18181b',

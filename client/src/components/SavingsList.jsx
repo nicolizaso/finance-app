@@ -135,8 +135,8 @@ export default function SavingsList({ isPrivacyMode }) {
                 </button>
             </div>
 
-            <div className="p-4 overflow-x-auto custom-scrollbar">
-                <div className="flex gap-4 pb-2">
+            <div className="p-4 md:overflow-x-auto custom-scrollbar">
+                <div className="flex flex-col md:flex-row gap-4 pb-2">
                     {goals.length === 0 ? (
                         <div className="text-textMuted text-sm w-full text-center py-8">
                             No tienes metas de ahorro activas.

@@ -19,7 +19,7 @@ export default function SavingsCard({ goal, onAddFunds, onWithdraw, onEdit, onDe
     };
 
     return (
-        <div className="bg-surfaceHighlight/10 border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-between gap-4 w-full max-w-[300px] hover:border-white/20 transition-all group relative overflow-hidden">
+        <div className="bg-surfaceHighlight/10 border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-between gap-4 w-full md:max-w-[300px] shrink-0 hover:border-white/20 transition-all group relative overflow-hidden">
             {/* Background Glow */}
             <div
                 className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none"
