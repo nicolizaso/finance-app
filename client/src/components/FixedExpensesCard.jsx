@@ -10,6 +10,7 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
   const [payingTransaction, setPayingTransaction] = useState(null);
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState('');
+  const [myShareAmount, setMyShareAmount] = useState(0);
   const [filterMode, setFilterMode] = useState('ALL');
 
   // Month Navigation State
@@ -122,7 +123,12 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
   // --- MODAL HANDLERS ---
   const openPayModal = (t, amountToPay) => {
     setPayingTransaction(t);
-    setPaymentAmount(formatMoney(amountToPay || t.amount));
+    setMyShareAmount(amountToPay || t.amount);
+
+    // Si es compartido y tiene monto total, mostramos el total por defecto
+    // Si no, mostramos la parte correspondiente (amountToPay)
+    const initialAmount = (t.isShared && t.totalAmount) ? t.totalAmount : (amountToPay || t.amount);
+    setPaymentAmount(formatMoney(initialAmount));
   };
 
   const handleAmountChange = (e) => {
@@ -141,12 +147,38 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
     }
 
     try {
-      await api.put(`/transactions/${payingTransaction._id}`, { 
+      const payload = {
           ...payingTransaction, 
-          amount: cleanAmount * 100, 
           status: 'COMPLETED',
           isFixed: true 
-      });
+      };
+
+      if (payingTransaction.isShared) {
+          // Lógica para gastos compartidos:
+          // Si el usuario cambia el TOTAL, recalculamos su parte (amount) proporcionalmente.
+          const oldTotal = payingTransaction.totalAmount || payingTransaction.amount;
+          const oldShare = payingTransaction.amount;
+
+          let newShare = oldShare;
+
+          // Solo recalculamos si hay un total previo válido y el monto cambió
+          if (oldTotal > 0 && cleanAmount * 100 !== oldTotal) {
+             const ratio = oldShare / oldTotal;
+             newShare = Math.round((cleanAmount * 100) * ratio);
+          } else if (cleanAmount * 100 === oldTotal) {
+             // Si el monto es igual al total, mantenemos el share original
+             newShare = oldShare;
+          }
+
+          payload.totalAmount = cleanAmount * 100;
+          payload.amount = newShare;
+
+      } else {
+          // Gasto Personal
+          payload.amount = cleanAmount * 100;
+      }
+
+      await api.put(`/transactions/${payingTransaction._id}`, payload);
       onRefresh(); 
       setPayingTransaction(null);
       addToast("Gasto marcado como pagado", "success");
@@ -425,7 +457,16 @@ const FixedExpensesCard = ({ transactions: propTransactions, onRefresh, onOpenCo
             
             <form onSubmit={confirmPay} className="space-y-4">
               <div>
-                <label className="block text-xs text-textMuted/70 mb-1 ml-1 uppercase tracking-wider font-bold">Monto Final</label>
+                <div className="flex justify-between items-end mb-1 ml-1">
+                    <label className="block text-xs text-textMuted/70 uppercase tracking-wider font-bold">
+                        {payingTransaction.isShared ? 'Monto Total de la Factura' : 'Monto Final'}
+                    </label>
+                    {payingTransaction.isShared && (
+                        <span className="text-xs text-emerald-400 font-mono">
+                            (Tu parte: {formatMoney(myShareAmount)})
+                        </span>
+                    )}
+                </div>
                 <div className="relative">
                   <span className="absolute left-4 top-3.5 text-textMuted">$</span>
                   <input type="text" inputMode="numeric" className="input-pro pl-8 font-mono text-lg bg-void border-primary/30 focus:border-primary" value={paymentAmount} onChange={handleAmountChange} placeholder="0" autoFocus />
