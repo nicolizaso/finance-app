@@ -1,0 +1,74 @@
+
+> finanzapp-client@0.1.0 dev
+> vite
+
+
+  VITE v6.4.1  ready in 391 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+5:57:47 AM [vite] http proxy error: /api/transactions/projection
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:57:47 AM [vite] http proxy error: /api/fixed-expenses/monthly-view?month=0&year=2026
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:57:47 AM [vite] http proxy error: /api/transactions/projection
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:57:47 AM [vite] http proxy error: /api/fixed-expenses/monthly-view?month=0&year=2026
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:57:47 AM [vite] http proxy error: /api/transactions/projection
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:58:25 AM [vite] http proxy error: /api/transactions/projection
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:58:25 AM [vite] http proxy error: /api/fixed-expenses/monthly-view?month=0&year=2026
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:58:25 AM [vite] http proxy error: /api/transactions/projection
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:58:25 AM [vite] http proxy error: /api/fixed-expenses/monthly-view?month=0&year=2026
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:58:25 AM [vite] http proxy error: /api/transactions/projection
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:58:25 AM [vite] http proxy error: /api/fixed-expenses/monthly-view?month=0&year=2026
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:58:25 AM [vite] http proxy error: /api/transactions/projection
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:58:25 AM [vite] http proxy error: /api/fixed-expenses/monthly-view?month=0&year=2026
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:59:16 AM [vite] http proxy error: /api/transactions/projection
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:59:16 AM [vite] http proxy error: /api/fixed-expenses/monthly-view?month=0&year=2026
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:59:16 AM [vite] http proxy error: /api/transactions/projection
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:59:16 AM [vite] http proxy error: /api/fixed-expenses/monthly-view?month=0&year=2026
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:59:16 AM [vite] http proxy error: /api/transactions/projection
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:59:16 AM [vite] http proxy error: /api/fixed-expenses/monthly-view?month=0&year=2026
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:59:16 AM [vite] http proxy error: /api/transactions/projection
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:59:16 AM [vite] http proxy error: /api/fixed-expenses/monthly-view?month=0&year=2026
+Error: connect ECONNREFUSED 127.0.0.1:5000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+5:59:49 AM [vite] (client) hmr update /src/App.jsx, /src/index.css
+6:00:33 AM [vite] (client) hmr update /src/App.jsx, /src/index.css
