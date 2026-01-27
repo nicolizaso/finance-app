@@ -56,6 +56,7 @@ router.put('/:id', async (req, res) => {
     // Explicitly update fields
     if (req.body.title) wishlist.title = req.body.title;
     if (req.body.items) wishlist.items = req.body.items;
+    if (req.body.urgency) wishlist.urgency = req.body.urgency;
 
     // We do NOT update type usually, but if needed:
     if (req.body.type) wishlist.type = req.body.type;
@@ -82,10 +83,10 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// PATCH update specific item (e.g. toggle isBought)
+// PATCH update specific item (e.g. toggle isBought or urgency)
 router.patch('/:id/items/:itemId', async (req, res) => {
     const userId = getUserId(req);
-    const { isBought } = req.body;
+    const { isBought, urgency } = req.body;
 
     try {
         const wishlist = await Wishlist.findOne({ _id: req.params.id, userId });
@@ -95,6 +96,7 @@ router.patch('/:id/items/:itemId', async (req, res) => {
         if (!item) return res.status(404).json({ success: false, error: 'Item not found' });
 
         if (isBought !== undefined) item.isBought = isBought;
+        if (urgency !== undefined) item.urgency = urgency;
 
         await wishlist.save();
         res.json({ success: true, data: wishlist });
