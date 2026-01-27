@@ -1,8 +1,4 @@
-
-> server@1.0.0 start
-> node index.js
-
-[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔑 add access controls to secrets: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 👥 sync secrets across teammates & machines: https://dotenvx.com/ops
 No MONGO_URI found, using Memory Server
 Servidor corriendo en el puerto 5000
 MongoDB Conectado

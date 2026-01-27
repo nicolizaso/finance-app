@@ -4,7 +4,8 @@ const WishlistItemSchema = new mongoose.Schema({
   description: { type: String, required: true },
   estimatedPrice: { type: Number, required: true },
   isBought: { type: Boolean, default: false },
-  link: { type: String }
+  link: { type: String },
+  urgency: { type: String, enum: ['low', 'medium', 'high'], default: 'low' }
 });
 
 const WishlistSchema = new mongoose.Schema({
@@ -12,6 +13,7 @@ const WishlistSchema = new mongoose.Schema({
   title: { type: String, required: true },
   type: { type: String, enum: ['PROJECT', 'ITEM'], required: true },
   items: [WishlistItemSchema],
+  urgency: { type: String, enum: ['low', 'medium', 'high'], default: 'low' },
   totalEstimated: { type: Number, default: 0 },
   status: { type: String, enum: ['ACTIVE', 'COMPLETED'], default: 'ACTIVE' },
   createdAt: { type: Date, default: Date.now }

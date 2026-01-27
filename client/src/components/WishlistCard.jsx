@@ -5,6 +5,7 @@ import {
     X, ExternalLink, ChevronDown, ChevronUp, 
     ShoppingBag, LayoutList, Gift 
 } from 'lucide-react';
+import Swal from 'sweetalert2';
 import api from '../api/axios';
 import { useOutletContext } from 'react-router-dom';
 
@@ -28,6 +29,44 @@ const WishlistCard = ({ refreshTrigger }) => {
     const contextData = useOutletContext();
     const onRefresh = contextData?.onRefresh || (() => {});
     const handleGamification = contextData?.handleGamification || (() => {});
+
+    // Urgency Logic
+    const toggleUrgency = async (wishlist, item = null) => {
+        const levels = ['low', 'medium', 'high'];
+        const currentUrgency = item ? (item.urgency || 'low') : (wishlist.urgency || 'low');
+        const nextIndex = (levels.indexOf(currentUrgency) + 1) % levels.length;
+        const nextUrgency = levels[nextIndex];
+
+        try {
+            if (item) {
+                // Update sub-item
+                 await api.patch(`/wishlist/${wishlist._id}/items/${item._id}`, { urgency: nextUrgency });
+            } else {
+                // Update main wishlist
+                await api.put(`/wishlist/${wishlist._id}`, { urgency: nextUrgency });
+            }
+            fetchWishlists();
+        } catch (error) {
+            console.error("Error updating urgency", error);
+        }
+    };
+
+    const UrgencyIndicator = ({ urgency, onClick }) => {
+        const colors = {
+            low: 'bg-emerald-500',
+            medium: 'bg-yellow-500',
+            high: 'bg-rose-500'
+        };
+        return (
+            <button
+                onClick={(e) => { e.stopPropagation(); onClick(); }}
+                className={`w-3 h-3 rounded-full ${colors[urgency || 'low']} ring-2 ring-slate-800 hover:ring-white/20 transition-all shadow-lg shadow-black/50`}
+                title={`Prioridad: ${urgency || 'low'}`}
+            />
+        );
+    };
+
+    const getRemaining = (w) => w.items.reduce((sum, item) => !item.isBought ? sum + (item.estimatedPrice || item.estimatedCost || 0) : sum, 0);
 
     const fetchWishlists = async () => {
         try {
@@ -155,24 +194,71 @@ const WishlistCard = ({ refreshTrigger }) => {
     };
 
     const handleBuyItem = async (wishlistId, itemId, itemData) => {
-        if (!window.confirm(`¿Ya compraste "${itemData.description}"? Esto creará un gasto real.`)) return;
+        const result = await Swal.fire({
+            title: `¿Registrar gasto?`,
+            text: `¿Deseas registrar "${itemData.description}" como un gasto real ahora?`,
+            icon: 'question',
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: 'Sí, crear gasto',
+            denyButtonText: 'No, solo marcar pagado',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#10B981', // emerald-500
+            denyButtonColor: '#6366f1', // indigo-500
+            background: '#1e293b', // slate-800
+            color: '#fff'
+        });
+
+        if (result.isDismissed) return;
 
         try {
-            await api.post('/transactions', {
-                description: itemData.description,
-                amount: itemData.estimatedPrice || itemData.estimatedCost,
-                category: 'Compras',
-                type: 'EXPENSE',
-                date: new Date(),
-                paymentMethod: 'DEBIT'
-            });
+            // Option 1: Create Expense + Mark Paid
+            if (result.isConfirmed) {
+                await api.post('/transactions', {
+                    description: itemData.description,
+                    amount: Number(itemData.estimatedPrice || itemData.estimatedCost), // Fix: Ensure raw number
+                    category: 'Compras',
+                    type: 'EXPENSE',
+                    date: new Date(),
+                    paymentMethod: 'DEBIT'
+                });
 
-            alert("Gasto creado en Actividad. ¡Felicidades!");
+                // ALSO mark as paid
+                await api.patch(`/wishlist/${wishlistId}/items/${itemId}`, { isBought: true });
+
+                Swal.fire({
+                    title: '¡Listo!',
+                    text: 'Gasto creado y marcado como pagado.',
+                    icon: 'success',
+                    background: '#1e293b',
+                    color: '#fff'
+                });
+
+            }
+            // Option 2: Just Mark Paid
+            else if (result.isDenied) {
+                await api.patch(`/wishlist/${wishlistId}/items/${itemId}`, { isBought: true });
+                Swal.fire({
+                    title: 'Actualizado',
+                    text: 'Item marcado como pagado.',
+                    icon: 'success',
+                    background: '#1e293b',
+                    color: '#fff'
+                });
+            }
+
             onRefresh();
+            fetchWishlists();
             
         } catch (error) {
             console.error(error);
-            alert("Error al crear el gasto");
+            Swal.fire({
+                title: 'Error',
+                text: 'Hubo un problema al procesar la solicitud',
+                icon: 'error',
+                background: '#1e293b',
+                color: '#fff'
+            });
         }
     };
 
@@ -214,21 +300,27 @@ const WishlistCard = ({ refreshTrigger }) => {
                                         className="flex items-center gap-3 flex-1 cursor-pointer"
                                         onClick={() => w.type === 'PROJECT' && setExpandedId(expandedId === w._id ? null : w._id)}
                                     >
-                                        {w.type === 'PROJECT' ? (
-                                            <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400">
-                                                <LayoutList size={16} />
+                                        <div className="relative">
+                                            {w.type === 'PROJECT' ? (
+                                                <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                                                    <LayoutList size={16} />
+                                                </div>
+                                            ) : (
+                                                <div className="w-8 h-8 rounded-lg bg-teal-500/20 flex items-center justify-center text-teal-400">
+                                                    <ShoppingBag size={16} />
+                                                </div>
+                                            )}
+                                            <div className="absolute -top-1 -right-1">
+                                                <UrgencyIndicator urgency={w.urgency} onClick={() => toggleUrgency(w)} />
                                             </div>
-                                        ) : (
-                                            <div className="w-8 h-8 rounded-lg bg-teal-500/20 flex items-center justify-center text-teal-400">
-                                                <ShoppingBag size={16} />
-                                            </div>
-                                        )}
+                                        </div>
+
                                         <div>
                                             <h4 className="font-bold text-white text-sm">{w.title}</h4>
                                             <p className="text-xs text-slate-400">
                                                 {w.type === 'PROJECT' 
                                                     ? `${w.items.filter(i => i.isBought).length}/${w.items.length} items` 
-                                                    : `$${w.totalEstimated?.toLocaleString() || 0}`
+                                                    : `$${getRemaining(w).toLocaleString()}`
                                                 }
                                             </p>
                                         </div>
@@ -255,13 +347,14 @@ const WishlistCard = ({ refreshTrigger }) => {
                                         {w.items.map((item, idx) => (
                                             <div key={idx} className="flex justify-between items-center text-sm group/item">
                                                 <div className="flex items-center gap-2">
+                                                    <UrgencyIndicator urgency={item.urgency} onClick={() => toggleUrgency(w, item)} />
                                                     <button 
                                                         onClick={() => !item.isBought && handleBuyItem(w._id, item._id, item)}
-                                                        className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${item.isBought ? 'bg-teal-500 border-teal-500' : 'border-slate-400 hover:border-indigo-400'}`}
+                                                        className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${item.isBought ? 'bg-emerald-500 border-emerald-500' : 'border-slate-400 hover:border-indigo-400'}`}
                                                     >
                                                         {item.isBought && <CheckCircle2 size={10} className="text-white" />}
                                                     </button>
-                                                    <span className={item.isBought ? 'text-slate-400 line-through' : 'text-slate-200'}>
+                                                    <span className={item.isBought ? 'text-emerald-500 italic line-through' : 'text-slate-200'}>
                                                         {item.description}
                                                     </span>
                                                     {item.link && (
@@ -274,8 +367,8 @@ const WishlistCard = ({ refreshTrigger }) => {
                                             </div>
                                         ))}
                                         <div className="pt-2 mt-2 border-t border-slate-600 flex justify-between items-center">
-                                            <span className="text-xs font-bold text-slate-400 uppercase">Total Estimado</span>
-                                            <span className="text-sm font-mono font-bold text-teal-400">${w.totalEstimated?.toLocaleString()}</span>
+                                            <span className="text-xs font-bold text-slate-400 uppercase">Restante</span>
+                                            <span className="text-sm font-mono font-bold text-emerald-400">${getRemaining(w).toLocaleString()}</span>
                                         </div>
                                     </div>
                                 )}
