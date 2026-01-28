@@ -82,6 +82,7 @@ const connectDB = async () => {
 connectDB();
 
 // Rutas
+app.get('/api/health', (req, res) => res.json({ status: 'awake' }));
 app.use('/api/transactions', require('./routes/transaction'));
 app.use('/api/fixed-expenses', require('./routes/fixedExpenses'));
 app.use('/api/users', require('./routes/users'));
