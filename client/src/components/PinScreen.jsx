@@ -1,10 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../api/axios';
 
 const PinScreen = ({ username, onLoginSuccess, onBack }) => {
   const [pin, setPin] = useState(['', '', '', '']);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState('Verificando...');
+
+  // 1. Warm-up del servidor al montar
+  useEffect(() => {
+    api.get('/health').catch(() => {});
+  }, []);
+
+  // 2. Feedback de carga lenta
+  useEffect(() => {
+    let timer;
+    if (loading) {
+      timer = setTimeout(() => {
+        setLoadingText('Despertando servidor...');
+      }, 3000);
+    } else {
+      setLoadingText('Verificando...');
+    }
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   const handlePress = async (num) => {
     if (loading) return;
@@ -64,7 +83,7 @@ const PinScreen = ({ username, onLoginSuccess, onBack }) => {
         />
         <h2 className="text-2xl font-bold text-white mb-1 capitalize">Hola, {username}</h2>
         <p className="text-slate-400 text-xs uppercase tracking-widest">
-           {loading ? 'Verificando...' : 'Ingresa tu PIN'}
+           {loading ? loadingText : 'Ingresa tu PIN'}
         </p>
       </div>
 
